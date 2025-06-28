@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Users, Clock, Heart, Navigation } from 'lucide-react';
 import { getEvents, getSpaces, Event, Space } from '../lib/supabase';
 
@@ -62,9 +61,17 @@ const Map = () => {
         setLoading(false);
       }
     };
+
+    loadMapData();
+  }, []);
+
   const filteredEvents = selectedCategory === 'all' 
     ? mapEvents 
-    : mapEvents.filter(event => event.category === selectedCategory);
+    : mapEvents.filter(event => event.category.toLowerCase().includes(selectedCategory.toLowerCase()));
+
+  const filteredSpaces = mapSpaces; // For now, show all spaces
+
+  const filteredItems = showSpaces ? filteredSpaces : filteredEvents;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
@@ -114,7 +121,7 @@ const Map = () => {
                   const Icon = category.icon;
                   const eventCount = category.id === 'all' 
                     ? mapEvents.length 
-                    : mapEvents.filter(e => e.category === category.id).length;
+                    : mapEvents.filter(e => e.category.toLowerCase().includes(category.id.toLowerCase())).length;
                   
                   return (
                     <button
@@ -202,89 +209,125 @@ const Map = () => {
 
               {/* Interactive Map */}
               <div className="relative h-80 sm:h-96 lg:h-[600px] bg-gradient-to-br from-green-100 via-forest-50 to-earth-50">
-                {/* Radius Circles */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="absolute w-24 h-24 sm:w-32 sm:h-32 border-2 border-forest-300 rounded-full opacity-40"></div>
-                  <div className="absolute w-36 h-36 sm:w-48 sm:h-48 border-2 border-forest-200 rounded-full opacity-30"></div>
-                  <div className="absolute w-48 h-48 sm:w-64 sm:h-64 border-2 border-forest-100 rounded-full opacity-20"></div>
-                  
-                  {/* Your Location */}
-                  <div className="absolute bg-earth-500 w-4 h-4 rounded-full border-2 border-white shadow-lg z-10">
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-forest-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
-                      Your Location
+                {loading ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-8 h-8 border-4 border-forest-200 border-t-forest-600 rounded-full animate-spin mx-auto mb-4"></div>
+                      <p className="text-forest-600">Loading map data...</p>
                     </div>
                   </div>
-                </div>
-
-                {/* Event/Space Markers */}
-                {filteredItems.map((item) => {
-                  const category = showSpaces 
-                    ? { icon: MapPin, color: 'text-earth-600' }
-                    : categories.find(c => c.id === item.category?.toLowerCase()) || { icon: MapPin, color: 'text-forest-600' };
-                  const Icon = category?.icon || MapPin;
-                  
-                  return (
-                    <div
-                      key={item.id}
-                      className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
-                      style={item.position}
-                    >
-                      <div className="bg-white rounded-full p-3 shadow-lg border-2 border-forest-200 hover:border-forest-400 transition-all duration-200 hover:scale-110">
-                        <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${category?.color || 'text-forest-600'}`} />
-                      </div>
+                ) : (
+                  <>
+                    {/* Radius Circles */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="absolute w-24 h-24 sm:w-32 sm:h-32 border-2 border-forest-300 rounded-full opacity-40"></div>
+                      <div className="absolute w-36 h-36 sm:w-48 sm:h-48 border-2 border-forest-200 rounded-full opacity-30"></div>
+                      <div className="absolute w-48 h-48 sm:w-64 sm:h-64 border-2 border-forest-100 rounded-full opacity-20"></div>
                       
-                      {/* Item Card on Hover */}
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 pointer-events-none">
-                        <div className="bg-white rounded-xl shadow-xl border border-forest-100 p-4 w-64">
-                          <h4 className="font-semibold text-forest-800 mb-2">{item.title || item.name}</h4>
-                          <div className="space-y-1 text-sm text-forest-600">
-                            {!showSpaces && (
-                              <div className="flex items-center">
-                                <Clock className="h-4 w-4 mr-2" />
-                                <span>{new Date(item.date + 'T' + item.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
-                              </div>
-                            )}
-                            <div className="flex items-center">
-                              <MapPin className="h-4 w-4 mr-2" />
-                              <span>{item.location_name || item.address}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <Users className="h-4 w-4 mr-2" />
-                              <span>
-                                {showSpaces 
-                                  ? `Up to ${item.capacity} people`
-                                  : `${item.participants?.length || 0}/${item.capacity} joined`
-                                }
-                              </span>
-                            </div>
-                          </div>
-                          <button className="w-full mt-3 bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
-                            {showSpaces ? 'Book Space' : 'Join Event'}
-                          </button>
+                      {/* Your Location */}
+                      <div className="absolute bg-earth-500 w-4 h-4 rounded-full border-2 border-white shadow-lg z-10">
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-forest-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
+                          Your Location
                         </div>
                       </div>
                     </div>
-                  );
-                })}
 
-                {/* Legend */}
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-forest-100">
-                  <h4 className="font-semibold text-forest-800 mb-2 text-sm">Map Legend</h4>
-                  <div className="space-y-2 text-xs sm:text-sm">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 bg-earth-500 rounded-full mr-2"></div>
-                      <span>Your Location</span>
+                    {/* Event/Space Markers */}
+                    {filteredItems.map((item) => {
+                      const category = showSpaces 
+                        ? { icon: MapPin, color: 'text-earth-600' }
+                        : categories.find(c => c.id === (item as Event).category?.toLowerCase()) || { icon: MapPin, color: 'text-forest-600' };
+                      const Icon = category?.icon || MapPin;
+                      
+                      return (
+                        <div
+                          key={item.id}
+                          className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
+                          style={(item as any).position}
+                        >
+                          <div className="bg-white rounded-full p-3 shadow-lg border-2 border-forest-200 hover:border-forest-400 transition-all duration-200 hover:scale-110">
+                            <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${category?.color || 'text-forest-600'}`} />
+                          </div>
+                          
+                          {/* Item Card on Hover */}
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 pointer-events-none">
+                            <div className="bg-white rounded-xl shadow-xl border border-forest-100 p-4 w-64">
+                              <h4 className="font-semibold text-forest-800 mb-2">
+                                {(item as Event).title || (item as Space).name}
+                              </h4>
+                              <div className="space-y-1 text-sm text-forest-600">
+                                {!showSpaces && (item as Event).start_time && (
+                                  <div className="flex items-center">
+                                    <Clock className="h-4 w-4 mr-2" />
+                                    <span>
+                                      {new Date((item as Event).date + 'T' + (item as Event).start_time).toLocaleTimeString('en-US', { 
+                                        hour: 'numeric', 
+                                        minute: '2-digit', 
+                                        hour12: true 
+                                      })}
+                                    </span>
+                                  </div>
+                                )}
+                                <div className="flex items-center">
+                                  <MapPin className="h-4 w-4 mr-2" />
+                                  <span>
+                                    {(item as Event).location_name || (item as Space).address}
+                                  </span>
+                                </div>
+                                <div className="flex items-center">
+                                  <Users className="h-4 w-4 mr-2" />
+                                  <span>
+                                    {showSpaces 
+                                      ? `Up to ${item.capacity} people`
+                                      : `${(item as Event).participants?.length || 0}/${item.capacity} joined`
+                                    }
+                                  </span>
+                                </div>
+                              </div>
+                              <button className="w-full mt-3 bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
+                                {showSpaces ? 'Book Space' : 'Join Event'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* No items message */}
+                    {filteredItems.length === 0 && !loading && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                          <MapPin className="h-16 w-16 text-forest-300 mx-auto mb-4" />
+                          <h3 className="text-xl font-semibold text-forest-800 mb-2">
+                            No {showSpaces ? 'spaces' : 'events'} found
+                          </h3>
+                          <p className="text-forest-600">
+                            Try adjusting your search criteria or {showSpaces ? 'share a space' : 'create an event'}!
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Legend */}
+                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-forest-100">
+                      <h4 className="font-semibold text-forest-800 mb-2 text-sm">Map Legend</h4>
+                      <div className="space-y-2 text-xs sm:text-sm">
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 bg-earth-500 rounded-full mr-2"></div>
+                          <span>Your Location</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 bg-white border-2 border-forest-400 rounded-full mr-2"></div>
+                          <span>{showSpaces ? 'Spaces' : 'Events'}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 border border-forest-300 rounded-full mr-2"></div>
+                          <span>Discovery Radius</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 bg-white border-2 border-forest-400 rounded-full mr-2"></div>
-                      <span>{showSpaces ? 'Spaces' : 'Events'}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 border border-forest-300 rounded-full mr-2"></div>
-                      <span>Discovery Radius</span>
-                    </div>
-                  </div>
-                </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
