@@ -1,12 +1,17 @@
 import React from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Clock, Users, Heart, Sprout, Bot as Lotus, ChefHat, Palette, Music, BookOpen, Stethoscope, HandHeart, ArrowRight, Calendar, Star } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import EventCard from '../components/EventCard';
 import RadiusSelector from '../components/RadiusSelector';
+import { getEvents, Event } from '../lib/supabase';
 
 const Home = () => {
   const { user, openAuthModalGlobal } = useAuthContext();
+  const [todayEvents, setTodayEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const holisticCategories = [
     { icon: Sprout, name: 'Gardening', color: 'text-green-600 bg-green-50', count: 12 },
@@ -17,50 +22,35 @@ const Home = () => {
     { icon: Music, name: 'Music & Movement', color: 'text-indigo-600 bg-indigo-50', count: 4 },
   ];
 
-  const todayEvents = [
-    {
-      id: 1,
-      title: 'Community Garden Workday',
-      facilitator: 'Sarah Martinez',
-      time: '9:00 AM - 12:00 PM',
-      location: 'Maple Street Community Garden',
-      distance: '0.3 miles',
-      category: 'Gardening',
-      participants: 8,
-      maxParticipants: 12,
-      donation: 'Free',
-      image: 'https://images.pexels.com/photos/4503273/pexels-photo-4503273.jpeg?auto=compress&cs=tinysrgb&w=400',
-      verified: true
-    },
-    {
-      id: 2,
-      title: 'Morning Yoga in the Park',
-      facilitator: 'Emma Thompson',
-      time: '7:30 AM - 8:30 AM',
-      location: 'Riverside Park Pavilion',
-      distance: '0.7 miles',
-      category: 'Yoga',
-      participants: 15,
-      maxParticipants: 20,
-      donation: '$5-10',
-      image: 'https://images.pexels.com/photos/3822647/pexels-photo-3822647.jpeg?auto=compress&cs=tinysrgb&w=400',
-      verified: true
-    },
-    {
-      id: 3,
-      title: 'Fermentation Workshop',
-      facilitator: 'Dr. Michael Chen',
-      time: '2:00 PM - 4:00 PM',
-      location: 'Community Kitchen Co-op',
-      distance: '1.1 miles',
-      category: 'Cooking',
-      participants: 6,
-      maxParticipants: 10,
-      donation: '$15-20',
-      image: 'https://images.pexels.com/photos/4057663/pexels-photo-4057663.jpeg?auto=compress&cs=tinysrgb&w=400',
-      verified: true
-    }
-  ];
+  // Load today's events
+  useEffect(() => {
+    const loadTodayEvents = async () => {
+      try {
+        setLoading(true);
+        const today = new Date().toISOString().split('T')[0];
+        
+        const { data, error } = await getEvents({
+          status: 'active',
+          limit: 6
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        // Filter for today's events or upcoming events if no events today
+        const filteredEvents = data?.filter(event => event.date >= today) || [];
+        setTodayEvents(filteredEvents.slice(0, 3)); // Show max 3 events
+        
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTodayEvents();
+  }, []);
 
   const weeklyRegulars = [
     {
@@ -171,8 +161,15 @@ const Home = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 sm:mb-12">
               <div className="mb-4 sm:mb-0">
-                <h2 className="text-2xl sm:text-3xl font-bold text-forest-800 mb-2">Today's Events</h2>
-                <p className="text-forest-600">Happening now in your neighborhood</p>
+                <h2 className="text-2xl sm:text-3xl font-bold text-forest-800 mb-2">
+                  {todayEvents.length > 0 ? "Upcoming Events" : "Recent Events"}
+                </h2>
+                <p className="text-forest-600">
+                  {todayEvents.length > 0 
+                    ? "Happening soon in your community" 
+                    : "Discover what's happening in your neighborhood"
+                  }
+                </p>
               </div>
               <Link
                 to="/map"
@@ -183,11 +180,42 @@ const Home = () => {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-              {todayEvents.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-gray-200 rounded-2xl h-80 animate-pulse"></div>
+                ))}
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-red-600 mb-4">Error loading events: {error}</p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : todayEvents.length === 0 ? (
+              <div className="text-center py-12">
+                <Calendar className="h-16 w-16 text-forest-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-forest-800 mb-2">No events found</h3>
+                <p className="text-forest-600 mb-6">Be the first to create an event in your community!</p>
+                <Link
+                  to="/create-event"
+                  className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-xl font-medium transition-colors inline-flex items-center space-x-2"
+                >
+                  <Calendar className="h-4 w-4" />
+                  <span>Create Event</span>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+                {todayEvents.map((event) => (
+                  <EventCard key={event.id} event={event} />
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
