@@ -4,12 +4,14 @@ import { Link } from 'react-router-dom';
 import { MapPin, Clock, Users, Heart, Sprout, Bot as Lotus, ChefHat, Palette, Music, BookOpen, Stethoscope, HandHeart, ArrowRight, Calendar, Star } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import EventCard from '../components/EventCard';
+import SpaceCard from '../components/SpaceCard';
 import RadiusSelector from '../components/RadiusSelector';
-import { getEvents, Event } from '../lib/supabase';
+import { getEvents, getSpaces, Event, Space } from '../lib/supabase';
 
 const Home = () => {
   const { user, openAuthModalGlobal } = useAuthContext();
   const [todayEvents, setTodayEvents] = useState<Event[]>([]);
+  const [featuredSpaces, setFeaturedSpaces] = useState<Space[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,6 +43,13 @@ const Home = () => {
         // Filter for today's events or upcoming events if no events today
         const filteredEvents = data?.filter(event => event.date >= today) || [];
         setTodayEvents(filteredEvents.slice(0, 3)); // Show max 3 events
+        
+        // Load featured spaces
+        const { data: spacesData } = await getSpaces({
+          status: 'available',
+          limit: 3
+        });
+        setFeaturedSpaces(spacesData || []);
         
       } catch (err: any) {
         setError(err.message);
@@ -216,6 +225,33 @@ const Home = () => {
                 ))}
               </div>
             )}
+          </div>
+        </section>
+      )}
+
+      {/* Featured Spaces */}
+      {user && featuredSpaces.length > 0 && (
+        <section className="py-12 sm:py-16 bg-gradient-to-br from-earth-50 to-forest-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 sm:mb-12">
+              <div className="mb-4 sm:mb-0">
+                <h2 className="text-2xl sm:text-3xl font-bold text-forest-800 mb-2">Featured Spaces</h2>
+                <p className="text-forest-600">Discover unique spaces for your events</p>
+              </div>
+              <Link
+                to="/map"
+                className="text-earth-500 hover:text-earth-600 font-medium flex items-center space-x-1 transition-colors group"
+              >
+                <span>Browse all spaces</span>
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+              {featuredSpaces.map((space) => (
+                <SpaceCard key={space.id} space={space} />
+              ))}
+            </div>
           </div>
         </section>
       )}
