@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Calendar, 
   Clock, 
@@ -11,65 +12,77 @@ import {
   Share,
   MessageCircle
 } from 'lucide-react';
+import { useAuthContext } from '../components/AuthProvider';
+import { getEvents, getSpaces, Event, Space } from '../lib/supabase';
 
 const MyActivities = () => {
+  const { user } = useAuthContext();
   const [activeTab, setActiveTab] = useState('attending');
+  const [attendingEvents, setAttendingEvents] = useState<Event[]>([]);
+  const [hostingEvents, setHostingEvents] = useState<Event[]>([]);
+  const [mySpaces, setMySpaces] = useState<Space[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const attendingEvents = [
-    {
-      id: 1,
-      title: 'Morning Yoga Flow',
-      facilitator: 'Emma Thompson',
-      date: 'Today, March 15',
-      time: '7:30 AM - 8:30 AM',
-      location: 'Riverside Park Pavilion',
-      distance: '0.7 miles',
-      status: 'confirmed'
-    },
-    {
-      id: 2,
-      title: 'Community Garden Workday',
-      facilitator: 'Sarah Martinez',
-      date: 'Tomorrow, March 16',
-      time: '9:00 AM - 12:00 PM',
-      location: 'Maple Street Community Garden',
-      distance: '0.3 miles',
-      status: 'confirmed'
-    },
-    {
-      id: 3,
-      title: 'Fermentation Workshop',
-      facilitator: 'Dr. Michael Chen',
-      date: 'Saturday, March 18',
-      time: '2:00 PM - 4:00 PM',
-      location: 'Community Kitchen Co-op',
-      distance: '1.1 miles',
-      status: 'waitlist'
-    }
-  ];
+  // Load user's activities
+  useEffect(() => {
+    const loadActivities = async () => {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
+        
+        // Load events user is hosting
+        const { data: hostingData } = await getEvents();
+        const userHostingEvents = hostingData?.filter(event => event.organizer_id === user.id) || [];
+        setHostingEvents(userHostingEvents);
+        
+        // Load user's spaces
+        const { data: spacesData } = await getSpaces();
+        const userSpaces = spacesData?.filter(space => space.owner_id === user.id) || [];
+        setMySpaces(userSpaces);
+        
+        // TODO: Load events user is attending (requires participant data)
+        setAttendingEvents([]);
+        
+      } catch (error) {
+        console.error('Error loading activities:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const hostingEvents = [
-    {
-      id: 1,
-      title: 'Meditation Circle',
-      date: 'Sunday, March 19',
-      time: '6:00 PM - 7:30 PM',
-      location: 'My Backyard Garden',
-      participants: 8,
-      maxParticipants: 12,
-      status: 'active'
-    },
-    {
-      id: 2,
-      title: 'Herb Walk & Wildcrafting',
-      date: 'Next Sunday, March 26',
-      time: '10:00 AM - 12:00 PM',
-      location: 'Neighborhood Trails',
-      participants: 6,
-      maxParticipants: 10,
-      status: 'active'
+    loadActivities();
+  }, [user]);
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return 'Tomorrow';
+    } else {
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'long', 
+        day: 'numeric' 
+      });
     }
-  ];
+  };
+
+  const formatTime = (startTime: string, endTime: string) => {
+    const formatHour = (time: string) => {
+      const [hours, minutes] = time.split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}:${minutes} ${ampm}`;
+    };
+    
+    return `${formatHour(startTime)} - ${formatHour(endTime)}`;
+  };
 
   const favoriteEvents = [
     {
@@ -95,6 +108,7 @@ const MyActivities = () => {
   const tabs = [
     { id: 'attending', label: 'Attending', count: attendingEvents.length },
     { id: 'hosting', label: 'Hosting', count: hostingEvents.length },
+    { id: 'spaces', label: 'My Spaces', count: mySpaces.length },
     { id: 'favorites', label: 'Favorites', count: favoriteEvents.length },
   ];
 
@@ -234,7 +248,26 @@ const MyActivities = () => {
             {/* Hosting Events */}
             {activeTab === 'hosting' && (
               <div className="space-y-4">
-                {hostingEvents.map((event) => (
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="w-8 h-8 border-4 border-forest-200 border-t-forest-600 rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-forest-600">Loading your events...</p>
+                  </div>
+                ) : hostingEvents.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Calendar className="h-16 w-16 text-forest-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-forest-800 mb-2">No events hosted yet</h3>
+                    <p className="text-forest-600 mb-6">Start sharing your practice with the community!</p>
+                    <a
+                      href="/create-event"
+                      className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-xl font-medium transition-colors inline-flex items-center space-x-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>Create Event</span>
+                    </a>
+                  </div>
+                ) : (
+                  hostingEvents.map((event) => (
                   <div key={event.id} className="bg-gradient-to-r from-earth-50 to-forest-50 rounded-lg p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
@@ -242,8 +275,14 @@ const MyActivities = () => {
                         <p className="text-forest-600 mb-2">You're facilitating this event</p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="bg-earth-100 text-earth-800 px-3 py-1 rounded-full text-xs font-medium">
-                          Active
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          event.status === 'active' 
+                            ? 'bg-green-100 text-green-800'
+                            : event.status === 'pending_approval'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {event.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </span>
                         <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
                           <Edit className="h-4 w-4" />
@@ -256,28 +295,105 @@ const MyActivities = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-forest-600 mb-4">
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-2" />
-                        <span>{event.date}</span>
+                        <span>{formatDate(event.date)}</span>
                       </div>
                       <div className="flex items-center">
                         <Clock className="h-4 w-4 mr-2" />
-                        <span>{event.time}</span>
+                        <span>{formatTime(event.start_time, event.end_time)}</span>
                       </div>
                       <div className="flex items-center">
                         <MapPin className="h-4 w-4 mr-2" />
-                        <span>{event.location}</span>
+                        <span>{event.location_name}</span>
                       </div>
                     </div>
                     <div className="flex items-center justify-between bg-white/60 rounded-lg p-3">
                       <div className="flex items-center text-sm text-forest-600">
                         <Users className="h-4 w-4 mr-2" />
-                        <span>{event.participants}/{event.maxParticipants} participants</span>
+                        <span>{event.participants?.length || 0}/{event.capacity} participants</span>
                       </div>
                       <button className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                         Manage Event
                       </button>
                     </div>
                   </div>
-                ))}
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* My Spaces */}
+            {activeTab === 'spaces' && (
+              <div className="space-y-4">
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="w-8 h-8 border-4 border-forest-200 border-t-forest-600 rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-forest-600">Loading your spaces...</p>
+                  </div>
+                ) : mySpaces.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Users className="h-16 w-16 text-forest-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-forest-800 mb-2">No spaces shared yet</h3>
+                    <p className="text-forest-600 mb-6">Open your space to community events and gatherings!</p>
+                    <a
+                      href="/share-space"
+                      className="bg-earth-500 hover:bg-earth-600 text-white px-6 py-3 rounded-xl font-medium transition-colors inline-flex items-center space-x-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>Share Space</span>
+                    </a>
+                  </div>
+                ) : (
+                  mySpaces.map((space) => (
+                    <div key={space.id} className="bg-gradient-to-r from-earth-50 to-forest-50 rounded-lg p-6 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-forest-800 mb-1">{space.name}</h3>
+                          <p className="text-forest-600 mb-2">You're sharing this space</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            space.status === 'available' 
+                              ? 'bg-green-100 text-green-800'
+                              : space.status === 'pending_approval'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {space.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </span>
+                          <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
+                            <MessageCircle className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-forest-600 mb-4">
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 mr-2" />
+                          <span>Up to {space.capacity} people</span>
+                        </div>
+                        <div className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-2" />
+                          <span>{space.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 mr-2" />
+                          <span>{space.list_publicly ? 'Global' : 'Local'} visibility</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between bg-white/60 rounded-lg p-3">
+                        <div className="flex items-center text-sm text-forest-600">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          <span>0 upcoming bookings</span>
+                        </div>
+                        <button className="bg-earth-500 hover:bg-earth-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                          Manage Space
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             )}
 
