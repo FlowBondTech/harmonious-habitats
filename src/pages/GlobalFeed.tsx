@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Globe, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, MapPin, Clock, Users, Search, Zap, TrendingUp, Award } from 'lucide-react';
 import EventCard from '../components/EventCard';
+import { getEvents, Event } from '../lib/supabase';
 
 const GlobalFeed = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('trending');
+  const [globalEvents, setGlobalEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const categories = [
     { id: 'all', name: 'All Events', icon: Filter, color: 'text-forest-600' },
@@ -23,98 +27,43 @@ const GlobalFeed = () => {
     { id: 'popular', name: 'Most Popular', icon: Award },
   ];
 
-  const globalEvents = [
-    {
-      id: 1,
-      title: 'Urban Permaculture Workshop',
-      facilitator: 'Maria Santos',
-      time: 'Tomorrow, 2:00 PM - 5:00 PM',
-      location: 'Community Garden Network, Portland',
-      distance: 'Global Event',
-      category: 'Gardening',
-      participants: 45,
-      maxParticipants: 60,
-      donation: '$25-35',
-      image: 'https://images.pexels.com/photos/4503273/pexels-photo-4503273.jpeg?auto=compress&cs=tinysrgb&w=400',
-      verified: true
-    },
-    {
-      id: 2,
-      title: 'Virtual Sound Healing Circle',
-      facilitator: 'Dr. Amara Okafor',
-      time: 'Today, 7:00 PM - 8:30 PM',
-      location: 'Online Global Session',
-      distance: 'Virtual',
-      category: 'Healing',
-      participants: 127,
-      maxParticipants: 200,
-      donation: 'Pay what you can',
-      image: 'https://images.pexels.com/photos/3822647/pexels-photo-3822647.jpeg?auto=compress&cs=tinysrgb&w=400',
-      verified: true
-    },
-    {
-      id: 3,
-      title: 'International Fermentation Exchange',
-      facilitator: 'Global Fermentation Collective',
-      time: 'Saturday, 10:00 AM - 2:00 PM',
-      location: 'Multiple Cities Worldwide',
-      distance: 'Global Event',
-      category: 'Cooking',
-      participants: 89,
-      maxParticipants: 150,
-      donation: '$15-25',
-      image: 'https://images.pexels.com/photos/4057663/pexels-photo-4057663.jpeg?auto=compress&cs=tinysrgb&w=400',
-      verified: true
-    },
-    {
-      id: 4,
-      title: 'Digital Art for Social Change',
-      facilitator: 'Creative Resistance Network',
-      time: 'Sunday, 3:00 PM - 6:00 PM',
-      location: 'Virtual Studio Space',
-      distance: 'Virtual',
-      category: 'Art',
-      participants: 34,
-      maxParticipants: 50,
-      donation: '$20-30',
-      image: 'https://images.pexels.com/photos/3778876/pexels-photo-3778876.jpeg?auto=compress&cs=tinysrgb&w=400',
-      verified: true
-    },
-    {
-      id: 5,
-      title: 'Global Meditation for Peace',
-      facilitator: 'Unity Consciousness Circle',
-      time: 'Daily, 6:00 AM & 6:00 PM',
-      location: 'Worldwide Synchronized',
-      distance: 'Global Event',
-      category: 'Yoga',
-      participants: 312,
-      maxParticipants: 500,
-      donation: 'Free',
-      image: 'https://images.pexels.com/photos/3822647/pexels-photo-3822647.jpeg?auto=compress&cs=tinysrgb&w=400',
-      verified: true
-    },
-    {
-      id: 6,
-      title: 'World Music Collaboration',
-      facilitator: 'Harmony Without Borders',
-      time: 'Friday, 8:00 PM - 10:00 PM',
-      location: 'Global Virtual Stage',
-      distance: 'Virtual',
-      category: 'Music',
-      participants: 78,
-      maxParticipants: 100,
-      donation: '$10-20',
-      image: 'https://images.pexels.com/photos/3756766/pexels-photo-3756766.jpeg?auto=compress&cs=tinysrgb&w=400',
-      verified: true
-    }
-  ];
+  // Load global events
+  useEffect(() => {
+    const loadGlobalEvents = async () => {
+      try {
+        setLoading(true);
+        
+        const { data, error } = await getEvents({
+          status: 'active',
+          limit: 50
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        // Filter for virtual and global physical events
+        const filteredEvents = data?.filter(event => 
+          event.event_type === 'virtual' || event.event_type === 'global_physical'
+        ) || [];
+        
+        setGlobalEvents(filteredEvents);
+        
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadGlobalEvents();
+  }, []);
 
   const filteredEvents = globalEvents.filter(event => {
-    const matchesCategory = selectedCategory === 'all' || event.category.toLowerCase() === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || event.category.toLowerCase().includes(selectedCategory.toLowerCase());
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.facilitator.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.location.toLowerCase().includes(searchQuery.toLowerCase());
+                         event.organizer?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         event.location_name?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -209,7 +158,7 @@ const GlobalFeed = () => {
                   const Icon = category.icon;
                   const eventCount = category.id === 'all' 
                     ? globalEvents.length 
-                    : globalEvents.filter(e => e.category.toLowerCase() === category.id).length;
+                    : globalEvents.filter(e => e.category.toLowerCase().includes(category.id.toLowerCase())).length;
                   
                   return (
                     <button
@@ -285,6 +234,26 @@ const GlobalFeed = () => {
                 {filteredEvents.map((event) => (
                   <EventCard key={event.id} event={event} />
                 ))}
+              </div>
+            )}
+
+            {loading && (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="bg-gray-200 rounded-2xl h-80 animate-pulse"></div>
+                ))}
+              </div>
+            )}
+
+            {error && (
+              <div className="text-center py-12">
+                <p className="text-red-600 mb-4">Error loading events: {error}</p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+                >
+                  Retry
+                </button>
               </div>
             )}
 
