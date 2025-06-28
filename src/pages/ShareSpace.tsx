@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Home, MapPin, Users, Camera, Plus, X, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Clock, DollarSign, Accessibility, Globe } from 'lucide-react';
+import { useAuthContext } from '../components/AuthProvider';
+import { supabase } from '../lib/supabase';
 
 const ShareSpace = () => {
+  const { user } = useAuthContext();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState({
     name: '',
     spaceType: '',
@@ -23,7 +32,8 @@ const ShareSpace = () => {
     donationSuggested: '',
     maxRadius: 2,
     holisticFriendly: [],
-    listPublicly: false
+    listPublicly: false,
+    images: [] as File[]
   });
 
   const spaceTypes = [
@@ -67,6 +77,147 @@ const ShareSpace = () => {
     handleInputChange(array, updated);
   };
 
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      setError('Space name is required');
+      return false;
+    }
+    if (!formData.spaceType) {
+      setError('Please select a space type');
+      return false;
+    }
+    if (!formData.address.trim()) {
+      setError('Address is required');
+      return false;
+    }
+    if (!formData.capacity || parseInt(formData.capacity) < 1) {
+      setError('Capacity must be at least 1');
+      return false;
+    }
+    return true;
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, ...files].slice(0, 5) // Max 5 images
+    }));
+  };
+
+  const removeImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user) {
+      setError('You must be signed in to share a space');
+      return;
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      // Upload images first (for now, we'll use placeholder URLs)
+      const imageUrls: string[] = [];
+      // TODO: Implement actual image upload to storage
+      // For now, using placeholder images
+      if (formData.images.length > 0) {
+        imageUrls.push('https://images.pexels.com/photos/8633077/pexels-photo-8633077.jpeg?auto=compress&cs=tinysrgb&w=400');
+      }
+
+      // Create the space
+      const spaceData = {
+        owner_id: user.id,
+        name: formData.name.trim(),
+        type: formData.spaceType,
+        description: formData.description.trim() || null,
+        address: formData.address.trim(),
+        capacity: parseInt(formData.capacity),
+        max_radius: formData.listPublicly ? null : formData.maxRadius,
+        list_publicly: formData.listPublicly,
+        guidelines: formData.guidelines.trim() || null,
+        donation_suggested: formData.donationSuggested.trim() || null,
+        image_urls: imageUrls,
+        verified: false,
+        status: 'pending_approval' as const
+      };
+
+      const { data: space, error: spaceError } = await supabase
+        .from('spaces')
+        .insert([spaceData])
+        .select()
+        .single();
+
+      if (spaceError) throw spaceError;
+
+      // Add amenities
+      if (formData.amenities.length > 0) {
+        const amenityData = formData.amenities.map(amenity => ({
+          space_id: space.id,
+          amenity
+        }));
+        
+        const { error: amenityError } = await supabase
+          .from('space_amenities')
+          .insert(amenityData);
+        
+        if (amenityError) throw amenityError;
+      }
+
+      // Add accessibility features
+      if (formData.accessibility.length > 0) {
+        const accessibilityData = formData.accessibility.map(feature => ({
+          space_id: space.id,
+          feature
+        }));
+        
+        const { error: accessibilityError } = await supabase
+          .from('space_accessibility_features')
+          .insert(accessibilityData);
+        
+        if (accessibilityError) throw accessibilityError;
+      }
+
+      // Add holistic categories
+      if (formData.holisticFriendly.length > 0) {
+        const categoryData = formData.holisticFriendly.map(category => ({
+          space_id: space.id,
+          category
+        }));
+        
+        const { error: categoryError } = await supabase
+          .from('space_holistic_categories')
+          .insert(categoryData);
+        
+        if (categoryError) throw categoryError;
+      }
+
+      setSuccess('Space shared successfully! It will be reviewed before being published.');
+      
+      // Redirect after success
+      setTimeout(() => {
+        navigate('/activities');
+      }, 2000);
+
+    } catch (err: any) {
+      setError(err.message || 'Failed to share space');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
   return (
@@ -79,7 +230,19 @@ const ShareSpace = () => {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <form className="p-8 space-y-8">
+          <form onSubmit={handleSubmit} className="p-8 space-y-8">
+            {/* Error/Success Messages */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+            {success && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-sm text-green-600">{success}</p>
+              </div>
+            )}
+
             {/* Basic Information */}
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-forest-800 border-b border-forest-100 pb-3">
@@ -94,6 +257,7 @@ const ShareSpace = () => {
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="e.g., Sarah's Garden Sanctuary, Community Art Studio"
+                  required
                   className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
                 />
               </div>
@@ -150,6 +314,7 @@ const ShareSpace = () => {
                   value={formData.address}
                   onChange={(e) => handleInputChange('address', e.target.value)}
                   placeholder="Street address (exact address shared only with confirmed hosts)"
+                  required
                   className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
                 />
                 <p className="text-xs text-forest-600 mt-2 flex items-center">
@@ -169,6 +334,8 @@ const ShareSpace = () => {
                     value={formData.capacity}
                     onChange={(e) => handleInputChange('capacity', e.target.value)}
                     placeholder="Maximum number of people"
+                    min="1"
+                    required
                     className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
                   />
                 </div>
@@ -330,13 +497,44 @@ const ShareSpace = () => {
                 <Camera className="h-12 w-12 text-forest-400 mx-auto mb-4" />
                 <p className="text-forest-600 mb-2">Add photos of your space</p>
                 <p className="text-sm text-forest-500 mb-4">Help neighbors visualize your space for their events</p>
-                <button
-                  type="button"
-                  className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="space-images"
+                />
+                <label
+                  htmlFor="space-images"
+                  className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-2 rounded-lg font-medium transition-colors cursor-pointer inline-block"
                 >
                   Upload Photos
-                </button>
+                </label>
+                <p className="text-xs text-forest-500 mt-2">Max 5 images, JPG/PNG only</p>
               </div>
+              
+              {/* Image Preview */}
+              {formData.images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                  {formData.images.map((image, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={URL.createObjectURL(image)}
+                        alt={`Space preview ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Submit */}
@@ -344,15 +542,24 @@ const ShareSpace = () => {
               <div className="flex justify-end space-x-4">
                 <button
                   type="button"
+                  disabled={loading}
                   className="px-6 py-3 border border-forest-300 text-forest-700 rounded-lg hover:bg-forest-50 transition-colors"
                 >
                   Save as Draft
                 </button>
                 <button
                   type="submit"
-                  className="bg-forest-600 hover:bg-forest-700 text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md"
+                  disabled={loading}
+                  className="bg-forest-600 hover:bg-forest-700 disabled:bg-forest-300 text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md flex items-center space-x-2"
                 >
-                  Share My Space
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Sharing...</span>
+                    </>
+                  ) : (
+                    <span>Share My Space</span>
+                  )}
                 </button>
               </div>
             </div>
