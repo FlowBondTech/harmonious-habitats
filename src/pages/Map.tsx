@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { MapPin, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Users, Clock, Heart, Navigation } from 'lucide-react';
 import { getEvents, getSpaces, Event, Space } from '../lib/supabase';
 
