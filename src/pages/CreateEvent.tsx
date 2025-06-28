@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Users, DollarSign, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Plus, X, Camera, Star } from 'lucide-react';
+import { useAuthContext } from '../components/AuthProvider';
+import { supabase } from '../lib/supabase';
 
 const CreateEvent = () => {
+  const { user } = useAuthContext();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState({
     title: '',
     category: '',
@@ -10,12 +19,14 @@ const CreateEvent = () => {
     startTime: '',
     endTime: '',
     location: '',
+    address: '',
     capacity: '',
     skillLevel: 'beginner',
     donationAmount: '',
     materials: [],
     recurring: false,
-    recurrencePattern: 'weekly'
+    recurrencePattern: 'weekly',
+    eventType: 'local' as 'local' | 'virtual' | 'global_physical'
   });
 
   const [newMaterial, setNewMaterial] = useState('');
@@ -50,6 +61,99 @@ const CreateEvent = () => {
     }));
   };
 
+  const validateForm = () => {
+    if (!formData.title.trim()) {
+      setError('Event title is required');
+      return false;
+    }
+    if (!formData.category) {
+      setError('Please select a category');
+      return false;
+    }
+    if (!formData.date) {
+      setError('Event date is required');
+      return false;
+    }
+    if (!formData.startTime || !formData.endTime) {
+      setError('Start and end times are required');
+      return false;
+    }
+    if (!formData.location.trim()) {
+      setError('Event location is required');
+      return false;
+    }
+    if (!formData.capacity || parseInt(formData.capacity) < 1) {
+      setError('Capacity must be at least 1');
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user) {
+      setError('You must be signed in to create an event');
+      return;
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const eventData = {
+        organizer_id: user.id,
+        title: formData.title.trim(),
+        description: formData.description.trim() || null,
+        category: formData.category,
+        event_type: formData.eventType,
+        date: formData.date,
+        start_time: formData.startTime,
+        end_time: formData.endTime,
+        location_name: formData.location.trim(),
+        address: formData.address.trim() || null,
+        capacity: parseInt(formData.capacity),
+        skill_level: formData.skillLevel,
+        donation_suggested: formData.donationAmount.trim() || null,
+        materials_needed: formData.materials,
+        is_recurring: formData.recurring,
+        recurrence_pattern: formData.recurring ? formData.recurrencePattern : null,
+        status: 'active' as const,
+        verified: false
+      };
+
+      const { data, error: insertError } = await supabase
+        .from('events')
+        .insert([eventData])
+        .select(`
+          *,
+          organizer:profiles(id, full_name, avatar_url, verified)
+        `)
+        .single();
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      setSuccess('Event created successfully!');
+      
+      // Redirect to the event or activities page after a short delay
+      setTimeout(() => {
+        navigate('/activities');
+      }, 2000);
+
+    } catch (err: any) {
+      setError(err.message || 'Failed to create event');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -60,7 +164,19 @@ const CreateEvent = () => {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <form className="p-8 space-y-8">
+          <form onSubmit={handleSubmit} className="p-8 space-y-8">
+            {/* Error/Success Messages */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+            {success && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-sm text-green-600">{success}</p>
+              </div>
+            )}
+
             {/* Basic Information */}
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-forest-800 border-b border-forest-100 pb-3">
@@ -75,6 +191,7 @@ const CreateEvent = () => {
                   onChange={(e) => handleInputChange('title', e.target.value)}
                   placeholder="e.g., Morning Yoga Flow, Community Garden Workday"
                   className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                  required
                 />
               </div>
 
@@ -116,6 +233,49 @@ const CreateEvent = () => {
                   className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
                 />
               </div>
+
+              {/* Event Type */}
+              <div>
+                <label className="block text-sm font-medium text-forest-700 mb-3">Event Type</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange('eventType', 'local')}
+                    className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                      formData.eventType === 'local'
+                        ? 'border-forest-300 bg-forest-50'
+                        : 'border-forest-100 hover:border-forest-200 hover:bg-forest-50'
+                    }`}
+                  >
+                    <h4 className="font-semibold text-forest-800 mb-1">Local Event</h4>
+                    <p className="text-sm text-forest-600">In-person event in your neighborhood</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange('eventType', 'virtual')}
+                    className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                      formData.eventType === 'virtual'
+                        ? 'border-forest-300 bg-forest-50'
+                        : 'border-forest-100 hover:border-forest-200 hover:bg-forest-50'
+                    }`}
+                  >
+                    <h4 className="font-semibold text-forest-800 mb-1">Virtual Event</h4>
+                    <p className="text-sm text-forest-600">Online event accessible globally</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange('eventType', 'global_physical')}
+                    className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                      formData.eventType === 'global_physical'
+                        ? 'border-forest-300 bg-forest-50'
+                        : 'border-forest-100 hover:border-forest-200 hover:bg-forest-50'
+                    }`}
+                  >
+                    <h4 className="font-semibold text-forest-800 mb-1">Global Physical</h4>
+                    <p className="text-sm text-forest-600">Multiple locations worldwide</p>
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Date & Time */}
@@ -133,6 +293,8 @@ const CreateEvent = () => {
                     value={formData.date}
                     onChange={(e) => handleInputChange('date', e.target.value)}
                     className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    min={new Date().toISOString().split('T')[0]}
+                    required
                   />
                 </div>
                 <div>
@@ -142,6 +304,7 @@ const CreateEvent = () => {
                     value={formData.startTime}
                     onChange={(e) => handleInputChange('startTime', e.target.value)}
                     className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    required
                   />
                 </div>
                 <div>
@@ -151,6 +314,7 @@ const CreateEvent = () => {
                     value={formData.endTime}
                     onChange={(e) => handleInputChange('endTime', e.target.value)}
                     className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    required
                   />
                 </div>
               </div>
@@ -189,17 +353,37 @@ const CreateEvent = () => {
               </h2>
               
               <div>
-                <label className="block text-sm font-medium text-forest-700 mb-2">Venue</label>
+                <label className="block text-sm font-medium text-forest-700 mb-2">
+                  {formData.eventType === 'virtual' ? 'Platform/Link' : 'Venue Name'}
+                </label>
                 <input
                   type="text"
                   value={formData.location}
                   onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="e.g., My backyard garden, Community center, Local park pavilion"
+                  placeholder={
+                    formData.eventType === 'virtual' 
+                      ? "e.g., Zoom, Google Meet, or platform details"
+                      : "e.g., My backyard garden, Community center, Local park pavilion"
+                  }
                   className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                  required
                 />
-                <p className="text-xs text-forest-600 mt-1">
-                  Exact address will only be shared with confirmed participants
-                </p>
+                
+                {formData.eventType !== 'virtual' && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-forest-700 mb-2">Address (Optional)</label>
+                    <input
+                      type="text"
+                      value={formData.address}
+                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      placeholder="Street address - will only be shared with confirmed participants"
+                      className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-forest-600 mt-1">
+                      Exact address will only be shared with confirmed participants
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -220,6 +404,8 @@ const CreateEvent = () => {
                     value={formData.capacity}
                     onChange={(e) => handleInputChange('capacity', e.target.value)}
                     placeholder="e.g., 10"
+                    min="1"
+                    required
                     className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
                   />
                 </div>
@@ -314,15 +500,24 @@ const CreateEvent = () => {
               <div className="flex justify-end space-x-4">
                 <button
                   type="button"
+                  disabled={loading}
                   className="px-6 py-3 border border-forest-300 text-forest-700 rounded-lg hover:bg-forest-50 transition-colors"
                 >
                   Save as Draft
                 </button>
                 <button
                   type="submit"
-                  className="bg-forest-600 hover:bg-forest-700 text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md"
+                  disabled={loading}
+                  className="bg-forest-600 hover:bg-forest-700 disabled:bg-forest-300 text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md flex items-center space-x-2"
                 >
-                  Create Event
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <span>Create Event</span>
+                  )}
                 </button>
               </div>
             </div>
