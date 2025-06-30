@@ -187,6 +187,14 @@ export interface AuditLog {
   user?: Profile
 }
 
+export interface PlatformSetting {
+  key: string
+  value: any
+  description?: string
+  updated_at: string
+  updated_by?: string
+}
+
 // Helper functions
 export const isAdmin = async (userId: string): Promise<boolean> => {
   const { data, error } = await supabase
@@ -430,4 +438,189 @@ export const getSpaceBookingCount = async (spaceId: string) => {
     .in('status', ['confirmed', 'completed'])
 
   return { count: count || 0, error }
+}
+
+// Platform settings functions
+export const getPlatformSettings = async () => {
+  const { data, error } = await supabase
+    .from('platform_settings')
+    .select('*')
+    .order('key')
+
+  return { data: data || [], error }
+}
+
+export const updatePlatformSetting = async (key: string, value: any, userId?: string) => {
+  const { data, error } = await supabase
+    .from('platform_settings')
+    .upsert({
+      key,
+      value,
+      updated_at: new Date().toISOString(),
+      updated_by: userId
+    })
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+// User management functions
+export const updateUserRole = async (userId: string, roleId: number, assignedBy?: string) => {
+  const { data, error } = await supabase
+    .from('user_roles')
+    .upsert({
+      user_id: userId,
+      role_id: roleId,
+      assigned_by: assignedBy,
+      assigned_at: new Date().toISOString()
+    })
+    .select()
+
+  return { data, error }
+}
+
+export const removeUserRole = async (userId: string, roleId: number) => {
+  const { error } = await supabase
+    .from('user_roles')
+    .delete()
+    .eq('user_id', userId)
+    .eq('role_id', roleId)
+
+  return { error }
+}
+
+// Content moderation functions
+export const updateEventStatus = async (eventId: string, status: string, adminNotes?: string, userId?: string) => {
+  const updates: any = { 
+    status, 
+    updated_at: new Date().toISOString() 
+  }
+  
+  if (adminNotes) updates.admin_notes = adminNotes
+  
+  const { data, error } = await supabase
+    .from('events')
+    .update(updates)
+    .eq('id', eventId)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const updateSpaceStatus = async (spaceId: string, status: string, adminNotes?: string, userId?: string) => {
+  const updates: any = { 
+    status, 
+    updated_at: new Date().toISOString() 
+  }
+  
+  if (adminNotes) updates.admin_notes = adminNotes
+  
+  const { data, error } = await supabase
+    .from('spaces')
+    .update(updates)
+    .eq('id', spaceId)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const updateReportStatus = async (reportId: string, status: string, adminNotes?: string, userId?: string) => {
+  const updates: any = { 
+    status, 
+    admin_notes: adminNotes,
+    resolved_at: status === 'resolved' ? new Date().toISOString() : null,
+    resolved_by: status === 'resolved' ? userId : null
+  }
+  
+  const { data, error } = await supabase
+    .from('reports')
+    .update(updates)
+    .eq('id', reportId)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+// Analytics functions
+export const getDashboardAnalytics = async () => {
+  try {
+    const [
+      profilesResult,
+      eventsResult,
+      spacesResult,
+      reportsResult,
+      recentProfilesResult,
+      recentEventsResult,
+      recentSpacesResult
+    ] = await Promise.all([
+      getProfilesCount(),
+      getActiveEventsCount(),
+      getAvailableSpacesCount(),
+      getPendingReportsCount(),
+      getRecentProfiles(5),
+      getRecentEvents(5),
+      getRecentSpaces(5)
+    ])
+
+    return {
+      stats: {
+        totalUsers: profilesResult.count,
+        activeEvents: eventsResult.count,
+        availableSpaces: spacesResult.count,
+        pendingReports: reportsResult.count
+      },
+      recent: {
+        profiles: recentProfilesResult.data,
+        events: recentEventsResult.data,
+        spaces: recentSpacesResult.data
+      },
+      error: null
+    }
+  } catch (error) {
+    return {
+      stats: { totalUsers: 0, activeEvents: 0, availableSpaces: 0, pendingReports: 0 },
+      recent: { profiles: [], events: [], spaces: [] },
+      error: error as Error
+    }
+  }
+}
+
+// Notification functions
+export const createNotification = async (notification: Omit<Notification, 'id' | 'created_at' | 'is_read' | 'read_at'>) => {
+  const { data, error } = await supabase
+    .from('notifications')
+    .insert(notification)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const markNotificationAsRead = async (notificationId: string) => {
+  const { data, error } = await supabase
+    .from('notifications')
+    .update({ 
+      is_read: true, 
+      read_at: new Date().toISOString() 
+    })
+    .eq('id', notificationId)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const getUserNotifications = async (userId: string, limit = 20) => {
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  return { data: data || [], error }
 }

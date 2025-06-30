@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, Map, Calendar, MessageCircle, User, Menu, X, Sprout, Globe, Shield, CalendarPlus, Home as HomePlus, LogIn, LogOut } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import AuthButton from './AuthButton';
+import NotificationCenter from './NotificationCenter';
 
 const Navbar = () => {
   const location = useLocation();
@@ -62,8 +63,14 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Auth Button & Mobile Menu Button */}
+          {/* Auth Button, Notifications & Mobile Menu Button */}
           <div className="flex items-center space-x-3">
+            {user && (
+              <div className="hidden lg:block">
+                <NotificationCenter />
+              </div>
+            )}
+            
             <div className="hidden lg:block">
               <AuthButton />
             </div>
@@ -96,6 +103,13 @@ const Navbar = () => {
                   <span>{label}</span>
                 </Link>
               ))}
+              
+              {/* Mobile Notifications */}
+              {user && (
+                <div className="px-4 py-3">
+                  <NotificationCenter />
+                </div>
+              )}
               
               {/* Mobile Auth Buttons */}
               <div className="border-t border-forest-100 pt-4 mt-4">
