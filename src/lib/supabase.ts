@@ -258,11 +258,11 @@ export const getEvents = async (filters?: {
     .from('events')
     .select(`
       *,
-      organizer:profiles(id, full_name, avatar_url, verified),
+      organizer:profiles!events_organizer_id_fkey(id, full_name, avatar_url, verified),
       participants:event_participants(
         user_id,
         status,
-        user:profiles(id, full_name, avatar_url)
+        user:profiles!event_participants_user_id_fkey(id, full_name, avatar_url)
       )
     `)
 
