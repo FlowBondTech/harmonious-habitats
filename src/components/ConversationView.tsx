@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeft, 
   Phone, 
-  Video, 
+  Video,
+  ArrowDown,
   MoreVertical, 
   Info, 
   Users, 
@@ -47,6 +48,8 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   const [showReactions, setShowReactions] = useState<string | null>(null);
   const [showContextMenu, setShowContextMenu] = useState<{id: string, x: number, y: number} | null>(null);
   
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -62,6 +65,25 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Handle scroll events to detect if user is at bottom
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const atBottom = scrollHeight - scrollTop - clientHeight < 30;
+      setIsScrolledToBottom(atBottom);
+      
+      if (atBottom && unreadCount > 0) {
+        setUnreadCount(0);
+      }
+    };
+    
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [unreadCount]);
 
   const loadConversation = async () => {
     if (!conversationId || !user) return;
@@ -205,7 +227,13 @@ const ConversationView: React.FC<ConversationViewProps> = ({
       
       if (data) {
         setMessages(prev => [...prev, data]);
-        markAsRead();
+        
+        // Only mark as read if user is at bottom of chat
+        if (isScrolledToBottom) {
+          markAsRead();
+        } else {
+          setUnreadCount(prev => prev + 1);
+        }
       }
     } catch (error) {
       console.error('Error fetching new message:', error);
@@ -246,7 +274,15 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   };
 
   const scrollToBottom = () => {
+    if (isScrolledToBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const scrollToBottomForced = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setIsScrolledToBottom(true);
+    setUnreadCount(0);
   };
 
   const formatTime = (timestamp: string) => {
@@ -775,6 +811,19 @@ const ConversationView: React.FC<ConversationViewProps> = ({
             <div ref={messagesEndRef} />
           </>
         )}
+        
+        {/* New Message Indicator */}
+        {unreadCount > 0 && (
+          <div className="sticky bottom-4 flex justify-center">
+            <button 
+              onClick={scrollToBottomForced}
+              className="bg-forest-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center space-x-2 animate-bounce-gentle"
+            >
+              <span>{unreadCount} new message{unreadCount > 1 ? 's' : ''}</span>
+              <ArrowDown className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Message Composer */}
@@ -782,7 +831,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
         conversationId={conversationId}
         onMessageSent={() => {
           // This will be called after a message is sent
-          scrollToBottom();
+          scrollToBottomForced();
         }}
         disabled={loading}
       />

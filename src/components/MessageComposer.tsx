@@ -34,6 +34,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [recentEmojis, setRecentEmojis] = useState<string[]>(['❤️', '👍', '😊', '🙏', '✨']);
   const [loading, setLoading] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -170,6 +171,16 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
     updateTypingStatus(e.target.value.length > 0);
   };
 
+  const addEmoji = (emoji: string) => {
+    setMessage(prev => prev + emoji);
+    // Add to recent emojis if not already there
+    if (!recentEmojis.includes(emoji)) {
+      setRecentEmojis(prev => [emoji, ...prev.slice(0, 4)]);
+    }
+    setShowEmojiPicker(false);
+    messageInputRef.current?.focus();
+  };
+
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
     
@@ -303,15 +314,26 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
           {/* Emoji Picker (simplified) */}
           {showEmojiPicker && (
             <div className="absolute bottom-full right-0 mb-2 bg-white rounded-xl shadow-lg border border-forest-100 p-3 w-64">
-              <div className="grid grid-cols-8 gap-1">
-                {['😊', '😂', '❤️', '👍', '🙏', '🎉', '🌱', '✨', '🔥', '👋', '🤔', '😍', '🌿', '🌎', '🙌', '🌈'].map((emoji) => (
+              <div className="mb-2">
+                <h4 className="text-xs font-medium text-forest-700 mb-1">Recent</h4>
+                <div className="flex space-x-1">
+                  {recentEmojis.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => addEmoji(emoji)}
+                      className="w-8 h-8 flex items-center justify-center hover:bg-forest-50 rounded-lg text-xl"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <h4 className="text-xs font-medium text-forest-700 mb-1">Common</h4>
+              <div className="grid grid-cols-6 gap-1">
+                {['😊', '😂', '❤️', '👍', '🙏', '🎉', '🌱', '✨', '🔥', '👋', '🤔', '😍', '🌿', '🌎', '🙌', '🌈', '👏', '🥰'].map((emoji) => (
                   <button
                     key={emoji}
-                    onClick={() => {
-                      setMessage(prev => prev + emoji);
-                      setShowEmojiPicker(false);
-                      messageInputRef.current?.focus();
-                    }}
+                    onClick={() => addEmoji(emoji)}
                     className="w-8 h-8 flex items-center justify-center hover:bg-forest-50 rounded-lg text-xl"
                   >
                     {emoji}

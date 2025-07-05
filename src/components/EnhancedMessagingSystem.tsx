@@ -5,6 +5,7 @@ import ConversationList from './ConversationList';
 import ConversationView from './ConversationView';
 import NewConversationModal from './NewConversationModal';
 import ConversationInfo from './ConversationInfo';
+import { useNavigate } from 'react-router-dom';
 
 interface EnhancedMessagingSystemProps {
   isOpen: boolean;
@@ -18,10 +19,13 @@ const EnhancedMessagingSystem: React.FC<EnhancedMessagingSystemProps> = ({
   initialConversationId
 }) => {
   const { user } = useAuthContext();
+  const navigate = useNavigate();
   const [selectedConversation, setSelectedConversation] = useState<string | null>(initialConversationId || null);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [showNewConversationModal, setShowNewConversationModal] = useState(false);
   const [showConversationInfo, setShowConversationInfo] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
     if (initialConversationId) {
@@ -47,6 +51,14 @@ const EnhancedMessagingSystem: React.FC<EnhancedMessagingSystemProps> = ({
     setSelectedConversation(conversationId);
     setShowMobileChat(true);
     setShowNewConversationModal(false);
+  };
+
+  const handleClose = () => {
+    // Close the messaging system and navigate back if on messages page
+    onClose();
+    if (window.location.pathname === '/messages') {
+      navigate('/');
+    }
   };
 
   if (!isOpen) return null;
@@ -98,6 +110,14 @@ const EnhancedMessagingSystem: React.FC<EnhancedMessagingSystemProps> = ({
             />
           </div>
         )}
+
+        {/* Close Button (visible on large screens) */}
+        <button
+          onClick={handleClose}
+          className="fixed top-4 right-4 bg-white p-2 rounded-full shadow-md border border-forest-100 z-50"
+        >
+          <X className="h-5 w-5 text-forest-600" />
+        </button>
 
         {/* We're removing the close button here since it's now handled in the parent component */}
       </div>
