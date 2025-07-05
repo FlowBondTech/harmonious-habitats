@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Map, Calendar, MessageCircle, User, Menu, X, Sprout, Globe, Shield, CalendarPlus, Home as HomePlus, LogIn, LogOut, Search, Users, BarChart3 } from 'lucide-react';
+import { Home, Map, Calendar, MessageCircle, User, Menu, X, Sprout, Globe, Shield, CalendarPlus, Home as HomePlus, LogIn, LogOut, Users, BarChart3 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import AuthButton from './AuthButton';
 import NotificationCenter from './NotificationCenter';
-import SearchSystem from './SearchSystem';
 import MessagingSystem from './MessagingSystem';
 import CommunityFeatures from './CommunityFeatures';
 import AnalyticsDashboard from './AnalyticsDashboard';
@@ -12,7 +11,6 @@ import AnalyticsDashboard from './AnalyticsDashboard';
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [showCommunity, setShowCommunity] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -208,11 +206,6 @@ const Navbar = () => {
       </div>
 
       {/* Global Modals */}
-      <SearchSystem 
-        isOpen={showSearch}
-        onClose={() => setShowSearch(false)}
-      />
-      
       <MessagingSystem
         isOpen={showMessages}
         onClose={() => setShowMessages(false)}
