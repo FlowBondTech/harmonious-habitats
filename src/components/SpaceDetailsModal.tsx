@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   X, 
   MapPin, 
-  Users,
+  Users, 
   Star, 
   Badge, 
   Home, 
@@ -13,7 +13,7 @@ import {
   CheckCircle,
   AlertCircle,
   MessageCircle,
-  Share2, 
+  Share2,
   Cat,
   Dog,
   Bird,

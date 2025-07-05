@@ -15,7 +15,7 @@ import {
   Cat,
   Info,
   Bell,
-  Dog,
+  ArrowRight,
   ArrowRight,
   CheckCircle,
   Tag,
