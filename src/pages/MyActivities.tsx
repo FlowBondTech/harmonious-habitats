@@ -82,6 +82,8 @@ const MyActivities = () => {
       } finally {
         setLoading(false);
       }
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();
