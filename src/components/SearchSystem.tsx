@@ -12,6 +12,8 @@ import {
   Zap,
   Globe,
   Home,
+  Cat,
+  Dog,
   ArrowRight,
   CheckCircle,
   Tag,
@@ -53,6 +55,8 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
     eventType: '',
     spaceType: '',
     verified: false,
+    petFriendly: false,
+    animalTypes: [],
     donation: '',
     radius: 5
   });
@@ -150,6 +154,15 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
 
         if (filters.spaceType) {
           spaceQuery = spaceQuery.eq('type', filters.spaceType);
+        }
+        
+        if (filters.petFriendly) {
+          query = query.eq('animals_allowed', true);
+          
+          if (filters.animalTypes.length > 0) {
+            // This would need a more complex query to filter by animal types
+            // For now, we'll just filter by animals_allowed
+          }
         }
 
         if (filters.verified) {
@@ -331,6 +344,43 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
                     </option>
                   ))}
                 </select>
+              </div>
+            )}
+
+            {/* Pet Friendly Filter */}
+            {(filters.type === 'all' || filters.type === 'spaces') && (
+              <div>
+                <label className="block text-sm font-medium text-forest-700 mb-2">Pet Friendly</label>
+                <div className="flex items-center mb-3">
+                  <input
+                    type="checkbox"
+                    checked={filters.petFriendly}
+                    onChange={(e) => setFilters(prev => ({ ...prev, petFriendly: e.target.checked }))}
+                    className="w-4 h-4 text-forest-600 bg-forest-100 border-forest-300 rounded focus:ring-forest-500 focus:ring-2"
+                  />
+                  <span className="ml-2 text-sm text-forest-700">Show only pet-friendly spaces</span>
+                </div>
+                
+                {filters.petFriendly && (
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {['dogs', 'cats', 'birds', 'small_pets'].map(type => (
+                      <label key={type} className="flex items-center space-x-2 p-2 bg-forest-50 rounded-lg cursor-pointer hover:bg-forest-100 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={filters.animalTypes.includes(type)}
+                          onChange={(e) => {
+                            const newTypes = e.target.checked
+                              ? [...filters.animalTypes, type]
+                              : filters.animalTypes.filter(t => t !== type);
+                            setFilters(prev => ({ ...prev, animalTypes: newTypes }));
+                          }}
+                          className="w-3 h-3 text-forest-600"
+                        />
+                        <span className="text-xs text-forest-700 capitalize">{type.replace('_', ' ')}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

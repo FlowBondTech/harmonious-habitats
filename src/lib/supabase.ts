@@ -109,11 +109,13 @@ export interface Space {
   image_urls: string[]
   verified: boolean
   status: 'available' | 'unavailable' | 'pending_approval' | 'suspended'
+  animals_allowed: boolean
   admin_notes?: string
   owner?: Profile
   amenities?: SpaceAmenity[]
   accessibility_features?: SpaceAccessibilityFeature[]
   holistic_categories?: SpaceHolisticCategory[]
+  animal_types?: SpaceAnimalType[]
 }
 
 export interface SpaceAmenity {
@@ -129,6 +131,11 @@ export interface SpaceAccessibilityFeature {
 export interface SpaceHolisticCategory {
   space_id: string
   category: string
+}
+
+export interface SpaceAnimalType {
+  space_id: string
+  animal_type: string
 }
 
 export interface UserRole {
