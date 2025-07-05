@@ -79,20 +79,6 @@ const Navbar = () => {
               >
                 <MessageCircle className="h-5 w-5" />
               </button>
-              <button
-                onClick={() => setShowCommunity(true)}
-                className="p-2 text-forest-600 hover:bg-forest-50 rounded-xl transition-colors"
-                title="Community"
-              >
-                <Users className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => setShowAnalytics(true)}
-                className="p-2 text-forest-600 hover:bg-forest-50 rounded-xl transition-colors"
-                title="Analytics"
-              >
-                <BarChart3 className="h-5 w-5" />
-              </button>
             </div>
           )}
 
@@ -209,17 +195,6 @@ const Navbar = () => {
       <MessagingSystem
         isOpen={showMessages}
         onClose={() => setShowMessages(false)}
-      />
-      
-      <CommunityFeatures
-        isOpen={showCommunity}
-        onClose={() => setShowCommunity(false)}
-      />
-      
-      <AnalyticsDashboard
-        isOpen={showAnalytics}
-        onClose={() => setShowAnalytics(false)}
-        type={isAdmin ? 'admin' : 'personal'}
       />
     </nav>
   );
