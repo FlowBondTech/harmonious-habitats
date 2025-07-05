@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Eye, Clock, Award, CheckCircle, MessageCircle, Share2, Image, FileText } from 'lucide-react';
+import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Eye, Clock, Award, CheckCircle, MessageCircle, Share2, Image, FileText, Home, Globe, Map } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { updateProfile } from '../lib/supabase';
 import { Link } from 'react-router-dom';
