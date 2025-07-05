@@ -53,6 +53,9 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const [newMessageCount, setNewMessageCount] = useState(0);
+
   useEffect(() => {
     if (conversationId && user) {
       loadConversation();
@@ -63,8 +66,32 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   }, [conversationId, user]);
 
   useEffect(() => {
-    scrollToBottom();
+    if (isAtBottom || messages.length <= 1) {
+      scrollToBottom();
+    } else {
+      // If we're not at the bottom and received a new message
+      setNewMessageCount(prev => prev + 1);
+    }
   }, [messages]);
+
+  // Add scroll event listener to detect when user is at bottom
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isBottom = scrollHeight - scrollTop - clientHeight < 20;
+      setIsAtBottom(isBottom);
+      
+      if (isBottom && newMessageCount > 0) {
+        setNewMessageCount(0);
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [newMessageCount]);
 
   // Handle scroll events to detect if user is at bottom
   useEffect(() => {
@@ -280,7 +307,8 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   };
 
   const scrollToBottomForced = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    setNewMessageCount(0);
     setIsScrolledToBottom(true);
     setUnreadCount(0);
   };
@@ -805,6 +833,16 @@ const ConversationView: React.FC<ConversationViewProps> = ({
                   <div className="w-2 h-2 rounded-full bg-forest-500 animate-pulse delay-200"></div>
                 </div>
                 <span>{getTypingIndicator()}</span>
+              </div>
+            )}
+            
+            {/* New Messages Notification */}
+            {newMessageCount > 0 && (
+              <div 
+                className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-forest-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer animate-bounce-gentle z-10"
+                onClick={scrollToBottom}
+              >
+                {newMessageCount} new message{newMessageCount > 1 ? 's' : ''}
               </div>
             )}
             
