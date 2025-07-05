@@ -27,15 +27,29 @@ const MyActivities = () => {
 
   // Load user's activities
   useEffect(() => {
-    const loadActivities = async () => {
+    loadActivities();
+  }, [user]);
+  
+  // Define loadActivities as a function that can be called elsewhere
+  const loadActivities = async () => {
       if (!user) return;
       
       try {
         setLoading(true);
         
         // Load events user is hosting
-        const { data: hostingData } = await getEvents();
-        const userHostingEvents = hostingData?.filter(event => event.organizer_id === user.id) || [];
+        const { data: hostingData, error: hostingError } = await getEvents();
+        
+        if (hostingError) {
+          console.error('Error loading hosting events:', hostingError);
+          return;
+        }
+        
+        const userHostingEvents = hostingData?.filter(event => {
+          return event.organizer_id === user.id;
+        }) || [];
+        
+        console.log("Found", userHostingEvents.length, "events hosted by user");
         setHostingEvents(userHostingEvents);
         
         // Load user's spaces
@@ -43,18 +57,31 @@ const MyActivities = () => {
         const userSpaces = spacesData?.filter(space => space.owner_id === user.id) || [];
         setMySpaces(userSpaces);
         
-        // TODO: Load events user is attending (requires participant data)
-        setAttendingEvents([]);
+        // Load events user is attending
+        try {
+          const { data: participantsData } = await supabase
+            .from('event_participants')
+            .select(`
+              event_id,
+              events:event_id(*)
+            `)
+            .eq('user_id', user.id)
+            .eq('status', 'confirmed');
+          
+          if (participantsData && participantsData.length > 0) {
+            const events = participantsData.map(p => p.events).filter(Boolean) as Event[];
+            setAttendingEvents(events);
+            console.log("Found", events.length, "events user is attending");
+          }
+        } catch (error) {
+          console.error('Error loading attending events:', error);
+        }
         
       } catch (error) {
         console.error('Error loading activities:', error);
       } finally {
         setLoading(false);
       }
-    };
-
-    loadActivities();
-  }, [user]);
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();

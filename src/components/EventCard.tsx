@@ -17,6 +17,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
   const [isJoining, setIsJoining] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showManagementModal, setShowManagementModal] = useState(false);
 
@@ -29,6 +30,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
   const checkParticipationStatus = async () => {
     if (!user) return;
 
+    console.log("Checking participation status for event", event.id);
     try {
       const { data } = await supabase
         .from('event_participants')
@@ -37,8 +39,11 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
         .eq('user_id', user.id)
         .single();
 
-      setHasJoined(!!data);
-    } catch (error) {
+      console.log("Participation data:", data);
+      if (data) {
+        setHasJoined(true);
+      }
+    } catch (error: any) {
       // User hasn't joined - this is expected
     }
   };
@@ -86,6 +91,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
   const handleJoinEvent = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user) {
+      console.log("User not logged in, cannot join event");
       setError('Please sign in to join events');
       return;
     }
@@ -94,15 +100,19 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
     setError(null);
 
     try {
+      console.log("Joining event", event.id);
       const { error: joinError } = await supabase
         .from('event_participants')
         .insert([{
           event_id: event.id,
           user_id: user.id,
-          status: 'confirmed'
+          status: 'confirmed',
+          joined_at: new Date().toISOString()
         }]);
 
       if (joinError) {
+        console.error("Error joining event:", joinError);
+        
         if (joinError.code === '23505') { // Unique constraint violation
           setError('You have already joined this event');
         } else {
@@ -110,9 +120,10 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
         }
       } else {
         setHasJoined(true);
+        setSuccess('Successfully joined event!');
         onUpdate?.();
       }
-    } catch (err: any) {
+    } catch (err: any) {      
       setError(err.message || 'Failed to join event');
     } finally {
       setIsJoining(false);

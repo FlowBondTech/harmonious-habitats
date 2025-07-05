@@ -282,13 +282,24 @@ export const getEvents = async (filters?: {
   if (filters?.status) {
     query = query.eq('status', filters.status)
   }
+  
+  // Add some better error handling
+  console.log("Fetching events with filters:", filters);
+  
   if (filters?.limit) {
     query = query.limit(filters.limit)
   }
 
   query = query.order('date', { ascending: true })
 
-  return await query
+  const result = await query;
+  console.log(`Fetched ${result?.data?.length || 0} events`);
+  
+  if (result.error) {
+    console.error("Error fetching events:", result.error);
+  }
+  
+  return result;
 }
 
 export const getSpaces = async (filters?: {
