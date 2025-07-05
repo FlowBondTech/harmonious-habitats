@@ -55,6 +55,7 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
     if (!event) return;
 
     try {
+      console.log("Loading participants for event", event.id);
       const { data } = await supabase
         .from('event_participants')
         .select(`
@@ -82,6 +83,7 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
   const loadWaitlist = async () => {
     if (!event) return;
 
+    console.log("Loading waitlist for event", event.id);
     try {
       const { data } = await supabase
         .from('event_waitlist')
@@ -176,8 +178,10 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
       if (error) throw error;
 
       setSuccess('Event cancelled successfully');
-      onUpdate?.();
-      onClose();
+      setTimeout(() => {
+        onUpdate?.();
+        onClose();
+      }, 1500);
     } catch (err: any) {
       setError(err.message || 'Failed to cancel event');
     } finally {

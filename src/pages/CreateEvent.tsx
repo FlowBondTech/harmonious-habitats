@@ -108,6 +108,8 @@ const CreateEvent = () => {
     try {
       const eventData = {
         organizer_id: user.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         title: formData.title.trim(),
         description: formData.description.trim() || null,
         category: formData.category,
@@ -139,7 +141,25 @@ const CreateEvent = () => {
       if (insertError) {
         throw insertError;
       }
+      
+      console.log("Event created successfully:", data);
 
+      // Add the organizer as a participant automatically
+      try {
+        await supabase
+          .from('event_participants')
+          .insert([{
+            event_id: data.id,
+            user_id: user.id,
+            status: 'confirmed',
+            joined_at: new Date().toISOString()
+          }]);
+          
+        console.log("Added organizer as participant");
+      } catch (err) {
+        console.error("Error adding organizer as participant:", err);
+      }
+      
       setSuccess('Event created successfully!');
       
       // Redirect to the event or activities page after a short delay
