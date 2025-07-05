@@ -13,7 +13,6 @@ import {
   Globe,
   Home,
   Cat,
-  Dog,
   Info,
   Bell,
   Dog,
