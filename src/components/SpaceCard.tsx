@@ -91,6 +91,12 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
               <span className="text-sm font-medium">Pet friendly</span>
             </div>
           )}
+          {space.animals_allowed && (
+            <div className="flex items-center text-forest-600">
+              <Cat className="h-4 w-4 mr-2.5 text-forest-500" />
+              <span className="text-sm font-medium">Pet friendly</span>
+            </div>
+          )}
           <div className="flex items-center text-forest-600">
             <Users className="h-4 w-4 mr-2.5 text-forest-500" />
             <span className="text-sm font-medium">Up to {space.capacity} people</span>
