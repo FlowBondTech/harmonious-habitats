@@ -20,7 +20,6 @@ import {
   Fish,
   Rabbit,
   Info,
-  Cat,
   Dog,
   Bird,
   Fish,
@@ -273,41 +272,6 @@ const SpaceDetailsModal: React.FC<SpaceDetailsModalProps> = ({
                           <span className="text-sm text-blue-700">{feature.feature}</span>
                         </div>
                       ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Pet Friendly */}
-                {space.animals_allowed && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-forest-800 mb-3">Pet Friendly Space</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {space.animal_types ? (
-                        space.animal_types.map((animal: any, index: number) => {
-                          let AnimalIcon = Dog;
-                          if (animal.animal_type === 'cats') AnimalIcon = Cat;
-                          if (animal.animal_type === 'birds') AnimalIcon = Bird;
-                          if (animal.animal_type === 'fish') AnimalIcon = Fish;
-                          if (animal.animal_type === 'small_pets') AnimalIcon = Rabbit;
-                          
-                          return (
-                            <div key={index} className="flex items-center space-x-2 p-3 bg-earth-50 rounded-lg">
-                              <AnimalIcon className="h-4 w-4 text-earth-600" />
-                              <span className="text-sm text-earth-700 capitalize">{animal.animal_type.replace('_', ' ')}</span>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="col-span-full p-3 bg-earth-50 rounded-lg">
-                          <p className="text-sm text-earth-700">This space is pet-friendly, but specific animal types aren't specified.</p>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                      <p className="text-sm text-blue-700">
-                        <strong>Note:</strong> Service animals are always welcome regardless of pet policy.
-                      </p>
                     </div>
                   </div>
                 )}

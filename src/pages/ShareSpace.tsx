@@ -35,10 +35,6 @@ const ShareSpace = () => {
       allowed: false,
       types: []
     },
-    animals: {
-      allowed: false,
-      types: []
-    },
     holisticFriendly: [],
     listPublicly: false,
     images: [] as File[]
@@ -81,14 +77,6 @@ const ShareSpace = () => {
     { id: 'small_pets', name: 'Small Pets', icon: Rabbit }
   ];
 
-  const animalTypes = [
-    { id: 'dogs', name: 'Dogs', icon: Dog },
-    { id: 'cats', name: 'Cats', icon: Cat },
-    { id: 'birds', name: 'Birds', icon: Bird },
-    { id: 'fish', name: 'Fish', icon: Fish },
-    { id: 'small_pets', name: 'Small Pets', icon: Rabbit }
-  ];
-
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -99,21 +87,6 @@ const ShareSpace = () => {
       ? current.filter(i => i !== item)
       : [...current, item];
     handleInputChange(array, updated);
-  };
-
-  const toggleAnimalType = (animalId: string) => {
-    const current = formData.animals.types;
-    const updated = current.includes(animalId)
-      ? current.filter(id => id !== animalId)
-      : [...current, animalId];
-    
-    setFormData(prev => ({
-      ...prev,
-      animals: {
-        ...prev.animals,
-        types: updated
-      }
-    }));
   };
 
   const toggleAnimalType = (animalId: string) => {
@@ -203,7 +176,6 @@ const ShareSpace = () => {
         list_publicly: formData.listPublicly,
         guidelines: formData.guidelines.trim() || null,
         animals_allowed: formData.animals.allowed,
-        animals_allowed: formData.animals.allowed,
         donation_suggested: formData.donationSuggested.trim() || null,
         image_urls: imageUrls,
         verified: false,
@@ -258,20 +230,6 @@ const ShareSpace = () => {
           .insert(categoryData);
         
         if (categoryError) throw categoryError;
-      }
-
-      // Add animal types if animals are allowed
-      if (formData.animals.allowed && formData.animals.types.length > 0) {
-        const animalData = formData.animals.types.map(animal => ({
-          space_id: space.id,
-          animal_type: animal
-        }));
-        
-        const { error: animalError } = await supabase
-          .from('space_animal_types')
-          .insert(animalData);
-        
-        if (animalError) throw animalError;
       }
 
       // Add animal types if animals are allowed
@@ -508,84 +466,6 @@ const ShareSpace = () => {
                   </label>
                 ))}
               </div>
-            </div>
-
-            {/* Animals */}
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-forest-800 border-b border-forest-100 pb-3">
-                <Cat className="h-5 w-5 inline mr-2" />
-                Animals & Pets
-              </h2>
-              
-              <div className="bg-gradient-to-r from-earth-50 to-forest-50 rounded-lg p-6 border border-earth-200">
-                <label className="flex items-start space-x-4 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.animals.allowed}
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      animals: {
-                        ...prev.animals,
-                        allowed: e.target.checked
-                      }
-                    }))}
-                    className="w-5 h-5 text-forest-600 bg-forest-100 border-forest-300 rounded focus:ring-forest-500 focus:ring-2 mt-1"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Dog className="h-5 w-5 text-earth-500" />
-                      <span className="font-semibold text-forest-800">Pet-friendly space</span>
-                    </div>
-                    <p className="text-sm text-forest-600 leading-relaxed">
-                      Indicate if your space is pet-friendly and what types of animals are welcome. This helps community members with pets find suitable spaces for events.
-                    </p>
-                  </div>
-                </label>
-              </div>
-              
-              {formData.animals.allowed && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-forest-700 mb-3">
-                    What types of animals are welcome?
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {animalTypes.map((animal) => {
-                      const Icon = animal.icon;
-                      const isSelected = formData.animals.types.includes(animal.id);
-                      return (
-                        <button
-                          key={animal.id}
-                          type="button"
-                          onClick={() => toggleAnimalType(animal.id)}
-                          className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                            isSelected
-                              ? 'border-forest-300 bg-forest-50'
-                              : 'border-forest-100 hover:border-forest-200 hover:bg-forest-50'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <Icon className={`h-5 w-5 ${isSelected ? 'text-forest-600' : 'text-forest-400'}`} />
-                            <span className="font-medium text-forest-800 text-sm">{animal.name}</span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  
-                  <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                    <div className="flex items-start space-x-3">
-                      <div className="bg-blue-100 p-2 rounded-lg">
-                        <Info className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-blue-700">
-                          Please note that service animals are always welcome regardless of your pet policy, in accordance with accessibility guidelines.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Animals */}
