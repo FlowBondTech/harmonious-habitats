@@ -16,7 +16,6 @@ import {
   Info,
   Bell,
   ArrowRight,
-  ArrowRight,
   CheckCircle,
   Tag,
   Heart
@@ -586,3 +585,5 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
 };
 
 export default SearchSystem;
+
+export default SearchSystem
