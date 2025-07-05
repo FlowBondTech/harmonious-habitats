@@ -21,7 +21,6 @@ const EnhancedMessagingSystem: React.FC<EnhancedMessagingSystemProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuthContext();
-  const navigate = useNavigate();
   const [selectedConversation, setSelectedConversation] = useState<string | null>(initialConversationId || null);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [showNewConversationModal, setShowNewConversationModal] = useState(false);
