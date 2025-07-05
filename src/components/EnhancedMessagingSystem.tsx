@@ -99,13 +99,7 @@ const EnhancedMessagingSystem: React.FC<EnhancedMessagingSystemProps> = ({
           </div>
         )}
 
-        {/* Close Button (visible on large screens) */}
-        <button
-          onClick={onClose}
-          className="fixed top-4 right-4 bg-white p-2 rounded-full shadow-md border border-forest-100 z-50"
-        >
-          <X className="h-5 w-5 text-forest-600" />
-        </button>
+        {/* We're removing the close button here since it's now handled in the parent component */}
       </div>
     </div>
   );
