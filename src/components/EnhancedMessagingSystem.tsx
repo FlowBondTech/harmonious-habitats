@@ -62,14 +62,6 @@ const EnhancedMessagingSystem: React.FC<EnhancedMessagingSystemProps> = ({
     setShowNewConversationModal(false);
   };
 
-  const handleClose = () => {
-    // Close the messaging system and navigate back if on messages page
-    onClose();
-    if (window.location.pathname === '/messages') {
-      navigate('/');
-    }
-  };
-
   if (!isOpen) return null;
 
   return (
