@@ -26,7 +26,7 @@ const Home = () => {
 
   // Load today's events
   useEffect(() => {
-    const loadTodayEvents = async () => {
+    const loadEvents = async () => {
       try {
         setLoading(true);
         const today = new Date().toISOString().split('T')[0];
@@ -37,7 +37,9 @@ const Home = () => {
         });
 
         if (error) {
-          throw error;
+          console.error('Error loading events:', error);
+          setError(error.message);
+          return;
         }
 
         // Filter for today's events or upcoming events if no events today
@@ -53,12 +55,45 @@ const Home = () => {
         
       } catch (err: any) {
         setError(err.message);
+        console.error('Failed to load events:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadTodayEvents();
+    loadEvents();
+  }, []);
+
+  // Function to reload activities
+  const loadActivities = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { data: eventsData } = await getEvents({
+        status: 'active',
+        limit: 6
+      });
+
+      // Filter for today's events or upcoming events if no events today
+      const filteredEvents = eventsData?.filter(event => event.date >= today) || [];
+      setTodayEvents(filteredEvents.slice(0, 3)); // Show max 3 events
+      
+      // Load featured spaces
+      const { data: spacesData } = await getSpaces({
+        status: 'available',
+        limit: 3
+      });
+      setFeaturedSpaces(spacesData || []);
+      
+    } catch (err: any) {
+      console.error('Error reloading activities:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const weeklyRegulars = [
