@@ -37,45 +37,40 @@ const MyActivities = () => {
       try {
         setLoading(true);
         
+        // Load events the user is attending
+        const { data: attendingData, error: attendingError } = await getUserAttendingEvents(user.id);
+        
+        if (attendingError) {
+          console.error('Error loading attending events:', attendingError);
+        } else {
+          setAttendingEvents(attendingData || []);
+        }
+        
         // Load events user is hosting
-        const { data: hostingData, error: hostingError } = await getEvents();
+        const { data: hostingData, error: hostingError } = await supabase
+          .from('events')
+          .select(`
+            *,
+            organizer:profiles!events_organizer_id_fkey(id, full_name, avatar_url, verified),
+            participants:event_participants(
+              user_id,
+              status,
+              user:profiles!event_participants_user_id_fkey(id, full_name, avatar_url)
+            )
+          `)
+          .eq('organizer_id', user.id)
+          .order('date', { ascending: true });
         
         if (hostingError) {
           console.error('Error loading hosting events:', hostingError);
-          return;
+        } else {
+          setHostingEvents(hostingData || []);
         }
-        
-        const userHostingEvents = hostingData?.filter(event => {
-          return event.organizer_id === user.id;
-        }) || [];
-        
-        console.log("Found", userHostingEvents.length, "events hosted by user");
-        setHostingEvents(userHostingEvents);
         
         // Load user's spaces
         const { data: spacesData } = await getSpaces();
         const userSpaces = spacesData?.filter(space => space.owner_id === user.id) || [];
         setMySpaces(userSpaces);
-        
-        // Load events user is attending
-        try {
-          const { data: participantsData } = await supabase
-            .from('event_participants')
-            .select(`
-              event_id,
-              events:event_id(*)
-            `)
-            .eq('user_id', user.id)
-            .eq('status', 'confirmed');
-          
-          if (participantsData && participantsData.length > 0) {
-            const events = participantsData.map(p => p.events).filter(Boolean) as Event[];
-            setAttendingEvents(events);
-            console.log("Found", events.length, "events user is attending");
-          }
-        } catch (error) {
-          console.error('Error loading attending events:', error);
-        }
         
       } catch (error) {
         console.error('Error loading activities:', error);
@@ -231,48 +226,35 @@ const MyActivities = () => {
             {/* Attending Events */}
             {activeTab === 'attending' && (
               <div className="space-y-4">
-                {attendingEvents.map((event) => (
-                  <div key={event.id} className="bg-gradient-to-r from-forest-50 to-earth-50 rounded-lg p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-forest-800 mb-1">{event.title}</h3>
-                        <p className="text-forest-600 flex items-center mb-2">
-                          <Star className="h-4 w-4 mr-1 text-earth-400 fill-current" />
-                          {event.facilitator}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          event.status === 'confirmed' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {event.status === 'confirmed' ? 'Confirmed' : 'Waitlist'}
-                        </span>
-                        <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
-                          <Share className="h-4 w-4" />
-                        </button>
-                        <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
-                          <MessageCircle className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-forest-600">
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        <span>{event.date}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-2" />
-                        <span>{event.time}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-2" />
-                        <span>{event.location} • {event.distance}</span>
-                      </div>
-                    </div>
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="w-8 h-8 border-4 border-forest-200 border-t-forest-600 rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-forest-600">Loading your events...</p>
                   </div>
-                ))}
+                ) : attendingEvents.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Calendar className="h-16 w-16 text-forest-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-forest-800 mb-2">No events joined yet</h3>
+                    <p className="text-forest-600 mb-6">Discover and join events in your community!</p>
+                    <Link
+                      to="/map"
+                      className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-xl font-medium transition-colors inline-flex items-center space-x-2"
+                    >
+                      <MapPin className="h-4 w-4" />
+                      <span>Find Events</span>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {attendingEvents.map((event) => (
+                      <EventCard 
+                        key={event.id} 
+                        event={event} 
+                        onUpdate={loadActivities}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

@@ -258,7 +258,7 @@ export const updateProfile = async (userId: string, updates: Partial<Profile>) =
 export const getEvents = async (filters?: {
   category?: string
   event_type?: string
-  status?: string
+  status?: string | string[]
   limit?: number
 }) => {
   let query = supabase
@@ -279,12 +279,11 @@ export const getEvents = async (filters?: {
   if (filters?.event_type) {
     query = query.eq('event_type', filters.event_type)
   }
-  if (filters?.status) {
+  if (filters?.status && typeof filters.status === 'string') {
     query = query.eq('status', filters.status)
+  } else if (filters?.status && Array.isArray(filters.status)) {
+    query = query.in('status', filters.status)
   }
-  
-  // Add some better error handling
-  console.log("Fetching events with filters:", filters);
   
   if (filters?.limit) {
     query = query.limit(filters.limit)
@@ -293,7 +292,6 @@ export const getEvents = async (filters?: {
   query = query.order('date', { ascending: true })
 
   const result = await query;
-  console.log(`Fetched ${result?.data?.length || 0} events`);
   
   if (result.error) {
     console.error("Error fetching events:", result.error);
@@ -301,6 +299,43 @@ export const getEvents = async (filters?: {
   
   return result;
 }
+
+// Get events a user is attending
+export const getUserAttendingEvents = async (userId: string) => {
+  try {
+    // First get the event_ids the user is participating in
+    const { data: participations, error: participationsError } = await supabase
+      .from('event_participants')
+      .select('event_id')
+      .eq('user_id', userId)
+      .eq('status', 'confirmed');
+      
+    if (participationsError) throw participationsError;
+    if (!participations || participations.length === 0) return { data: [] };
+    
+    // Get the full event details
+    const eventIds = participations.map(p => p.event_id);
+    const { data: events, error: eventsError } = await supabase
+      .from('events')
+      .select(`
+        *,
+        organizer:profiles!events_organizer_id_fkey(id, full_name, avatar_url, verified),
+        participants:event_participants(
+          user_id,
+          status,
+          user:profiles!event_participants_user_id_fkey(id, full_name, avatar_url)
+        )
+      `)
+      .in('id', eventIds)
+      .order('date', { ascending: true });
+      
+    if (eventsError) throw eventsError;
+    return { data: events || [] };
+  } catch (error) {
+    console.error('Error fetching user attending events:', error);
+    return { data: [], error };
+  }
+};
 
 export const getSpaces = async (filters?: {
   type?: string

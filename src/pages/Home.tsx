@@ -30,9 +30,13 @@ const Home = () => {
       try {
         setLoading(true);
         const today = new Date().toISOString().split('T')[0];
+        const oneMonthLater = new Date();
+        oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
+        const oneMonthFromNow = oneMonthLater.toISOString().split('T')[0];
         
         const { data, error } = await getEvents({
           status: 'active',
+          limit: 10
           limit: 6
         });
 
@@ -43,7 +47,15 @@ const Home = () => {
         }
 
         // Filter for today's events or upcoming events if no events today
-        const filteredEvents = data?.filter(event => event.date >= today) || [];
+        // Sort by date
+        const filteredEvents = data?.filter(event => 
+          event.date >= today && event.date <= oneMonthFromNow
+        ).sort((a, b) => 
+          new Date(a.date).getTime() - new Date(b.date).getTime()
+        ) || [];
+        
+        console.log(`Found ${filteredEvents.length} upcoming events`);
+        
         setTodayEvents(filteredEvents.slice(0, 3)); // Show max 3 events
         
         // Load featured spaces

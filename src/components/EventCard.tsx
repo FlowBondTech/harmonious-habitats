@@ -91,16 +91,15 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
   const handleJoinEvent = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user) {
-      console.log("User not logged in, cannot join event");
       setError('Please sign in to join events');
       return;
     }
 
     setIsJoining(true);
     setError(null);
+    setSuccess(null);
 
     try {
-      console.log("Joining event", event.id);
       const { error: joinError } = await supabase
         .from('event_participants')
         .insert([{
@@ -110,9 +109,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
           joined_at: new Date().toISOString()
         }]);
 
-      if (joinError) {
-        console.error("Error joining event:", joinError);
-        
+      if (joinError) {        
         if (joinError.code === '23505') { // Unique constraint violation
           setError('You have already joined this event');
         } else {
@@ -121,10 +118,50 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
       } else {
         setHasJoined(true);
         setSuccess('Successfully joined event!');
+        
+        // Create notification for event organizer
+        await supabase
+          .from('notifications')
+          .insert([{
+            user_id: event.organizer_id,
+            type: 'event',
+            title: 'New Participant',
+            content: `${profile?.full_name || user.email} has joined your event "${event.title}"`,
+            data: { event_id: event.id }
+          }]);
+          
         onUpdate?.();
       }
     } catch (err: any) {      
       setError(err.message || 'Failed to join event');
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
+  // Add method to leave event
+  const handleLeaveEvent = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user || !hasJoined) return;
+    
+    setIsJoining(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const { error: leaveError } = await supabase
+        .from('event_participants')
+        .delete()
+        .eq('event_id', event.id)
+        .eq('user_id', user.id);
+        
+      if (leaveError) throw leaveError;
+      
+      setHasJoined(false);
+      setSuccess('Left the event successfully');
+      onUpdate?.();
+    } catch (err: any) {
+      setError(err.message || 'Failed to leave event');
     } finally {
       setIsJoining(false);
     }
@@ -222,30 +259,42 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
           </div>
         )}
         
-        <button 
-          onClick={handleJoinEvent}
-          disabled={isJoining || hasJoined || !user}
-          className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-[1.02] shadow-sm hover:shadow-md ${
-            hasJoined 
-              ? 'bg-green-600 text-white cursor-default'
-              : !user
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white'
-          }`}
-        >
-          {isJoining ? (
-            <div className="flex items-center justify-center space-x-2">
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>Joining...</span>
-            </div>
-          ) : hasJoined ? (
-            'Joined!'
-          ) : !user ? (
-            'Sign in to Join'
-          ) : (
-            'Join Event'
-          )}
-        </button>
+        {success && (
+          <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-600">
+            {success}
+          </div>
+        )}
+        
+        {!hasJoined ? (
+          <button 
+            onClick={handleJoinEvent}
+            disabled={isJoining || !user}
+            className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-[1.02] shadow-sm hover:shadow-md ${
+                !user
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white'
+            }`}
+          >
+            {isJoining ? (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Joining...</span>
+              </div>
+            ) : !user ? (
+              'Sign in to Join'
+            ) : (
+              'Join Event'
+            )}
+          </button>
+        ) : (
+          <button 
+            onClick={handleLeaveEvent}
+            disabled={isJoining}
+            className="w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 bg-green-600 hover:bg-green-700 text-white"
+          >
+            {isJoining ? 'Processing...' : 'Joined! (Click to Leave)'}
+          </button>
+        )}
         
         {showManagement && user?.id === event.organizer_id && (
           <button 
