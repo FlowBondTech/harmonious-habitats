@@ -62,24 +62,33 @@ const ConversationList: React.FC<ConversationListProps> = ({
   };
 
   const setupRealtimeSubscription = () => {
-    const subscription = supabase
-      .channel('conversation_updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'messages'
-        },
-        (payload) => {
-          // Refresh conversations when new messages arrive
-          loadConversations();
-        }
-      )
-      .subscribe();
+    let subscription = null;
+    
+    try {
+      subscription = supabase
+        .channel('conversation_updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'messages'
+          },
+          (payload) => {
+            // Refresh conversations when new messages arrive
+            loadConversations();
+          }
+        )
+        .subscribe();
+    } catch (error) {
+      console.error('Error setting up realtime subscription:', error);
+      return () => {}; // Return empty cleanup function if subscription fails
+    }
 
     return () => {
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   };
 
