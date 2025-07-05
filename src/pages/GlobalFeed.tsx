@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Globe, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, MapPin, Clock, Users, Search, Zap, TrendingUp, Award } from 'lucide-react';
 import EventCard from '../components/EventCard';
 import { getEvents, Event } from '../lib/supabase';
+import SearchSystem from '../components/SearchSystem';
 
 const GlobalFeed = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -111,20 +112,17 @@ const GlobalFeed = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Search */}
+            {/* Enhanced Search */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-forest-50">
-              <h3 className="font-semibold text-forest-800 mb-4 flex items-center">
-                <Search className="h-5 w-5 mr-2" />
-                Search Events
-              </h3>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by title, facilitator, or location..."
-                className="w-full px-4 py-3 border border-forest-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+              <SearchSystem 
+                placeholder="Search global events..."
+                onResults={(results) => {
+                  setGlobalEvents(results.events);
+                }}
               />
             </div>
+
+            {/* Search */}
 
             {/* Sort Options */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-forest-50">

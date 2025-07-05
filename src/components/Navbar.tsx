@@ -4,10 +4,18 @@ import { Home, Map, Calendar, MessageCircle, User, Menu, X, Sprout, Globe, Shiel
 import { useAuthContext } from './AuthProvider';
 import AuthButton from './AuthButton';
 import NotificationCenter from './NotificationCenter';
+import SearchSystem from './SearchSystem';
+import MessagingSystem from './MessagingSystem';
+import CommunityFeatures from './CommunityFeatures';
+import AnalyticsDashboard from './AnalyticsDashboard';
 
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
+  const [showCommunity, setShowCommunity] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const { user, profile, isAdmin, signOut, openAuthModalGlobal } = useAuthContext();
 
   const publicNavItems = [
@@ -47,6 +55,14 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1">
+            <button
+              onClick={() => setShowSearch(true)}
+              className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center space-x-2 hover:scale-105 text-forest-600 hover:bg-forest-50 hover:text-forest-700"
+            >
+              <Search className="h-4 w-4" />
+              <span>Search</span>
+            </button>
+            
             {navItems.map(({ path, icon: Icon, label }) => (
               <Link
                 key={path}
@@ -62,6 +78,33 @@ const Navbar = () => {
               </Link>
             ))}
           </div>
+
+          {/* Quick Action Buttons */}
+          {user && (
+            <div className="hidden lg:flex items-center space-x-2">
+              <button
+                onClick={() => setShowMessages(true)}
+                className="p-2 text-forest-600 hover:bg-forest-50 rounded-xl transition-colors"
+                title="Messages"
+              >
+                <MessageCircle className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setShowCommunity(true)}
+                className="p-2 text-forest-600 hover:bg-forest-50 rounded-xl transition-colors"
+                title="Community"
+              >
+                <Users className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setShowAnalytics(true)}
+                className="p-2 text-forest-600 hover:bg-forest-50 rounded-xl transition-colors"
+                title="Analytics"
+              >
+                <BarChart3 className="h-5 w-5" />
+              </button>
+            </div>
+          )}
 
           {/* Auth Button, Notifications & Mobile Menu Button */}
           <div className="flex items-center space-x-3">
@@ -171,6 +214,28 @@ const Navbar = () => {
           </div>
         )}
       </div>
+
+      {/* Global Modals */}
+      <SearchSystem 
+        isOpen={showSearch}
+        onClose={() => setShowSearch(false)}
+      />
+      
+      <MessagingSystem
+        isOpen={showMessages}
+        onClose={() => setShowMessages(false)}
+      />
+      
+      <CommunityFeatures
+        isOpen={showCommunity}
+        onClose={() => setShowCommunity(false)}
+      />
+      
+      <AnalyticsDashboard
+        isOpen={showAnalytics}
+        onClose={() => setShowAnalytics(false)}
+        type={isAdmin ? 'admin' : 'personal'}
+      />
     </nav>
   );
 };

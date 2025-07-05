@@ -3,6 +3,7 @@ import { MapPin, Users, Star, Badge, Home, Globe, Accessibility, DollarSign, Cal
 import { useAuthContext } from './AuthProvider';
 import { supabase, Space } from '../lib/supabase';
 import SpaceDetailsModal from './SpaceDetailsModal';
+import BookingSystem from './BookingSystem';
 
 interface SpaceCardProps {
   space: Space;
@@ -14,6 +15,7 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
   const [isBooking, setIsBooking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   const formatSpaceType = (type: string) => {
     return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -155,6 +157,17 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
         onBook={() => {
           onUpdate?.();
           setShowDetailsModal(false);
+          setShowBookingModal(true);
+        }}
+      />
+
+      <BookingSystem
+        space={space}
+        isOpen={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+        onBookingComplete={() => {
+          onUpdate?.();
+          setShowBookingModal(false);
         }}
       />
     </>

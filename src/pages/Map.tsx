@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Users, Clock, Heart, Navigation } from 'lucide-react';
 import { getEvents, getSpaces, Event, Space } from '../lib/supabase';
+import SearchSystem from '../components/SearchSystem';
 
 const Map = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -85,6 +86,18 @@ const Map = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1 space-y-6">
+            {/* Enhanced Search */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-forest-50">
+              <SearchSystem 
+                placeholder="Search events and spaces..."
+                showFilters={false}
+                onResults={(results) => {
+                  setMapEvents(results.events);
+                  setMapSpaces(results.spaces);
+                }}
+              />
+            </div>
+
             {/* Radius Selector */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-forest-50">
               <h3 className="font-semibold text-forest-800 mb-4 flex items-center">

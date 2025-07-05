@@ -13,62 +13,65 @@ import CreateEvent from './pages/CreateEvent';
 import ShareSpace from './pages/ShareSpace';
 import GlobalFeed from './pages/GlobalFeed';
 import AdminDashboard from './pages/AdminDashboard';
+import MobileOptimization from './components/MobileOptimization';
 
 const AppContent = () => {
   const { showAuthModalGlobal, globalAuthMode, closeAuthModalGlobal } = useAuthContext();
 
   return (
     <>
-      <Router>
-        <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
-          <Navbar />
-          <main className="pt-16">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/map" element={
-                <ProtectedRoute>
-                  <Map />
-                </ProtectedRoute>
-              } />
-              <Route path="/global-feed" element={
-                <ProtectedRoute>
-                  <GlobalFeed />
-                </ProtectedRoute>
-              } />
-              <Route path="/activities" element={
-                <ProtectedRoute>
-                  <MyActivities />
-                </ProtectedRoute>
-              } />
-              <Route path="/messages" element={
-                <ProtectedRoute>
-                  <Messages />
-                </ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } />
-              <Route path="/create-event" element={
-                <ProtectedRoute>
-                  <CreateEvent />
-                </ProtectedRoute>
-              } />
-              <Route path="/share-space" element={
-                <ProtectedRoute>
-                  <ShareSpace />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } />
-            </Routes>
-          </main>
-        </div>
-      </Router>
+      <MobileOptimization>
+        <Router>
+          <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
+            <Navbar />
+            <main className="pt-16">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/map" element={
+                  <ProtectedRoute>
+                    <Map />
+                  </ProtectedRoute>
+                } />
+                <Route path="/global-feed" element={
+                  <ProtectedRoute>
+                    <GlobalFeed />
+                  </ProtectedRoute>
+                } />
+                <Route path="/activities" element={
+                  <ProtectedRoute>
+                    <MyActivities />
+                  </ProtectedRoute>
+                } />
+                <Route path="/messages" element={
+                  <ProtectedRoute>
+                    <Messages />
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/create-event" element={
+                  <ProtectedRoute>
+                    <CreateEvent />
+                  </ProtectedRoute>
+                } />
+                <Route path="/share-space" element={
+                  <ProtectedRoute>
+                    <ShareSpace />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </main>
+          </div>
+        </Router>
+      </MobileOptimization>
 
       {/* Global Auth Modal */}
       <AuthModal
