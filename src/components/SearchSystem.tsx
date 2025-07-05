@@ -585,5 +585,3 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
 };
 
 export default SearchSystem;
-
-export default SearchSystem
