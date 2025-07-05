@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import ConversationList from './ConversationList';
@@ -18,6 +19,8 @@ const EnhancedMessagingSystem: React.FC<EnhancedMessagingSystemProps> = ({
   onClose,
   initialConversationId
 }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuthContext();
   const navigate = useNavigate();
   const [selectedConversation, setSelectedConversation] = useState<string | null>(initialConversationId || null);
@@ -33,6 +36,14 @@ const EnhancedMessagingSystem: React.FC<EnhancedMessagingSystemProps> = ({
       setShowMobileChat(true);
     }
   }, [initialConversationId]);
+
+  const handleClose = () => {
+    onClose();
+    // If we're on the messages page, navigate back to home
+    if (location.pathname === '/messages') {
+      navigate('/');
+    }
+  };
 
   const handleSelectConversation = (conversationId: string) => {
     setSelectedConversation(conversationId);
