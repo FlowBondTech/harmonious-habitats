@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import Map from './pages/Map';
 import MyActivities from './pages/MyActivities';
 import Messages from './pages/Messages';
+import Search from './pages/Search';
 import Profile from './pages/Profile';
 import CreateEvent from './pages/CreateEvent';
 import ShareSpace from './pages/ShareSpace';
@@ -30,6 +31,11 @@ const AppContent = () => {
                 <Route path="/map" element={
                   <ProtectedRoute>
                     <Map />
+                  </ProtectedRoute>
+                } />
+                <Route path="/search" element={
+                  <ProtectedRoute>
+                    <Search />
                   </ProtectedRoute>
                 } />
                 <Route path="/global-feed" element={

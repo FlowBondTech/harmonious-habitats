@@ -56,7 +56,7 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1">
             <button
-              onClick={() => setShowSearch(true)}
+              onClick={() => navigate('/search')}
               className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center space-x-2 hover:scale-105 text-forest-600 hover:bg-forest-50 hover:text-forest-700"
             >
               <Search className="h-4 w-4" />

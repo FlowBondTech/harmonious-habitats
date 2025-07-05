@@ -1,37 +1,48 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Search, 
-  Filter, 
-  MapPin, 
-  Calendar, 
-  Users, 
-  Star, 
+  Search,
+  Filter,
+  MapPin,
+  Calendar,
+  Users,
+  Star,
   Clock,
   X,
   SlidersHorizontal,
   Zap,
   Globe,
-  Home
+  Home,
+  ArrowRight,
+  CheckCircle,
+  Tag,
+  Heart
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase, Event, Space } from '../lib/supabase';
+import { Link } from 'react-router-dom';
 
 interface SearchSystemProps {
   onResults?: (results: { events: Event[], spaces: Space[] }) => void;
   placeholder?: string;
-  showFilters?: boolean;
+  showFilters?: boolean; 
+  isFullPage?: boolean;
 }
 
 const SearchSystem: React.FC<SearchSystemProps> = ({ 
   onResults, 
   placeholder = "Search events, spaces, and community members...",
-  showFilters = true 
+  showFilters = true,
+  isFullPage = false
 }) => {
   const { user } = useAuthContext();
   const [query, setQuery] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<{ events: Event[], spaces: Space[] }>({ events: [], spaces: [] });
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [popularSearches, setPopularSearches] = useState<string[]>([
+    'Yoga', 'Gardening', 'Meditation', 'Cooking', 'Art workshop'
+  ]);
   const [filters, setFilters] = useState({
     type: 'all', // all, events, spaces, users
     category: '',
@@ -65,6 +76,10 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
       const debounceTimer = setTimeout(() => {
         performSearch();
       }, 300);
+      // Save to recent searches
+      if (!recentSearches.includes(query)) {
+        setRecentSearches(prev => [query, ...prev].slice(0, 5));
+      }
       return () => clearTimeout(debounceTimer);
     } else {
       setResults({ events: [], spaces: [] });
@@ -188,7 +203,7 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
   ];
 
   return (
-    <div ref={searchRef} className="relative w-full max-w-4xl mx-auto">
+    <div ref={searchRef} className={`relative w-full ${isFullPage ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`}>
       {/* Main Search Bar */}
       <div className="relative">
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-forest-400" />
@@ -200,7 +215,7 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
           placeholder={placeholder}
           className="w-full pl-12 pr-16 py-4 bg-white border border-forest-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent shadow-sm text-lg"
         />
-        
+
         {showFilters && (
           <button
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
@@ -211,6 +226,7 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
             <SlidersHorizontal className="h-5 w-5" />
           </button>
         )}
+
         
         {loading && (
           <div className="absolute right-12 top-1/2 transform -translate-y-1/2">
@@ -334,9 +350,58 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
         </div>
       )}
 
+      {/* Recent and Popular Searches */}
+      {isFullPage && query.length < 3 && (
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Recent Searches */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-forest-800 mb-4 flex items-center">
+              <Clock className="h-5 w-5 mr-2 text-forest-500" />
+              Recent Searches
+            </h3>
+            {recentSearches.length > 0 ? (
+              <div className="space-y-2">
+                {recentSearches.map((search, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-forest-50 hover:bg-forest-100 rounded-lg transition-colors cursor-pointer" onClick={() => setQuery(search)}>
+                    <div className="flex items-center">
+                      <Search className="h-4 w-4 text-forest-500 mr-3" />
+                      <span className="text-forest-700">{search}</span>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-forest-400" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-forest-500">No recent searches</p>
+              </div>
+            )}
+          </div>
+
+          {/* Popular Searches */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-forest-800 mb-4 flex items-center">
+              <Tag className="h-5 w-5 mr-2 text-forest-500" />
+              Popular Searches
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {popularSearches.map((search, index) => (
+                <button 
+                  key={index} 
+                  className="px-4 py-2 bg-forest-50 hover:bg-forest-100 text-forest-700 rounded-lg transition-colors text-sm"
+                  onClick={() => setQuery(search)}
+                >
+                  {search}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Search Results */}
       {showResults && (results.events.length > 0 || results.spaces.length > 0) && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-forest-200 rounded-2xl shadow-xl z-50 max-h-96 overflow-y-auto">
+        <div className={`${isFullPage ? '' : 'absolute top-full'} left-0 right-0 mt-2 bg-white border border-forest-200 rounded-2xl shadow-xl z-50 ${isFullPage ? '' : 'max-h-96 overflow-y-auto'}`}>
           {/* Events Results */}
           {results.events.length > 0 && (
             <div className="p-4 border-b border-forest-100">
@@ -344,9 +409,13 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
                 <Calendar className="h-4 w-4 mr-2" />
                 Events ({results.events.length})
               </h4>
-              <div className="space-y-2">
-                {results.events.slice(0, 5).map((event) => (
-                  <div key={event.id} className="flex items-center space-x-3 p-3 hover:bg-forest-50 rounded-lg cursor-pointer transition-colors">
+              <div className={`space-y-2 ${isFullPage ? 'grid grid-cols-1 md:grid-cols-2 gap-3' : ''}`}>
+                {results.events.slice(0, isFullPage ? results.events.length : 5).map((event) => (
+                  <Link 
+                    to={`/event/${event.id}`} 
+                    key={event.id} 
+                    className="flex items-center space-x-3 p-3 hover:bg-forest-50 rounded-lg cursor-pointer transition-colors"
+                  >
                     <img
                       src={event.image_url || 'https://images.pexels.com/photos/3822647/pexels-photo-3822647.jpeg?auto=compress&cs=tinysrgb&w=100'}
                       alt={event.title}
@@ -367,7 +436,7 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
                         {event.participants?.length || 0}/{event.capacity}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -380,9 +449,9 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
                 <Home className="h-4 w-4 mr-2" />
                 Spaces ({results.spaces.length})
               </h4>
-              <div className="space-y-2">
-                {results.spaces.slice(0, 5).map((space) => (
-                  <div key={space.id} className="flex items-center space-x-3 p-3 hover:bg-forest-50 rounded-lg cursor-pointer transition-colors">
+              <div className={`space-y-2 ${isFullPage ? 'grid grid-cols-1 md:grid-cols-2 gap-3' : ''}`}>
+                {results.spaces.slice(0, isFullPage ? results.spaces.length : 5).map((space) => (
+                  <Link to={`/space/${space.id}`} key={space.id} className="flex items-center space-x-3 p-3 hover:bg-forest-50 rounded-lg cursor-pointer transition-colors">
                     <img
                       src={space.image_urls?.[0] || 'https://images.pexels.com/photos/8633077/pexels-photo-8633077.jpeg?auto=compress&cs=tinysrgb&w=100'}
                       alt={space.name}
@@ -402,7 +471,7 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
                         {space.donation_suggested || 'Free'}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -412,10 +481,52 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
           {results.events.length === 0 && results.spaces.length === 0 && query.length > 2 && !loading && (
             <div className="p-8 text-center">
               <Search className="h-12 w-12 text-forest-300 mx-auto mb-3" />
-              <h4 className="text-lg font-semibold text-forest-800 mb-2">No results found</h4>
-              <p className="text-forest-600">Try adjusting your search terms or filters</p>
+              <h4 className="text-lg font-semibold text-forest-800 mb-2">No results found for "{query}"</h4>
+              <p className="text-forest-600 mb-4">Try adjusting your search terms or filters</p>
+              <div className="flex flex-wrap justify-center gap-2 mt-4">
+                <button 
+                  onClick={() => setQuery('yoga')}
+                  className="px-4 py-2 bg-forest-50 hover:bg-forest-100 text-forest-700 rounded-lg transition-colors text-sm"
+                >
+                  Try "yoga"
+                </button>
+                <button 
+                  onClick={() => setQuery('garden')}
+                  className="px-4 py-2 bg-forest-50 hover:bg-forest-100 text-forest-700 rounded-lg transition-colors text-sm"
+                >
+                  Try "garden"
+                </button>
+                <button 
+                  onClick={() => setQuery('cooking')}
+                  className="px-4 py-2 bg-forest-50 hover:bg-forest-100 text-forest-700 rounded-lg transition-colors text-sm"
+                >
+                  Try "cooking"
+                </button>
+              </div>
             </div>
           )}
+        </div>
+      )}
+      
+      {/* Full Page Results Summary */}
+      {isFullPage && showResults && (results.events.length > 0 || results.spaces.length > 0) && (
+        <div className="mt-6 bg-forest-50 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <CheckCircle className="h-5 w-5 text-forest-600" />
+            <span className="text-forest-800 font-medium">
+              Found {results.events.length + results.spaces.length} results for "{query}"
+            </span>
+          </div>
+          <div className="flex items-center space-x-4">
+            <button className="flex items-center space-x-2 text-forest-600 hover:text-forest-800">
+              <Heart className="h-4 w-4" />
+              <span className="text-sm">Save search</span>
+            </button>
+            <button className="flex items-center space-x-2 text-forest-600 hover:text-forest-800">
+              <Bell className="h-4 w-4" />
+              <span className="text-sm">Get alerts</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

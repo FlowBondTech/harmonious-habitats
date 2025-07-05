@@ -34,6 +34,7 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingData, setBookingData] = useState({
     date: '',
     startTime: '',
@@ -145,6 +146,41 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
     }
   };
 
+  const formatAvailabilityTime = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  const getAvailableTimesForDate = (date: string) => {
+    if (!date) return [];
+    
+    // Get day of week
+    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'lowercase' });
+    
+    // Find availability for this day
+    const dayAvailability = availability.find(a => a.day_of_week === dayOfWeek);
+    
+    if (!dayAvailability || !dayAvailability.is_available || !dayAvailability.available_times) {
+      return [];
+    }
+    
+    try {
+      // Parse available times
+      const times = JSON.parse(dayAvailability.available_times);
+      return times.map((timeSlot: any) => ({
+        start: timeSlot.start,
+        end: timeSlot.end,
+        label: `${formatAvailabilityTime(timeSlot.start)} - ${formatAvailabilityTime(timeSlot.end)}`
+      }));
+    } catch (e) {
+      console.error('Error parsing available times:', e);
+      return [];
+    }
+  };
+
   const handleSubmitBooking = async () => {
     if (!user) return;
     
@@ -193,6 +229,7 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
         }]);
       
       setStep(3);
+      setBookingSuccess(true);
       onBookingComplete?.(data.id);
     } catch (err: any) {
       setError(err.message || 'Failed to submit booking');
@@ -310,6 +347,40 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
                     />
                     <p className="text-xs text-forest-600 mt-1">Maximum: {space.capacity} people</p>
                   </div>
+                  
+                  {/* Available Time Slots */}
+                  {bookingData.date && (
+                    <div>
+                      <label className="block text-sm font-medium text-forest-700 mb-2">
+                        Available Time Slots
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {getAvailableTimesForDate(bookingData.date).length > 0 ? (
+                          getAvailableTimesForDate(bookingData.date).map((slot: any, index: number) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => {
+                                handleInputChange('startTime', slot.start);
+                                handleInputChange('endTime', slot.end);
+                              }}
+                              className={`p-2 text-center rounded-lg text-sm transition-colors ${
+                                bookingData.startTime === slot.start && bookingData.endTime === slot.end
+                                  ? 'bg-earth-500 text-white'
+                                  : 'bg-forest-50 text-forest-700 hover:bg-forest-100'
+                              }`}
+                            >
+                              {slot.label}
+                            </button>
+                          ))
+                        ) : (
+                          <div className="col-span-full p-3 bg-yellow-50 text-yellow-700 rounded-lg text-sm">
+                            No available time slots for this date. Please select another date.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   
                   <div>
                     <label className="block text-sm font-medium text-forest-700 mb-2">
@@ -522,14 +593,18 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
             {/* Step 3: Confirmation */}
             {step === 3 && (
               <div className="text-center space-y-6">
-                <div className="bg-green-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
-                  <CheckCircle className="h-12 w-12 text-green-500" />
+                <div className={`rounded-full w-20 h-20 flex items-center justify-center mx-auto ${bookingSuccess ? 'bg-green-50' : 'bg-yellow-50'}`}>
+                  <CheckCircle className={`h-12 w-12 ${bookingSuccess ? 'text-green-500' : 'text-yellow-500'}`} />
                 </div>
                 
                 <div>
-                  <h3 className="text-2xl font-bold text-forest-800 mb-2">Booking Request Sent!</h3>
-                  <p className="text-forest-600">
-                    Your booking request has been sent to the space owner. You'll receive a notification once it's reviewed.
+                  <h3 className="text-2xl font-bold text-forest-800 mb-2">
+                    {bookingSuccess ? 'Booking Request Sent!' : 'Booking Pending'}
+                  </h3>
+                  <p className="text-forest-600 max-w-md mx-auto">
+                    {bookingSuccess 
+                      ? 'Your booking request has been sent to the space owner. You'll receive a notification once it's reviewed.'
+                      : 'Your booking is being processed. Please wait a moment...'}
                   </p>
                 </div>
 
@@ -561,10 +636,14 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
                   <button
                     onClick={onClose}
                     className="flex-1 bg-forest-600 hover:bg-forest-700 text-white py-3 px-6 rounded-xl font-medium transition-colors"
+                    disabled={!bookingSuccess}
                   >
                     Done
                   </button>
-                  <button className="flex-1 bg-earth-100 text-earth-700 hover:bg-earth-200 py-3 px-6 rounded-xl font-medium transition-colors flex items-center justify-center space-x-2">
+                  <button 
+                    className="flex-1 bg-earth-100 text-earth-700 hover:bg-earth-200 py-3 px-6 rounded-xl font-medium transition-colors flex items-center justify-center space-x-2"
+                    disabled={!bookingSuccess}
+                  >
                     <MessageCircle className="h-4 w-4" />
                     <span>Message Owner</span>
                   </button>
