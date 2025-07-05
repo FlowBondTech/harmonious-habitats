@@ -69,14 +69,6 @@ const ShareSpace = () => {
     { id: 'music', name: 'Music & Movement', icon: Music }
   ];
 
-  const animalTypes = [
-    { id: 'dogs', name: 'Dogs', icon: Dog },
-    { id: 'cats', name: 'Cats', icon: Cat },
-    { id: 'birds', name: 'Birds', icon: Bird },
-    { id: 'fish', name: 'Fish', icon: Fish },
-    { id: 'small_pets', name: 'Small Pets', icon: Rabbit }
-  ];
-
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
