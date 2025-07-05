@@ -311,7 +311,10 @@ const MyActivities = () => {
                         <Users className="h-4 w-4 mr-2" />
                         <span>{event.participants?.length || 0}/{event.capacity} participants</span>
                       </div>
-                      <button className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                      <button 
+                        onClick={() => {/* TODO: Open event management modal */}}
+                        className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      >
                         Manage Event
                       </button>
                     </div>

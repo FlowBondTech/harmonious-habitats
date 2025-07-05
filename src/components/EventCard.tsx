@@ -1,18 +1,47 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapPin, Clock, Users, Heart, Star, Badge } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase, Event } from '../lib/supabase';
+import EventDetailsModal from './EventDetailsModal';
+import EventManagementModal from './EventManagementModal';
 
 interface EventCardProps {
   event: Event;
+  showManagement?: boolean;
+  onUpdate?: () => void;
 }
 
-const EventCard: React.FC<EventCardProps> = ({ event }) => {
+const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, onUpdate }) => {
   const { user } = useAuthContext();
   const [isJoining, setIsJoining] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showManagementModal, setShowManagementModal] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      checkParticipationStatus();
+    }
+  }, [user, event.id]);
+
+  const checkParticipationStatus = async () => {
+    if (!user) return;
+
+    try {
+      const { data } = await supabase
+        .from('event_participants')
+        .select('status')
+        .eq('event_id', event.id)
+        .eq('user_id', user.id)
+        .single();
+
+      setHasJoined(!!data);
+    } catch (error) {
+      // User hasn't joined - this is expected
+    }
+  };
 
   const categoryColors: { [key: string]: string } = {
     'Gardening': 'bg-green-100 text-green-800',
@@ -54,7 +83,8 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     return `${dateString}, ${formatTime(startTime)} - ${formatTime(endTime)}`;
   };
 
-  const handleJoinEvent = async () => {
+  const handleJoinEvent = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!user) {
       setError('Please sign in to join events');
       return;
@@ -80,6 +110,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         }
       } else {
         setHasJoined(true);
+        onUpdate?.();
       }
     } catch (err: any) {
       setError(err.message || 'Failed to join event');
@@ -88,8 +119,25 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     }
   };
 
+  const handleCardClick = () => {
+    if (showManagement && user?.id === event.organizer_id) {
+      setShowManagementModal(true);
+    } else {
+      setShowDetailsModal(true);
+    }
+  };
+
+  const handleModalUpdate = () => {
+    onUpdate?.();
+    checkParticipationStatus();
+  };
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] overflow-hidden group border border-forest-50">
+    <>
+      <div 
+        className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] overflow-hidden group border border-forest-50 cursor-pointer"
+        onClick={handleCardClick}
+      >
       <div className="relative">
         <img 
           src={event.image_url || 'https://images.pexels.com/photos/3822647/pexels-photo-3822647.jpeg?auto=compress&cs=tinysrgb&w=400'} 
@@ -187,8 +235,44 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
             'Join Event'
           )}
         </button>
+        
+        {showManagement && user?.id === event.organizer_id && (
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowManagementModal(true);
+            }}
+          className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-[1.02] shadow-sm hover:shadow-md ${
+            hasJoined 
+              ? 'bg-green-600 text-white cursor-default'
+              : !user
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white'
+              : 'bg-gradient-to-r from-earth-500 to-earth-600 hover:from-earth-600 hover:to-earth-700 text-white mt-2'
+          }`}
+        >
+            Manage Event
+        </button>
+        )}
       </div>
-    </div>
+      </div>
+
+      {/* Modals */}
+      <EventDetailsModal
+        event={event}
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        onJoin={handleModalUpdate}
+        onLeave={handleModalUpdate}
+      />
+
+      <EventManagementModal
+        event={event}
+        isOpen={showManagementModal}
+        onClose={() => setShowManagementModal(false)}
+        onUpdate={handleModalUpdate}
+      />
+    </>
   );
 };
 

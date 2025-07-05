@@ -221,7 +221,7 @@ const Home = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
                 {todayEvents.map((event) => (
-                  <EventCard key={event.id} event={event} />
+                  <EventCard key={event.id} event={event} onUpdate={loadTodayEvents} />
                 ))}
               </div>
             )}
