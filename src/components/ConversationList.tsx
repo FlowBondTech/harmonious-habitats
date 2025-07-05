@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, 
   Users, 
@@ -36,12 +36,42 @@ const ConversationList: React.FC<ConversationListProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, direct, group, event, space
+  const channelRef = useRef<any>(null);
 
   useEffect(() => {
     if (user) {
       loadConversations();
-      setupRealtimeSubscription();
+      
+      // Set up realtime subscription
+      if (!channelRef.current) {
+        try {
+          channelRef.current = supabase
+            .channel('conversation_updates')
+            .on(
+              'postgres_changes',
+              {
+                event: '*',
+                schema: 'public',
+                table: 'messages'
+              },
+              (payload) => {
+                // Refresh conversations when new messages arrive
+                loadConversations();
+              }
+            )
+            .subscribe();
+        } catch (error) {
+          console.error('Error setting up realtime subscription:', error);
+        }
+      }
     }
+    
+    return () => {
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
+      }
+    };
   }, [user]);
 
   const loadConversations = async () => {
@@ -59,37 +89,6 @@ const ConversationList: React.FC<ConversationListProps> = ({
     } finally {
       setLoading(false);
     }
-  };
-
-  const setupRealtimeSubscription = () => {
-    let subscription = null;
-    
-    try {
-      subscription = supabase
-        .channel('conversation_updates')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'messages'
-          },
-          (payload) => {
-            // Refresh conversations when new messages arrive
-            loadConversations();
-          }
-        )
-        .subscribe();
-    } catch (error) {
-      console.error('Error setting up realtime subscription:', error);
-      return () => {}; // Return empty cleanup function if subscription fails
-    }
-
-    return () => {
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-    };
   };
 
   const getConversationName = (conversation: any) => {
