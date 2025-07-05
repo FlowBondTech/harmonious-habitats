@@ -24,6 +24,17 @@ export const useAuth = () => {
         }
       } catch (error) {
         console.error('Error loading initial session:', error)
+        
+        // Check if the error is related to invalid refresh token
+        if (error && typeof error === 'object' && 'message' in error) {
+          const errorMessage = String(error.message).toLowerCase()
+          if (errorMessage.includes('refresh token not found') || 
+              errorMessage.includes('invalid refresh token')) {
+            console.log('Invalid refresh token detected, clearing session...')
+            // Clear the invalid session data
+            await supabase.auth.signOut()
+          }
+        }
       } finally {
         setLoading(false)
       }
