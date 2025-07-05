@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Eye, Clock, Award, CheckCircle, MessageCircle, Share2, Image, FileText, Home, Globe, Map } from 'lucide-react';
+import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Eye, Clock, Award, CheckCircle, MessageCircle, Share2, Image, FileText, Home as HomeIcon, Globe, Map } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { updateProfile } from '../lib/supabase';
 import { Link } from 'react-router-dom';
@@ -108,7 +108,7 @@ const Profile = () => {
   const achievements = [
     { id: 'first_event', name: 'First Event', description: 'Attended your first community event', completed: true, icon: Calendar, color: 'bg-green-100 text-green-600' },
     { id: 'host_event', name: 'Event Host', description: 'Hosted your first community event', completed: true, icon: Star, color: 'bg-purple-100 text-purple-600' },
-    { id: 'share_space', name: 'Space Sharer', description: 'Shared your first space with the community', completed: false, icon: Home, color: 'bg-blue-100 text-blue-600' },
+    { id: 'share_space', name: 'Space Sharer', description: 'Shared your first space with the community', completed: false, icon: HomeIcon, color: 'bg-blue-100 text-blue-600' },
     { id: 'connector', name: 'Community Connector', description: 'Connected with 10+ neighbors', completed: true, icon: Users, color: 'bg-earth-100 text-earth-600' },
     { id: 'regular', name: 'Regular Participant', description: 'Attended 5+ events in a month', completed: true, icon: Award, color: 'bg-orange-100 text-orange-600' },
     { id: 'verified', name: 'Verified Member', description: 'Completed identity verification', completed: profile?.verified || false, icon: CheckCircle, color: 'bg-forest-100 text-forest-600' },
