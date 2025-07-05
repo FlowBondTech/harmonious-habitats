@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Eye, Clock } from 'lucide-react';
+import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Eye, Clock, Award, CheckCircle, MessageCircle, Share2, Image, FileText } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { updateProfile } from '../lib/supabase';
+import { Link } from 'react-router-dom';
 
 const Profile = () => {
   const { user, profile, loadUserProfile } = useAuthContext();
@@ -11,6 +12,7 @@ const Profile = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [discoveryRadius, setDiscoveryRadius] = useState(1);
+  const [showAchievements, setShowAchievements] = useState(false);
   const [notifications, setNotifications] = useState({
     newEvents: true,
     messages: true,
@@ -102,6 +104,16 @@ const Profile = () => {
     }
   };
 
+  // Achievements data
+  const achievements = [
+    { id: 'first_event', name: 'First Event', description: 'Attended your first community event', completed: true, icon: Calendar, color: 'bg-green-100 text-green-600' },
+    { id: 'host_event', name: 'Event Host', description: 'Hosted your first community event', completed: true, icon: Star, color: 'bg-purple-100 text-purple-600' },
+    { id: 'share_space', name: 'Space Sharer', description: 'Shared your first space with the community', completed: false, icon: Home, color: 'bg-blue-100 text-blue-600' },
+    { id: 'connector', name: 'Community Connector', description: 'Connected with 10+ neighbors', completed: true, icon: Users, color: 'bg-earth-100 text-earth-600' },
+    { id: 'regular', name: 'Regular Participant', description: 'Attended 5+ events in a month', completed: true, icon: Award, color: 'bg-orange-100 text-orange-600' },
+    { id: 'verified', name: 'Verified Member', description: 'Completed identity verification', completed: profile?.verified || false, icon: CheckCircle, color: 'bg-forest-100 text-forest-600' },
+  ];
+
   const toggleInterest = (interestId: string) => {
     const current = formData.holistic_interests;
     const updated = current.includes(interestId)
@@ -183,9 +195,66 @@ const Profile = () => {
                         <Star key={i} className={`h-4 w-4 ${i < Math.floor(profile.rating) ? 'text-earth-400 fill-current' : 'text-gray-300'}`} />
                       ))}
                     </div>
+
+                    <div className="mt-6">
+                      <label className="block text-sm font-medium text-forest-700 mb-3">
+                        <Globe className="h-4 w-4 inline mr-2" />
+                        Global Discovery
+                      </label>
+                      <div className="bg-earth-50 rounded-lg p-4 border border-earth-200">
+                        <label className="flex items-start space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={true}
+                            className="mt-1 w-4 h-4 text-forest-600 bg-forest-100 border-forest-300 rounded focus:ring-forest-500 focus:ring-2"
+                          />
+                          <div>
+                            <p className="font-medium text-forest-800">Discover global events</p>
+                            <p className="text-sm text-forest-600 mt-1">
+                              Allow me to discover virtual and global events beyond my local radius
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
                     <span className="ml-2 text-sm text-forest-600">{profile.rating.toFixed(1)} rating ({profile.total_reviews} reviews)</span>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Achievements */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-forest-800">Community Achievements</h3>
+                <button 
+                  onClick={() => setShowAchievements(!showAchievements)}
+                  className="text-sm text-forest-600 hover:text-forest-800"
+                >
+                  {showAchievements ? 'Show less' : 'Show all'}
+                </button>
+              </div>
+              <div className="space-y-3">
+                {achievements.slice(0, showAchievements ? achievements.length : 3).map((achievement) => {
+                  const Icon = achievement.icon;
+                  return (
+                    <div 
+                      key={achievement.id} 
+                      className={`flex items-center p-3 rounded-lg ${achievement.completed ? 'bg-forest-50' : 'bg-gray-50 opacity-60'}`}
+                    >
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${achievement.color}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-forest-800">{achievement.name}</h4>
+                        <p className="text-sm text-forest-600">{achievement.description}</p>
+                      </div>
+                      {achievement.completed && (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -350,6 +419,42 @@ const Profile = () => {
                   </div>
                 </div>
 
+                {/* Profile Photos */}
+                <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-semibold text-forest-800">Profile Photos</h3>
+                    {isEditing && (
+                      <button className="bg-forest-100 hover:bg-forest-200 text-forest-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2">
+                        <Camera className="h-4 w-4" />
+                        <span>Add Photos</span>
+                      </button>
+                    )}
+                  </div>
+                  
+                  {isEditing ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      <div className="aspect-square bg-forest-50 rounded-lg flex items-center justify-center border-2 border-dashed border-forest-200">
+                        <div className="text-center p-4">
+                          <Image className="h-8 w-8 text-forest-400 mx-auto mb-2" />
+                          <p className="text-sm text-forest-600">Add profile photo</p>
+                        </div>
+                      </div>
+                      <div className="aspect-square bg-forest-50 rounded-lg flex items-center justify-center border-2 border-dashed border-forest-200">
+                        <div className="text-center p-4">
+                          <Image className="h-8 w-8 text-forest-400 mx-auto mb-2" />
+                          <p className="text-sm text-forest-600">Add cover photo</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Image className="h-16 w-16 text-forest-300 mx-auto mb-4" />
+                      <h4 className="text-lg font-semibold text-forest-800 mb-2">No photos yet</h4>
+                      <p className="text-forest-600 mb-4">Add photos to personalize your profile</p>
+                    </div>
+                  )}
+                </div>
+
                 {/* Holistic Interests */}
                 <div className="bg-white rounded-xl shadow-sm p-6">
                   <div className="flex items-center justify-between mb-6">
@@ -391,28 +496,57 @@ const Profile = () => {
                 </div>
 
                 {/* Recent Activity */}
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h3 className="text-xl font-semibold text-forest-800 mb-6">Recent Activity</h3>
-                  <div className="space-y-4">
-                    {recentActivity.map((activity, index) => (
-                      <div key={index} className="flex items-center space-x-4 p-3 bg-forest-50 rounded-lg">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          activity.type === 'event' ? 'bg-earth-100 text-earth-600' :
-                          activity.type === 'connection' ? 'bg-blue-100 text-blue-600' :
-                          activity.type === 'hosting' ? 'bg-green-100 text-green-600' :
-                          'bg-purple-100 text-purple-600'
-                        }`}>
-                          {activity.type === 'event' && <Calendar className="h-4 w-4" />}
-                          {activity.type === 'connection' && <Users className="h-4 w-4" />}
-                          {activity.type === 'hosting' && <Star className="h-4 w-4" />}
-                          {activity.type === 'favorite' && <Heart className="h-4 w-4" />}
+                <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-semibold text-forest-800">Recent Activity</h3>
+                    <Link to="/activities" className="text-sm text-forest-600 hover:text-forest-800">
+                      View all
+                    </Link>
+                  </div>
+                  
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {recentActivity.length > 0 ? (
+                      recentActivity.map((activity, index) => (
+                        <div key={index} className="flex items-center space-x-4 p-3 bg-forest-50 rounded-lg hover:bg-forest-100 transition-colors">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            activity.type === 'event' ? 'bg-earth-100 text-earth-600' :
+                            activity.type === 'connection' ? 'bg-blue-100 text-blue-600' :
+                            activity.type === 'hosting' ? 'bg-green-100 text-green-600' :
+                            'bg-purple-100 text-purple-600'
+                          }`}>
+                            {activity.type === 'event' && <Calendar className="h-5 w-5" />}
+                            {activity.type === 'connection' && <Users className="h-5 w-5" />}
+                            {activity.type === 'hosting' && <Star className="h-5 w-5" />}
+                            {activity.type === 'favorite' && <Heart className="h-5 w-5" />}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-forest-800">{activity.action}</p>
+                            <p className="text-sm text-forest-600">{activity.date}</p>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button className="p-2 text-forest-600 hover:bg-white rounded-full transition-colors">
+                              <MessageCircle className="h-4 w-4" />
+                            </button>
+                            <button className="p-2 text-forest-600 hover:bg-white rounded-full transition-colors">
+                              <Share2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-forest-800">{activity.action}</p>
-                          <p className="text-sm text-forest-600">{activity.date}</p>
-                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8">
+                        <Calendar className="h-12 w-12 text-forest-300 mx-auto mb-3" />
+                        <h4 className="text-lg font-semibold text-forest-800 mb-2">No recent activity</h4>
+                        <p className="text-forest-600 mb-4">Join events to see your activity here</p>
+                        <Link
+                          to="/map"
+                          className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-xl font-medium transition-colors inline-flex items-center space-x-2"
+                        >
+                          <Map className="h-4 w-4" />
+                          <span>Discover Events</span>
+                        </Link>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>
@@ -469,8 +603,8 @@ const Profile = () => {
                     <Bell className="h-5 w-5 inline mr-2" />
                     Notification Preferences
                   </h3>
-                  
-                  <div className="space-y-4">
+                  <p className="text-forest-600 mb-4">Control how and when you receive notifications</p>
+                  <div className="space-y-3">
                     {Object.entries(notifications).map(([key, value]) => (
                       <div key={key} className="flex items-center justify-between p-3 bg-forest-50 rounded-lg">
                         <div>
@@ -498,6 +632,32 @@ const Profile = () => {
                         </button>
                       </div>
                     ))}
+                    
+                    <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-start space-x-3">
+                        <Bell className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium text-blue-800 mb-1">Communication Channels</h4>
+                          <p className="text-sm text-blue-600 mb-3">
+                            Choose how you'd like to receive notifications
+                          </p>
+                          <div className="space-y-2">
+                            <label className="flex items-center space-x-2">
+                              <input type="checkbox" checked className="w-4 h-4 text-forest-600" />
+                              <span className="text-blue-700">In-app notifications</span>
+                            </label>
+                            <label className="flex items-center space-x-2">
+                              <input type="checkbox" checked className="w-4 h-4 text-forest-600" />
+                              <span className="text-blue-700">Email notifications</span>
+                            </label>
+                            <label className="flex items-center space-x-2">
+                              <input type="checkbox" className="w-4 h-4 text-forest-600" />
+                              <span className="text-blue-700">Push notifications</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -509,7 +669,7 @@ const Profile = () => {
                 <div className="bg-white rounded-xl shadow-sm p-6">
                   <h3 className="text-xl font-semibold text-forest-800 mb-6">
                     <Shield className="h-5 w-5 inline mr-2" />
-                    Privacy & Safety
+                    Privacy Settings
                   </h3>
                   
                   <div className="space-y-6">
@@ -541,6 +701,38 @@ const Profile = () => {
                         <option>Verified neighbors</option>
                         <option>Never share</option>
                       </select>
+                    </div>
+                    
+                    <div className="p-4 bg-forest-50 rounded-lg">
+                      <h4 className="font-medium text-forest-800 mb-2">Data Preferences</h4>
+                      <p className="text-sm text-forest-600 mb-3">Manage how your data is used</p>
+                      <div className="space-y-3">
+                        <label className="flex items-center space-x-3">
+                          <input type="checkbox" checked className="w-4 h-4 text-forest-600" />
+                          <span className="text-sm text-forest-700">Allow community recommendations based on my interests</span>
+                        </label>
+                        <label className="flex items-center space-x-3">
+                          <input type="checkbox" checked className="w-4 h-4 text-forest-600" />
+                          <span className="text-sm text-forest-700">Show my profile in community searches</span>
+                        </label>
+                        <label className="flex items-center space-x-3">
+                          <input type="checkbox" className="w-4 h-4 text-forest-600" />
+                          <span className="text-sm text-forest-700">Share my activity with my connections</span>
+                        </label>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <h4 className="font-medium text-red-800 mb-2">Account Management</h4>
+                      <p className="text-sm text-red-600 mb-3">Manage your account data and settings</p>
+                      <div className="flex space-x-3">
+                        <button className="bg-white text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                          Download My Data
+                        </button>
+                        <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                          Delete Account
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
