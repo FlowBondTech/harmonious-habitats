@@ -294,7 +294,7 @@ export const getSpaces = async (filters?: {
     .from('spaces')
     .select(`
       *,
-      owner:profiles(id, full_name, avatar_url, verified),
+      owner:profiles!spaces_owner_id_fkey(id, full_name, avatar_url, verified),
       amenities:space_amenities(amenity),
       accessibility_features:space_accessibility_features(feature),
       holistic_categories:space_holistic_categories(category)
@@ -323,7 +323,7 @@ export const getReports = async (status?: string) => {
     .from('reports')
     .select(`
       *,
-      reporter:profiles(id, full_name, avatar_url)
+      reporter:profiles!reports_reporter_id_fkey(id, full_name, avatar_url)
     `)
 
   if (status) {
@@ -340,7 +340,7 @@ export const getAuditLogs = async (limit = 50) => {
     .from('audit_logs')
     .select(`
       *,
-      user:profiles(id, full_name, avatar_url)
+      user:profiles!audit_logs_user_id_fkey(id, full_name, avatar_url)
     `)
     .order('timestamp', { ascending: false })
     .limit(limit)
@@ -399,7 +399,7 @@ export const getRecentEvents = async (limit = 10) => {
     .from('events')
     .select(`
       *,
-      organizer:profiles(id, full_name, avatar_url, verified)
+      organizer:profiles!events_organizer_id_fkey(id, full_name, avatar_url, verified)
     `)
     .order('created_at', { ascending: false })
     .limit(limit)
@@ -412,7 +412,7 @@ export const getRecentSpaces = async (limit = 10) => {
     .from('spaces')
     .select(`
       *,
-      owner:profiles(id, full_name, avatar_url, verified)
+      owner:profiles!spaces_owner_id_fkey(id, full_name, avatar_url, verified)
     `)
     .order('created_at', { ascending: false })
     .limit(limit)

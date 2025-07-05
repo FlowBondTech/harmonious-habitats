@@ -2,15 +2,18 @@ import React, { useState } from 'react';
 import { MapPin, Users, Star, Badge, Home, Globe, Accessibility, DollarSign, Calendar } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase, Space } from '../lib/supabase';
+import SpaceDetailsModal from './SpaceDetailsModal';
 
 interface SpaceCardProps {
   space: Space;
+  onUpdate?: () => void;
 }
 
-const SpaceCard: React.FC<SpaceCardProps> = ({ space }) => {
+const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
   const { user } = useAuthContext();
   const [isBooking, setIsBooking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const formatSpaceType = (type: string) => {
     return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -36,7 +39,11 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] overflow-hidden group border border-forest-50">
+    <>
+      <div 
+        className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] overflow-hidden group border border-forest-50 cursor-pointer"
+        onClick={() => setShowDetailsModal(true)}
+      >
       <div className="relative">
         <img 
           src={space.image_urls?.[0] || 'https://images.pexels.com/photos/8633077/pexels-photo-8633077.jpeg?auto=compress&cs=tinysrgb&w=400'} 
@@ -139,7 +146,18 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space }) => {
           )}
         </button>
       </div>
-    </div>
+      </div>
+
+      <SpaceDetailsModal
+        space={space}
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        onBook={() => {
+          onUpdate?.();
+          setShowDetailsModal(false);
+        }}
+      />
+    </>
   );
 };
 

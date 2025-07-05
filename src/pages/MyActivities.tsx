@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { getEvents, getSpaces, Event, Space } from '../lib/supabase';
+import EventCard from '../components/EventCard';
+import SpaceCard from '../components/SpaceCard';
 
 const MyActivities = () => {
   const { user } = useAuthContext();
@@ -267,59 +269,16 @@ const MyActivities = () => {
                     </a>
                   </div>
                 ) : (
-                  hostingEvents.map((event) => (
-                  <div key={event.id} className="bg-gradient-to-r from-earth-50 to-forest-50 rounded-lg p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-forest-800 mb-1">{event.title}</h3>
-                        <p className="text-forest-600 mb-2">You're facilitating this event</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          event.status === 'active' 
-                            ? 'bg-green-100 text-green-800'
-                            : event.status === 'pending_approval'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {event.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                        </span>
-                        <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
-                          <MessageCircle className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-forest-600 mb-4">
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        <span>{formatDate(event.date)}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-2" />
-                        <span>{formatTime(event.start_time, event.end_time)}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-2" />
-                        <span>{event.location_name}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between bg-white/60 rounded-lg p-3">
-                      <div className="flex items-center text-sm text-forest-600">
-                        <Users className="h-4 w-4 mr-2" />
-                        <span>{event.participants?.length || 0}/{event.capacity} participants</span>
-                      </div>
-                      <button 
-                        onClick={() => {/* TODO: Open event management modal */}}
-                        className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                      >
-                        Manage Event
-                      </button>
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {hostingEvents.map((event) => (
+                      <EventCard 
+                        key={event.id} 
+                        event={event} 
+                        showManagement={true}
+                        onUpdate={loadActivities}
+                      />
+                    ))}
                   </div>
-                  ))
                 )}
               </div>
             )}
@@ -346,56 +305,11 @@ const MyActivities = () => {
                     </a>
                   </div>
                 ) : (
-                  mySpaces.map((space) => (
-                    <div key={space.id} className="bg-gradient-to-r from-earth-50 to-forest-50 rounded-lg p-6 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-forest-800 mb-1">{space.name}</h3>
-                          <p className="text-forest-600 mb-2">You're sharing this space</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            space.status === 'available' 
-                              ? 'bg-green-100 text-green-800'
-                              : space.status === 'pending_approval'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {space.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                          </span>
-                          <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
-                            <MessageCircle className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-forest-600 mb-4">
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-2" />
-                          <span>Up to {space.capacity} people</span>
-                        </div>
-                        <div className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-2" />
-                          <span>{space.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 mr-2" />
-                          <span>{space.list_publicly ? 'Global' : 'Local'} visibility</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between bg-white/60 rounded-lg p-3">
-                        <div className="flex items-center text-sm text-forest-600">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          <span>0 upcoming bookings</span>
-                        </div>
-                        <button className="bg-earth-500 hover:bg-earth-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                          Manage Space
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {mySpaces.map((space) => (
+                      <SpaceCard key={space.id} space={space} />
+                    ))}
+                  </div>
                 )}
               </div>
             )}
