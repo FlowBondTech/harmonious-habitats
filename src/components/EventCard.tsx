@@ -242,14 +242,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
               e.stopPropagation();
               setShowManagementModal(true);
             }}
-          className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-[1.02] shadow-sm hover:shadow-md ${
-            hasJoined 
-              ? 'bg-green-600 text-white cursor-default'
-              : !user
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white'
-              : 'bg-gradient-to-r from-earth-500 to-earth-600 hover:from-earth-600 hover:to-earth-700 text-white mt-2'
-          }`}
+            className="w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-[1.02] shadow-sm hover:shadow-md bg-gradient-to-r from-earth-500 to-earth-600 hover:from-earth-600 hover:to-earth-700 text-white mt-2"
         >
             Manage Event
         </button>
