@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Map, Calendar, MessageCircle, User, Menu, X, Sprout, Globe, Shield, CalendarPlus, Home as HomePlus, LogIn, LogOut } from 'lucide-react';
+import { Home, Map, Calendar, MessageCircle, User, Menu, X, Sprout, Globe, Shield, CalendarPlus, Home as HomePlus, LogIn, LogOut, Search, Users, BarChart3 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import AuthButton from './AuthButton';
 import NotificationCenter from './NotificationCenter';
