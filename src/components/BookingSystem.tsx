@@ -603,7 +603,7 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
                   </h3>
                   <p className="text-forest-600 max-w-md mx-auto">
                     {bookingSuccess 
-                      ? 'Your booking request has been sent to the space owner. You\'ll receive a notification once it's reviewed.'
+                      ? 'Your booking request has been sent to the space owner. You\'ll receive a notification once it\'s reviewed.'
                       : 'Your booking is being processed. Please wait a moment...'}
                   </p>
                 </div>
