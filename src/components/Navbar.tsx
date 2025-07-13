@@ -39,11 +39,11 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-forest-100/50 shadow-sm">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-forest-100/50 shadow-sm" role="navigation">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 text-forest-600 hover:text-forest-700 transition-colors group">
+          <Link to="/" className="flex items-center space-x-2 text-forest-600 hover:text-forest-700 transition-colors group" aria-label="Home">
             <div className="p-1 rounded-lg group-hover:bg-forest-50 transition-colors">
               <Sprout className="h-7 w-7" />
             </div>
@@ -85,7 +85,7 @@ const Navbar = () => {
           {/* Auth Button, Notifications & Mobile Menu Button */}
           <div className="flex items-center space-x-3">
             {user && (
-              <div className="hidden lg:block">
+              <div className="hidden lg:block" role="menu">
                 <NotificationCenter />
               </div>
             )}
@@ -94,9 +94,13 @@ const Navbar = () => {
               <AuthButton />
             </div>
             
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  ? 'bg-forest-100 text-forest-700 shadow-sm' 
+                  : 'text-forest-600 hover:bg-forest-50 hover:text-forest-700' 
               className="lg:hidden p-2 rounded-xl text-forest-600 hover:bg-forest-50 transition-all duration-200 hover:scale-105"
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+              aria-current={location.pathname === path ? 'page' : undefined}
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -105,7 +109,7 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-md border-b border-forest-100/50 shadow-lg">
+          <div id="mobile-menu" className="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-md border-b border-forest-100/50 shadow-lg" role="menu">
             <div className="px-4 py-6 space-y-3">
               {navItems.map(({ path, icon: Icon, label }) => (
                 <Link
@@ -117,6 +121,8 @@ const Navbar = () => {
                       ? 'bg-forest-100 text-forest-700 shadow-sm'
                       : 'text-forest-600 hover:bg-forest-50 active:bg-forest-100'
                   } ${path === '/admin' ? 'border border-forest-200' : ''}`}
+                  aria-current={location.pathname === path ? 'page' : undefined}
+                  role="menuitem"
                 >
                   <Icon className="h-5 w-5" />
                   <span>{label}</span>

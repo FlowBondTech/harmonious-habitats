@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuthContext } from './components/AuthProvider';
+import KeyboardNavHelper from './components/KeyboardNavHelper';
 import AuthModal from './components/AuthModal';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
@@ -22,10 +23,11 @@ const AppContent = () => {
   return (
     <>
       <MobileOptimization>
+        <KeyboardNavHelper />
         <Router>
           <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
             <Navbar />
-            <main className="pt-16">
+            <main id="main" className="pt-16">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/map" element={

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Mail, Lock, User, MapPin, Eye, EyeOff, Sprout } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 
@@ -23,6 +23,59 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
     username: '',
     neighborhood: ''
   });
+  
+  const modalRef = useRef<HTMLDivElement>(null);
+  const initialFocusRef = useRef<HTMLButtonElement>(null);
+  const lastActiveElement = useRef<Element | null>(null);
+  
+  // Trap focus within modal
+  useEffect(() => {
+    if (isOpen) {
+      lastActiveElement.current = document.activeElement;
+      initialFocusRef.current?.focus();
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      if (lastActiveElement.current && 'focus' in lastActiveElement.current) {
+        (lastActiveElement.current as HTMLElement).focus();
+      }
+    }
+  }, [isOpen]);
+  
+  // Handle keyboard navigation
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      } else if (event.key === 'Tab') {
+        // Get all focusable elements in modal
+        const focusableElements = modalRef.current?.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        ) || [];
+        
+        if (focusableElements.length === 0) return;
+        
+        const firstElement = focusableElements[0] as HTMLElement;
+        const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+        
+        // If shift+tab and on first element, move to last element
+        if (event.shiftKey && document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+        } 
+        // If tab and on last element, cycle back to first element
+        else if (!event.shiftKey && document.activeElement === lastElement) {
+          event.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const { signIn, signUp } = useAuthContext();
 
@@ -112,7 +165,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="auth-title">
       <div className="flex min-h-screen items-center justify-center p-4">
         {/* Backdrop */}
         <div 
@@ -121,12 +174,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
         />
         
         {/* Modal */}
-        <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all">
+        <div 
+          ref={modalRef}
+          className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all"
+        >
           {/* Header */}
           <div className="bg-gradient-to-r from-forest-600 to-earth-500 px-6 py-8 text-white">
             <button
+              ref={initialFocusRef}
               onClick={onClose}
               className="absolute right-4 top-4 p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              aria-label="Close"
             >
               <X className="h-5 w-5" />
             </button>
@@ -135,7 +193,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
               <div className="bg-white/20 p-2 rounded-xl">
                 <Sprout className="h-6 w-6" />
               </div>
-              <h2 className="text-2xl font-bold">Harmony Spaces</h2>
+              <h2 id="auth-title" className="text-2xl font-bold">Harmony Spaces</h2>
             </div>
             
             <p className="text-forest-100">
@@ -241,7 +299,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    className="w-full pl-10 pr-12 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    className="w-full pl-10 pr-12 py-3 border border-forest-200 rounded-lg"
                     placeholder={mode === 'signup' ? 'At least 6 characters' : 'Your password'}
                     required
                   />
@@ -266,7 +324,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                       type={showPassword ? 'text' : 'password'}
                       value={formData.confirmPassword}
                       onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-3 border border-forest-200 rounded-lg"
                       placeholder="Confirm your password"
                       required
                     />
@@ -296,7 +354,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                 {mode === 'signin' ? "Don't have an account?" : "Already have an account?"}
                 <button
                   onClick={switchMode}
-                  className="ml-2 text-forest-700 font-semibold hover:text-forest-800 transition-colors"
+                  className="ml-2 text-forest-700 font-semibold hover:text-forest-800 transition-colors focus:underline"
                 >
                   {mode === 'signin' ? 'Sign up' : 'Sign in'}
                 </button>

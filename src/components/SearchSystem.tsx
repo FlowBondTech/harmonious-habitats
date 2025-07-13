@@ -217,17 +217,18 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
   ];
 
   return (
-    <div ref={searchRef} className={`relative w-full ${isFullPage ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`}>
+    <div ref={searchRef} className={`relative w-full ${isFullPage ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`} role="search">
       {/* Main Search Bar */}
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-forest-400" />
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-forest-400" aria-hidden="true" />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.length > 2 && setShowResults(true)}
           placeholder={placeholder}
-          className="w-full pl-12 pr-16 py-4 bg-white border border-forest-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent shadow-sm text-lg"
+          className="w-full pl-12 pr-16 py-4 bg-white border border-forest-200 rounded-2xl shadow-sm text-lg"
+          aria-label={placeholder}
         />
 
         {showFilters && (
@@ -236,6 +237,8 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
             className={`absolute right-4 top-1/2 transform -translate-y-1/2 p-2 rounded-lg transition-colors ${
               showAdvancedFilters ? 'bg-forest-100 text-forest-700' : 'text-forest-400 hover:bg-forest-50'
             }`}
+            aria-expanded={showAdvancedFilters}
+            aria-label="Toggle advanced filters"
           >
             <SlidersHorizontal className="h-5 w-5" />
           </button>
@@ -251,7 +254,7 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
 
       {/* Advanced Filters */}
       {showAdvancedFilters && (
-        <div className="mt-4 p-6 bg-white border border-forest-200 rounded-2xl shadow-lg">
+        <div className="mt-4 p-6 bg-white border border-forest-200 rounded-2xl shadow-lg" role="region" aria-label="Advanced filters">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-forest-800">Advanced Filters</h3>
             <button
@@ -452,11 +455,11 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
 
       {/* Search Results */}
       {showResults && (results.events.length > 0 || results.spaces.length > 0) && (
-        <div className={`${isFullPage ? '' : 'absolute top-full'} left-0 right-0 mt-2 bg-white border border-forest-200 rounded-2xl shadow-xl z-50 ${isFullPage ? '' : 'max-h-96 overflow-y-auto'}`}>
+        <div className={`${isFullPage ? '' : 'absolute top-full'} left-0 right-0 mt-2 bg-white border border-forest-200 rounded-2xl shadow-xl z-50 ${isFullPage ? '' : 'max-h-96 overflow-y-auto'}`} role="listbox" aria-label="Search results">
           {/* Events Results */}
           {results.events.length > 0 && (
-            <div className="p-4 border-b border-forest-100">
-              <h4 className="text-sm font-semibold text-forest-800 mb-3 flex items-center">
+            <div className="p-4 border-b border-forest-100" role="group" aria-labelledby="events-results-title">
+              <h4 id="events-results-title" className="text-sm font-semibold text-forest-800 mb-3 flex items-center">
                 <Calendar className="h-4 w-4 mr-2" />
                 Events ({results.events.length})
               </h4>
@@ -466,7 +469,7 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
                     to={`/event/${event.id}`} 
                     key={event.id} 
                     className="flex items-center space-x-3 p-3 hover:bg-forest-50 rounded-lg cursor-pointer transition-colors"
-                  >
+                    role="option">
                     <img
                       src={event.image_url || 'https://images.pexels.com/photos/3822647/pexels-photo-3822647.jpeg?auto=compress&cs=tinysrgb&w=100'}
                       alt={event.title}

@@ -184,6 +184,15 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
     <>
       <div 
         className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] overflow-hidden group border border-forest-50 cursor-pointer"
+        tabIndex={0}
+        role="article"
+        aria-labelledby={`event-title-${event.id}`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCardClick();
+          }
+        }}
         onClick={handleCardClick}
       >
       <div className="relative">
@@ -206,7 +215,9 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
         </div>
         
         <button className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2.5 rounded-full hover:bg-white hover:scale-110 transition-all duration-200 shadow-sm">
-          <Heart className="h-4 w-4 text-forest-600" />
+          </div>
+          
+          <h3 id={`event-title-${event.id}`} className="sr-only">{event.title}</h3>
         </button>
       </div>
       
@@ -268,6 +279,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
         {!hasJoined ? (
           <button 
             onClick={handleJoinEvent}
+            onKeyDown={(e) => e.stopPropagation()}
             disabled={isJoining || !user}
             className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-[1.02] shadow-sm hover:shadow-md ${
                 !user
@@ -289,6 +301,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
         ) : (
           <button 
             onClick={handleLeaveEvent}
+            onKeyDown={(e) => e.stopPropagation()}
             disabled={isJoining}
             className="w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 bg-green-600 hover:bg-green-700 text-white"
           >
@@ -302,6 +315,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
               e.stopPropagation();
               setShowManagementModal(true);
             }}
+            onKeyDown={(e) => e.stopPropagation()}
             className="w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-[1.02] shadow-sm hover:shadow-md bg-gradient-to-r from-earth-500 to-earth-600 hover:from-earth-600 hover:to-earth-700 text-white mt-2"
         >
             Manage Event
