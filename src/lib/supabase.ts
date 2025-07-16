@@ -48,7 +48,94 @@ export interface Profile {
     messages: boolean
     reminders: boolean
     community: boolean
+    globalEvents?: boolean
   }
+  // Enhanced Profile Capabilities
+  skills?: ProfileSkill[]
+  offerings?: ProfileOffering[]
+  availability?: ProfileAvailability
+  languages?: string[]
+  accessibility_needs?: string[]
+  accessibility_provided?: string[]
+  transportation?: {
+    methods: string[]
+    can_offer_rides: boolean
+    needs_rides: boolean
+  }
+  equipment_shared?: string[]
+  certifications?: ProfileCertification[]
+  portfolio_items?: ProfilePortfolioItem[]
+  hosting_capacity?: {
+    max_participants: number
+    indoor_space: boolean
+    outdoor_space: boolean
+    has_parking: boolean
+    pet_friendly: boolean
+    wheelchair_accessible: boolean
+  }
+  communication_preferences?: {
+    preferred_methods: string[]
+    response_time: 'immediate' | 'within_hours' | 'within_day' | 'flexible'
+    availability_window: string
+  }
+  experience_since?: string
+  teaching_experience?: number
+  mentorship_available?: boolean
+}
+
+export interface ProfileSkill {
+  skill: string
+  category: string
+  experience_level: 'beginner' | 'intermediate' | 'advanced' | 'expert'
+  can_teach: boolean
+  want_to_learn: boolean
+  years_experience?: number
+  description?: string
+}
+
+export interface ProfileOffering {
+  id: string
+  title: string
+  category: string
+  description: string
+  type: 'service' | 'resource' | 'equipment' | 'space' | 'knowledge'
+  availability: 'always' | 'scheduled' | 'on_request'
+  cost_type: 'free' | 'donation' | 'barter' | 'paid'
+  cost_amount?: string
+  location_required?: boolean
+}
+
+export interface ProfileAvailability {
+  schedule: {
+    [key: string]: { // day of week
+      available: boolean
+      time_slots: { start: string; end: string }[]
+    }
+  }
+  notice_required: 'same_day' | 'day_before' | 'week_before' | 'flexible'
+  max_events_per_week?: number
+  preferred_duration: 'short' | 'medium' | 'long' | 'any' // <2h, 2-4h, >4h
+}
+
+export interface ProfileCertification {
+  id: string
+  name: string
+  issuing_organization: string
+  date_earned: string
+  expiry_date?: string
+  verification_url?: string
+  category: string
+}
+
+export interface ProfilePortfolioItem {
+  id: string
+  title: string
+  description: string
+  category: string
+  image_urls: string[]
+  created_date: string
+  featured: boolean
+  skills_demonstrated: string[]
 }
 
 export interface Event {

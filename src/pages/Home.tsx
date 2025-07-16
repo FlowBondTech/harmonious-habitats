@@ -1,12 +1,50 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Clock, Users, Heart, Sprout, Bot as Lotus, ChefHat, Palette, Music, BookOpen, Stethoscope, HandHeart, ArrowRight, Calendar, Star } from 'lucide-react';
+import { 
+  MapPin, 
+  ArrowRight, 
+  Users, 
+  Calendar, 
+  Clock, 
+  Heart, 
+  Sparkles,
+  Star,
+  TrendingUp,
+  ChevronRight,
+  Globe,
+  Home as HomeIcon,
+  Plus,
+  Zap
+} from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
+import { getEvents, getSpaces, Event, Space } from '../lib/supabase';
 import EventCard from '../components/EventCard';
 import SpaceCard from '../components/SpaceCard';
 import RadiusSelector from '../components/RadiusSelector';
-import { getEvents, getSpaces, Event, Space } from '../lib/supabase';
+
+
+interface HighlightCardProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  color: string;
+  value: string | number;
+}
+
+const HighlightCard: React.FC<HighlightCardProps> = ({ icon: Icon, title, description, color, value }) => (
+  <div className="card-interactive group">
+    <div className="p-6 text-center space-y-4">
+      <div className={`w-16 h-16 mx-auto ${color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+        <Icon className="h-8 w-8 text-white" />
+      </div>
+      <div>
+        <div className="text-3xl font-bold text-forest-800 mb-1">{value}</div>
+        <h3 className="heading-md text-forest-800 mb-2">{title}</h3>
+        <p className="body-sm text-forest-600">{description}</p>
+      </div>
+    </div>
+  </div>
+);
 
 const Home = () => {
   const { user, openAuthModalGlobal } = useAuthContext();
@@ -15,16 +53,6 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const holisticCategories = [
-    { icon: Sprout, name: 'Gardening', color: 'text-green-600 bg-green-50', count: 12 },
-    { icon: Lotus, name: 'Yoga & Meditation', color: 'text-purple-600 bg-purple-50', count: 8 },
-    { icon: ChefHat, name: 'Cooking', color: 'text-orange-600 bg-orange-50', count: 15 },
-    { icon: Palette, name: 'Art & Creativity', color: 'text-pink-600 bg-pink-50', count: 6 },
-    { icon: Stethoscope, name: 'Healing & Wellness', color: 'text-blue-600 bg-blue-50', count: 9 },
-    { icon: Music, name: 'Music & Movement', color: 'text-indigo-600 bg-indigo-50', count: 4 },
-  ];
-
-  // Load today's events
   useEffect(() => {
     const loadEvents = async () => {
       try {
@@ -37,7 +65,6 @@ const Home = () => {
         const { data, error } = await getEvents({
           status: 'active',
           limit: 10
-          limit: 6
         });
 
         if (error) {
@@ -134,292 +161,353 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
+
+      
+      {/* Enhanced Hero Section */}
       <section className="relative bg-gradient-to-br from-forest-600 via-forest-500 to-earth-500 text-white overflow-hidden">
+        {/* Background Elements */}
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/8633077/pexels-photo-8633077.jpeg?auto=compress&cs=tinysrgb&w=1200')] bg-cover bg-center opacity-30"></div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-28">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-6 animate-fade-in leading-tight">
-              Connect with Your
-              <span className="block text-earth-200 mt-2">Neighborhood Community</span>
-            </h1>
-            <p className="text-lg sm:text-xl lg:text-2xl mb-8 text-forest-100 animate-slide-up max-w-3xl mx-auto leading-relaxed">
-              Discover holistic events, share spaces, and build meaningful connections within walking distance of home.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              {user ? (
-                <>
-                  <Link
-                    to="/map"
-                    className="w-full sm:w-auto bg-gradient-to-r from-earth-400 to-earth-500 hover:from-earth-500 hover:to-earth-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-white/5 rounded-full animate-float"></div>
+          <div className="absolute top-3/4 right-1/4 w-24 h-24 bg-earth-300/10 rounded-full animate-float" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-1/2 left-3/4 w-16 h-16 bg-forest-300/10 rounded-full animate-float" style={{ animationDelay: '2s' }}></div>
+        </div>
+        
+        <div className="relative container-responsive section-padding">
+          <div className="text-center max-w-5xl mx-auto">
+            <div className="space-y-8">
+              {/* Main Heading */}
+              <div className="animate-fade-in-up">
+                <h1 className="heading-xl font-bold mb-6 leading-tight">
+                  Connect with Your
+                  <span className="block text-earth-200 mt-2 text-shadow-lg">Neighborhood Community</span>
+                </h1>
+                <p className="body-lg text-forest-100 max-w-4xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                  Discover holistic events, share spaces, and build meaningful connections within walking distance of home.
+                </p>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                {user ? (
+                  <>
+                    <Link
+                      to="/map"
+                      className="w-full sm:w-auto btn-secondary text-lg px-8 py-4 shadow-xl hover:shadow-2xl"
+                    >
+                      <MapPin className="h-5 w-5 mr-2" />
+                      <span>Explore Your Neighborhood</span>
+                    </Link>
+                    <Link
+                      to="/create-event"
+                      className="w-full sm:w-auto glass text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2 hover:scale-105 hover:shadow-xl border border-white/30"
+                    >
+                      <Heart className="h-5 w-5" />
+                      <span>Share Your Practice</span>
+                    </Link>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => openAuthModalGlobal('signin')}
+                    className="w-full sm:w-auto btn-secondary text-lg px-8 py-4 shadow-xl hover:shadow-2xl"
                   >
-                    <MapPin className="h-5 w-5" />
-                    <span>Explore Your Neighborhood</span>
-                  </Link>
-                  <Link
-                    to="/create-event"
-                    className="w-full sm:w-auto bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2 hover:scale-105"
-                  >
-                    <Heart className="h-5 w-5" />
-                    <span>Share Your Practice</span>
-                  </Link>
-                </>
-              ) : (
-                <button
-                  onClick={() => openAuthModalGlobal('signin')}
-                  className="w-full sm:w-auto bg-gradient-to-r from-earth-400 to-earth-500 hover:from-earth-500 hover:to-earth-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
-                >
-                  <Heart className="h-5 w-5" />
-                  <span>Join</span>
-                </button>
+                    <Heart className="h-5 w-5 mr-2" />
+                    <span>Join Our Community</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Radius Selector for logged in users */}
+              {user && (
+                <div className="mb-12 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+                  <RadiusSelector />
+                </div>
               )}
-            </div>
 
-            {user && (
-              <div className="mb-12">
-                <RadiusSelector />
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-center">
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200">
-                <div className="flex justify-center mb-4">
-                  <Users className="h-8 w-8 text-earth-200" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">127 Neighbors</h3>
-                <p className="text-forest-100 text-sm">Active in your 1-mile radius</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200">
-                <div className="flex justify-center mb-4">
-                  <Calendar className="h-8 w-8 text-earth-200" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">23 Events</h3>
-                <p className="text-forest-100 text-sm">This week in your area</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200">
-                <div className="flex justify-center mb-4">
-                  <Clock className="h-8 w-8 text-earth-200" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">8 min walk</h3>
-                <p className="text-forest-100 text-sm">Average distance to events</p>
+              {/* Community Stats */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
+                <HighlightCard
+                  icon={Users}
+                  title="Active Neighbors"
+                  description="In your 1-mile radius"
+                  color="bg-gradient-to-br from-forest-500 to-forest-600"
+                  value="127"
+                />
+                <HighlightCard
+                  icon={Calendar}
+                  title="Events This Week"
+                  description="Happening in your area"
+                  color="bg-gradient-to-br from-earth-500 to-earth-600"
+                  value="23"
+                />
+                <HighlightCard
+                  icon={Clock}
+                  title="8 min walk"
+                  description="Average distance to events"
+                  color="bg-gradient-to-br from-blue-500 to-purple-600"
+                  value="⏱️"
+                />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Today's Events */}
+      {/* Featured Events Section */}
       {user && (
-        <section className="py-12 sm:py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 sm:mb-12">
-              <div className="mb-4 sm:mb-0">
-                <h2 className="text-2xl sm:text-3xl font-bold text-forest-800 mb-2">
+        <section className="section-padding bg-gradient-to-br from-white to-forest-50/30">
+          <div className="container-responsive">
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center mb-4">
+                <Sparkles className="h-6 w-6 text-earth-500 mr-2" />
+                <h2 className="heading-lg text-forest-800">
                   {todayEvents.length > 0 ? "Upcoming Events" : "Recent Events"}
                 </h2>
-                <p className="text-forest-600">
-                  {todayEvents.length > 0 
-                    ? "Happening soon in your community" 
-                    : "Discover what's happening in your neighborhood"
-                  }
-                </p>
               </div>
-              <Link
-                to="/map"
-                className="text-earth-500 hover:text-earth-600 font-medium flex items-center space-x-1 transition-colors group"
-              >
-                <span>View all</span>
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              <p className="body-lg text-forest-600 max-w-2xl mx-auto">
+                {todayEvents.length > 0 
+                  ? "Happening soon in your community" 
+                  : "Discover what's happening in your neighborhood"
+                }
+              </p>
             </div>
 
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+              <div className="grid-responsive">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-gray-200 rounded-2xl h-80 animate-pulse"></div>
+                  <div key={i} className="card h-80">
+                    <div className="loading-skeleton h-48 rounded-t-2xl"></div>
+                    <div className="p-6 space-y-4">
+                      <div className="loading-skeleton h-6 w-3/4"></div>
+                      <div className="loading-skeleton h-4 w-1/2"></div>
+                      <div className="loading-skeleton h-10 w-full"></div>
+                    </div>
+                  </div>
                 ))}
               </div>
-            ) : error ? (
-              <div className="text-center py-12">
-                <p className="text-red-600 mb-4">Error loading events: {error}</p>
-                <button 
-                  onClick={() => window.location.reload()}
-                  className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : todayEvents.length === 0 ? (
-              <div className="text-center py-12">
-                <Calendar className="h-16 w-16 text-forest-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-forest-800 mb-2">No events found</h3>
-                <p className="text-forest-600 mb-6">Be the first to create an event in your community!</p>
-                <Link
-                  to="/create-event"
-                  className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-xl font-medium transition-colors inline-flex items-center space-x-2"
-                >
-                  <Calendar className="h-4 w-4" />
-                  <span>Create Event</span>
-                </Link>
-              </div>
+            ) : todayEvents.length > 0 ? (
+              <>
+                <div className="grid-responsive mb-8">
+                  {todayEvents.map((event, index) => (
+                    <div 
+                      key={event.id} 
+                      className="animate-fade-in-up"
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <EventCard event={event} onUpdate={loadActivities} />
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="text-center">
+                  <Link
+                    to="/map"
+                    className="btn-outline inline-flex items-center hover-lift"
+                  >
+                    <span>View All Events</span>
+                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
+              </>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-                {todayEvents.map((event) => (
-                  <EventCard key={event.id} event={event} onUpdate={loadActivities} />
-                ))}
+              <div className="text-center py-12">
+                <div className="w-24 h-24 bg-gradient-to-br from-forest-100 to-earth-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Calendar className="h-12 w-12 text-forest-500" />
+                </div>
+                <h3 className="heading-md text-forest-800 mb-4">No upcoming events</h3>
+                <p className="body-md text-forest-600 mb-6 max-w-md mx-auto">
+                  Be the first to create an event in your neighborhood!
+                </p>
+                <Link to="/create-event" className="btn-primary inline-flex items-center">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Event
+                </Link>
               </div>
             )}
           </div>
         </section>
       )}
 
-      {/* Featured Spaces */}
+      {/* Featured Spaces Section */}
       {user && featuredSpaces.length > 0 && (
-        <section className="py-12 sm:py-16 bg-gradient-to-br from-earth-50 to-forest-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 sm:mb-12">
-              <div className="mb-4 sm:mb-0">
-                <h2 className="text-2xl sm:text-3xl font-bold text-forest-800 mb-2">Featured Spaces</h2>
-                <p className="text-forest-600">Discover unique spaces for your events</p>
+        <section className="section-padding bg-gradient-to-br from-earth-50/30 to-white">
+          <div className="container-responsive">
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center mb-4">
+                <HomeIcon className="h-6 w-6 text-forest-500 mr-2" />
+                <h2 className="heading-lg text-forest-800">Featured Spaces</h2>
               </div>
-              <Link
-                to="/map"
-                className="text-earth-500 hover:text-earth-600 font-medium flex items-center space-x-1 transition-colors group"
-              >
-                <span>Browse all spaces</span>
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              <p className="body-lg text-forest-600 max-w-2xl mx-auto">
+                Beautiful spaces available for your holistic practices
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-              {featuredSpaces.map((space) => (
-                <SpaceCard key={space.id} space={space} />
+            <div className="grid-responsive mb-8">
+              {featuredSpaces.map((space, index) => (
+                <div 
+                  key={space.id} 
+                  className="animate-fade-in-up"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <SpaceCard space={space} onUpdate={loadActivities} />
+                </div>
               ))}
+            </div>
+            
+            <div className="text-center">
+              <Link
+                to="/share-space"
+                className="btn-outline inline-flex items-center hover-lift"
+              >
+                <span>Share Your Space</span>
+                <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
           </div>
         </section>
       )}
 
-      {/* Holistic Categories */}
-      <section className="py-12 sm:py-16 bg-gradient-to-br from-forest-50 to-earth-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Weekly Regulars Section */}
+      <section className="section-padding bg-gradient-to-br from-forest-50 to-earth-50">
+        <div className="container-responsive">
           <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-forest-800 mb-4">Explore Holistic Practices</h2>
-            <p className="text-forest-600 text-lg max-w-2xl mx-auto">
-              Discover wellness, creativity, and growth opportunities in your community
+            <div className="flex items-center justify-center mb-4">
+              <TrendingUp className="h-6 w-6 text-earth-500 mr-2" />
+              <h2 className="heading-lg text-forest-800">Weekly Regulars</h2>
+            </div>
+            <p className="body-lg text-forest-600 max-w-2xl mx-auto">
+              Consistent community gatherings you can count on
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-            {holisticCategories.map(({ icon: Icon, name, color, count }) => (
-              <div
-                key={name}
-                className="bg-white rounded-2xl p-4 sm:p-6 text-center hover:shadow-lg transition-all duration-300 transform hover:scale-105 group border border-forest-50 cursor-pointer"
-                onClick={() => user ? null : openAuthModalGlobal('signup')}
+          <div className="grid-responsive">
+            {weeklyRegulars.map((regular, index) => (
+              <div 
+                key={regular.title} 
+                className="card-interactive group animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl mx-auto mb-3 sm:mb-4 flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>
-                  <Icon className="h-6 w-6 sm:h-8 sm:w-8" />
+                <div className="p-6 space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="heading-md text-forest-800 mb-2 group-hover:text-forest-900 transition-colors">
+                        {regular.title}
+                      </h3>
+                      <p className="body-sm text-forest-600 mb-3">
+                        {regular.facilitator}
+                      </p>
+                    </div>
+                    <Star className="h-5 w-5 text-earth-400 group-hover:text-earth-500 transition-colors" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center text-forest-600">
+                      <Clock className="h-4 w-4 mr-2 text-forest-500" />
+                      <span className="body-sm">{regular.time}</span>
+                    </div>
+                    <div className="flex items-center text-forest-600">
+                      <MapPin className="h-4 w-4 mr-2 text-forest-500" />
+                      <span className="body-sm">{regular.location}</span>
+                    </div>
+                    <div className="flex items-center text-forest-600">
+                      <Users className="h-4 w-4 mr-2 text-forest-500" />
+                      <span className="body-sm">{regular.participants} regular participants</span>
+                    </div>
+                  </div>
+                  
+                  <button className="w-full btn-outline text-sm group-hover:bg-forest-50 group-hover:border-forest-400">
+                    Learn More
+                    <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </button>
                 </div>
-                <h3 className="font-semibold text-forest-800 mb-1 text-sm sm:text-base">{name}</h3>
-                <p className="text-xs sm:text-sm text-forest-600">{count} events</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Weekly Regulars */}
-      {user && (
-        <section className="py-12 sm:py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 sm:mb-12">
-              <div className="mb-4 sm:mb-0">
-                <h2 className="text-2xl sm:text-3xl font-bold text-forest-800 mb-2">Weekly Regulars</h2>
-                <p className="text-forest-600">Ongoing community gatherings you can join</p>
+      {/* Community Values Section */}
+      <section className="section-padding bg-gradient-to-br from-white to-forest-50/30">
+        <div className="container-responsive">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="mb-12">
+              <div className="flex items-center justify-center mb-4">
+                <Globe className="h-6 w-6 text-forest-500 mr-2" />
+                <h2 className="heading-lg text-forest-800">Our Community Values</h2>
               </div>
-              <Link
-                to="/activities"
-                className="text-earth-500 hover:text-earth-600 font-medium flex items-center space-x-1 transition-colors group"
-              >
-                <span>View schedule</span>
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              <p className="body-lg text-forest-600 max-w-2xl mx-auto">
+                Building connections through shared principles and holistic practices
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {weeklyRegulars.map((regular, index) => (
-                <div key={index} className="bg-gradient-to-br from-forest-50 to-earth-50 rounded-2xl p-6 hover:shadow-md transition-all duration-200 border border-forest-100/50">
-                  <div className="flex items-start justify-between mb-4">
-                    <h3 className="font-semibold text-forest-800 text-lg leading-tight">{regular.title}</h3>
-                    <Star className="h-5 w-5 text-earth-400 fill-current flex-shrink-0 ml-2" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                {
+                  icon: Heart,
+                  title: "Mindful Connection",
+                  description: "Fostering genuine relationships through shared experiences and mutual respect."
+                },
+                {
+                  icon: Sparkles,
+                  title: "Holistic Wellness",
+                  description: "Supporting physical, mental, and spiritual well-being in our community."
+                },
+                {
+                  icon: Users,
+                  title: "Inclusive Community",
+                  description: "Welcoming all backgrounds and creating safe spaces for everyone to thrive."
+                }
+              ].map((value, index) => (
+                <div 
+                  key={value.title} 
+                  className="text-center group animate-fade-in-up"
+                  style={{ animationDelay: `${index * 0.2}s` }}
+                >
+                  <div className="w-16 h-16 bg-gradient-to-br from-forest-100 to-earth-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg group-hover:shadow-xl">
+                    <value.icon className="h-8 w-8 text-forest-600" />
                   </div>
-                  <p className="text-forest-600 mb-2 font-medium">{regular.facilitator}</p>
-                  <p className="text-forest-700 font-semibold mb-2">{regular.time}</p>
-                  <p className="text-forest-600 mb-4">{regular.location}</p>
-                  <div className="flex items-center text-sm text-forest-600">
-                    <Users className="h-4 w-4 mr-2" />
-                    <span>{regular.participants} regular participants</span>
-                  </div>
+                  <h3 className="heading-md text-forest-800 mb-4">{value.title}</h3>
+                  <p className="body-md text-forest-600">{value.description}</p>
                 </div>
               ))}
             </div>
           </div>
-        </section>
-      )}
-
-      {/* Community Impact */}
-      <section className="py-12 sm:py-16 bg-gradient-to-br from-forest-600 to-earth-500 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4">Building Stronger Communities</h2>
-            <p className="text-forest-100 text-lg max-w-2xl mx-auto">
-              Every connection made, every skill shared, every space opened strengthens our neighborhood fabric
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 text-center mb-12">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-              <div className="text-2xl sm:text-3xl font-bold mb-2">847</div>
-              <div className="text-forest-100 text-sm sm:text-base">Neighbor connections made</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-              <div className="text-2xl sm:text-3xl font-bold mb-2">1,230</div>
-              <div className="text-forest-100 text-sm sm:text-base">Hours of community time</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-              <div className="text-2xl sm:text-3xl font-bold mb-2">156</div>
-              <div className="text-forest-100 text-sm sm:text-base">Spaces shared with neighbors</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-              <div className="text-2xl sm:text-3xl font-bold mb-2">$2,340</div>
-              <div className="text-forest-100 text-sm sm:text-base">Community donations raised</div>
-            </div>
-          </div>
-
-          <div className="text-center">
-            {user ? (
-              <Link
-                to="/profile"
-                className="inline-flex items-center space-x-2 bg-gradient-to-r from-earth-400 to-earth-500 hover:from-earth-500 hover:to-earth-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-              >
-                <HandHeart className="h-5 w-5" />
-                <span>View Your Impact</span>
-              </Link>
-            ) : (
-              <button
-                onClick={() => openAuthModalGlobal('signup')}
-                className="inline-flex items-center space-x-2 bg-gradient-to-r from-earth-400 to-earth-500 hover:from-earth-500 hover:to-earth-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-              >
-                <HandHeart className="h-5 w-5" />
-                <span>Join</span>
-              </button>
-            )}
-          </div>
         </div>
       </section>
+
+      {/* Call to Action Section */}
+      {!user && (
+        <section className="section-padding bg-gradient-to-br from-forest-600 to-earth-600 text-white">
+          <div className="container-responsive text-center">
+            <div className="max-w-3xl mx-auto">
+              <h2 className="heading-lg mb-6 text-shadow">
+                Ready to Connect with Your Community?
+              </h2>
+              <p className="body-lg mb-8 text-forest-100">
+                Join thousands of neighbors building meaningful connections through holistic practices and shared spaces.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={() => openAuthModalGlobal('signup')}
+                  className="btn-secondary text-lg px-8 py-4 shadow-xl hover:shadow-2xl"
+                >
+                  <Zap className="h-5 w-5 mr-2" />
+                  Join for Free
+                </button>
+                <button
+                  onClick={() => openAuthModalGlobal('signin')}
+                  className="glass text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl border border-white/30"
+                >
+                  <span>Sign In</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 };

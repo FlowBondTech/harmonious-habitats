@@ -141,7 +141,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
           }, 1500);
         }
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Authentication error:', error);
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);

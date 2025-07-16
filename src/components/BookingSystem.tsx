@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Calendar, 
-  Clock, 
-  Users, 
-  MapPin, 
-  CheckCircle, 
-  AlertCircle, 
-  X,
-  CreditCard,
+  X, 
   DollarSign,
-  MessageCircle,
-  Star,
-  Badge
+  Check,
+  AlertCircle,
+  Loader
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase, Space } from '../lib/supabase';
@@ -291,7 +284,7 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     step >= stepNum ? 'bg-white text-earth-600' : 'bg-earth-400 text-earth-100'
                   }`}>
-                    {step > stepNum ? <CheckCircle className="h-5 w-5" /> : stepNum}
+                    {step > stepNum ? <Check className="h-5 w-5" /> : stepNum}
                   </div>
                   {stepNum < 3 && (
                     <div className={`w-12 h-1 mx-2 ${
@@ -550,7 +543,7 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
                             onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
                             className="w-4 h-4 text-earth-600"
                           />
-                          <CreditCard className="h-5 w-5 text-forest-600" />
+                          <DollarSign className="h-5 w-5 text-forest-600" />
                           <span className="text-forest-700">Credit/Debit Card</span>
                         </label>
                         <label className="flex items-center space-x-3 p-3 border border-forest-200 rounded-lg cursor-pointer hover:bg-forest-50">
@@ -569,7 +562,7 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
                   </div>
                 ) : (
                   <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
-                    <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
+                    <Check className="h-12 w-12 text-green-500 mx-auto mb-3" />
                     <h4 className="font-semibold text-green-800 mb-2">Free Space</h4>
                     <p className="text-green-600">
                       This space is offered free of charge by the community member.
@@ -594,7 +587,7 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
             {step === 3 && (
               <div className="text-center space-y-6">
                 <div className={`rounded-full w-20 h-20 flex items-center justify-center mx-auto ${bookingSuccess ? 'bg-green-50' : 'bg-yellow-50'}`}>
-                  <CheckCircle className={`h-12 w-12 ${bookingSuccess ? 'text-green-500' : 'text-yellow-500'}`} />
+                  <Check className={`h-12 w-12 ${bookingSuccess ? 'text-green-500' : 'text-yellow-500'}`} />
                 </div>
                 
                 <div>
@@ -644,8 +637,8 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
                     className="flex-1 bg-earth-100 text-earth-700 hover:bg-earth-200 py-3 px-6 rounded-xl font-medium transition-colors flex items-center justify-center space-x-2"
                     disabled={!bookingSuccess}
                   >
-                    <MessageCircle className="h-4 w-4" />
-                    <span>Message Owner</span>
+                    <Loader className="h-4 w-4 animate-spin" />
+                    <span>Processing...</span>
                   </button>
                 </div>
               </div>

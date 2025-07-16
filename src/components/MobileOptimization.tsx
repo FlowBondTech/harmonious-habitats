@@ -2,19 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { 
   Smartphone, 
   Wifi, 
-  Bell, 
   Download, 
-  Share2, 
   Home, 
   Search, 
   Calendar, 
   MessageCircle, 
   User,
-  Menu,
   X,
   MapPin,
   Heart,
-  Settings
+  Settings,
+  Plus,
+  Zap
 } from 'lucide-react';
 
 interface MobileOptimizationProps {
@@ -26,7 +25,6 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   useEffect(() => {
     // PWA install prompt
@@ -71,151 +69,101 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
     setDeferredPrompt(null);
   };
 
-  const shareApp = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Harmony Spaces',
-          text: 'Join your neighborhood community for holistic events and shared spaces',
-          url: window.location.origin
-        });
-      } catch (error) {
-        console.log('Error sharing:', error);
-      }
-    } else {
-      // Fallback for browsers that don't support Web Share API
-      navigator.clipboard.writeText(window.location.origin);
-      alert('Link copied to clipboard!');
-    }
-  };
 
-  const requestNotificationPermission = async () => {
-    if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        new Notification('Harmony Spaces', {
-          body: 'You\'ll now receive notifications about community events!',
-          icon: '/icon-192x192.png'
-        });
-      }
-    }
-  };
 
   return (
     <div className="relative">
-      {/* Offline Banner */}
+      {/* Enhanced Offline Banner */}
       {!isOnline && (
-        <div className="fixed top-0 left-0 right-0 bg-red-600 text-white p-2 text-center text-sm z-50">
+        <div className="fixed top-0 left-0 right-0 bg-gradient-to-r from-red-600 to-red-700 text-white p-3 text-center z-50 shadow-lg animate-fade-in-down">
           <div className="flex items-center justify-center space-x-2">
-            <Wifi className="h-4 w-4" />
-            <span>You're offline. Some features may be limited.</span>
+            <Wifi className="h-4 w-4 animate-pulse" />
+            <span className="font-medium">You're offline. Some features may be limited.</span>
           </div>
         </div>
       )}
 
-      {/* PWA Install Prompt */}
+      {/* Enhanced PWA Install Prompt */}
       {showInstallPrompt && isInstallable && (
-        <div className="fixed bottom-4 left-4 right-4 bg-white rounded-2xl shadow-xl border border-forest-100 p-4 z-50 md:max-w-sm md:left-auto">
-          <div className="flex items-start space-x-3">
-            <div className="bg-forest-100 p-2 rounded-lg">
-              <Smartphone className="h-5 w-5 text-forest-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-forest-800 mb-1">Install Harmony Spaces</h4>
-              <p className="text-sm text-forest-600 mb-3">
-                Get quick access and offline features by installing our app!
-              </p>
-              <div className="flex space-x-2">
-                <button
-                  onClick={handleInstallClick}
-                  className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
-                >
-                  <Download className="h-4 w-4" />
-                  <span>Install</span>
-                </button>
-                <button
-                  onClick={() => setShowInstallPrompt(false)}
-                  className="bg-forest-100 text-forest-700 hover:bg-forest-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  Later
-                </button>
+        <div className="fixed bottom-4 left-4 right-4 md:max-w-sm md:left-auto md:right-4 z-50 animate-fade-in-up">
+          <div className="card-gradient shadow-2xl border-2 border-white/30 p-5">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-forest-500 to-earth-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <Smartphone className="h-6 w-6 text-white" />
               </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="heading-md text-forest-800 mb-2">Install Harmony Spaces</h4>
+                <p className="body-sm text-forest-600 mb-4 leading-relaxed">
+                  Get quick access, offline features, and native notifications by installing our app!
+                </p>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleInstallClick}
+                    className="btn-primary text-sm px-4 py-2.5 flex items-center space-x-2 hover-lift"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Install</span>
+                  </button>
+                  <button
+                    onClick={() => setShowInstallPrompt(false)}
+                    className="btn-outline text-sm px-4 py-2.5"
+                  >
+                    Later
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowInstallPrompt(false)}
+                className="flex-shrink-0 p-1.5 text-forest-400 hover:text-forest-600 rounded-lg hover:bg-forest-50 transition-all duration-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
-            <button
-              onClick={() => setShowInstallPrompt(false)}
-              className="p-1 text-forest-400 hover:text-forest-600"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
         </div>
       )}
 
-      {/* Mobile Quick Actions */}
-      <div className="md:hidden fixed bottom-4 right-4 z-40">
-        <div className="flex flex-col space-y-3">
-          {/* Share Button */}
-          <button
-            onClick={shareApp}
-            className="bg-earth-500 hover:bg-earth-600 text-white p-3 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110"
-          >
-            <Share2 className="h-5 w-5" />
-          </button>
 
-          {/* Notification Button */}
-          {Notification.permission !== 'granted' && (
-            <button
-              onClick={requestNotificationPermission}
-              className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110"
-            >
-              <Bell className="h-5 w-5" />
+
+      {/* Enhanced Mobile Bottom Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 safe-area-bottom z-20">
+        <div className="glass border-t border-white/20 shadow-2xl">
+          <div className="flex items-center justify-around py-2 px-2">
+            <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group">
+              <Home className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-medium">Home</span>
             </button>
-          )}
-
-          {/* Quick Menu */}
-          <button
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
-            className="bg-forest-600 hover:bg-forest-700 text-white p-3 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110"
-          >
-            {showMobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-
-        {/* Quick Menu Overlay */}
-        {showMobileMenu && (
-          <div className="absolute bottom-16 right-0 bg-white rounded-2xl shadow-xl border border-forest-100 p-4 w-64">
-            <h4 className="font-semibold text-forest-800 mb-3">Quick Actions</h4>
-            <div className="space-y-2">
-              <button className="w-full flex items-center space-x-3 p-3 text-left hover:bg-forest-50 rounded-lg transition-colors">
-                <Search className="h-5 w-5 text-forest-600" />
-                <span className="text-forest-700">Search Events</span>
-              </button>
-              <button className="w-full flex items-center space-x-3 p-3 text-left hover:bg-forest-50 rounded-lg transition-colors">
-                <Calendar className="h-5 w-5 text-forest-600" />
-                <span className="text-forest-700">Create Event</span>
-              </button>
-              <button className="w-full flex items-center space-x-3 p-3 text-left hover:bg-forest-50 rounded-lg transition-colors">
-                <Home className="h-5 w-5 text-forest-600" />
-                <span className="text-forest-700">Share Space</span>
-              </button>
-              <button className="w-full flex items-center space-x-3 p-3 text-left hover:bg-forest-50 rounded-lg transition-colors">
-                <MessageCircle className="h-5 w-5 text-forest-600" />
-                <span className="text-forest-700">Messages</span>
-              </button>
-              <button className="w-full flex items-center space-x-3 p-3 text-left hover:bg-forest-50 rounded-lg transition-colors">
-                <MapPin className="h-5 w-5 text-forest-600" />
-                <span className="text-forest-700">Nearby Events</span>
-              </button>
-            </div>
+            <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group">
+              <Search className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-medium">Search</span>
+            </button>
+            <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group relative">
+              <div className="relative">
+                <Calendar className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
+                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-earth-500 rounded-full"></div>
+              </div>
+              <span className="text-xs font-medium">Events</span>
+            </button>
+            <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group relative">
+              <div className="relative">
+                <MessageCircle className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
+                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></div>
+              </div>
+              <span className="text-xs font-medium">Messages</span>
+            </button>
+            <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group">
+              <User className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-medium">Profile</span>
+            </button>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Touch-Optimized Styles */}
-      <style jsx global>{`
-        /* Touch-friendly button sizes */
+      {/* Enhanced Mobile Styles with design system */}
+      <style>{`
+        /* Enhanced Touch-friendly interactions */
         @media (max-width: 768px) {
-          button {
+          .touch-target {
             min-height: 44px;
             min-width: 44px;
           }
@@ -223,80 +171,155 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
           input, select, textarea {
             min-height: 44px;
             font-size: 16px; /* Prevents zoom on iOS */
+            border-radius: 12px;
           }
           
-          /* Smooth scrolling */
+          button {
+            min-height: 44px;
+            border-radius: 12px;
+          }
+          
+          /* Smooth scrolling with momentum */
           html {
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
           }
           
-          /* Prevent zoom on double tap */
+          /* Prevent unwanted zoom and selection */
           * {
             touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
           }
           
-          /* Improve tap targets */
+          /* Allow text selection for content */
+          p, span, div[contenteditable], input, textarea {
+            -webkit-user-select: text;
+            user-select: text;
+          }
+          
+          /* Enhanced tap highlights */
           a, button, [role="button"] {
             cursor: pointer;
-            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+            -webkit-tap-highlight-color: rgba(77, 124, 42, 0.1);
+            -webkit-focus-ring-color: rgba(77, 124, 42, 0.3);
           }
           
           /* Better focus states for mobile */
-          input:focus, select:focus, textarea:focus {
+          input:focus, select:focus, textarea:focus, button:focus {
             outline: 2px solid #4d7c2a;
             outline-offset: 2px;
+            border-color: #4d7c2a;
           }
           
-          /* Optimize for mobile viewport */
+          /* Mobile-optimized spacing and layout */
           .mobile-optimized {
             padding-left: max(16px, env(safe-area-inset-left));
             padding-right: max(16px, env(safe-area-inset-right));
-            padding-bottom: max(16px, env(safe-area-inset-bottom));
+            padding-bottom: max(80px, calc(env(safe-area-inset-bottom) + 80px));
           }
           
-          /* Swipe gestures */
-          .swipeable {
-            touch-action: pan-x;
-          }
-          
-          /* Loading states */
-          .loading-skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-          }
-          
-          @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-          }
-          
-          /* Pull-to-refresh indicator */
+          /* Enhanced pull-to-refresh */
           .pull-to-refresh {
             transform: translateY(-100%);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           }
           
           .pull-to-refresh.active {
             transform: translateY(0);
           }
+          
+          /* Improved loading states */
+          .loading-skeleton {
+            background: linear-gradient(
+              90deg,
+              rgba(240, 247, 237, 0.8) 25%,
+              rgba(224, 235, 207, 0.8) 50%,
+              rgba(240, 247, 237, 0.8) 75%
+            );
+            background-size: 200% 100%;
+            animation: loading-shimmer 1.5s infinite;
+          }
+          
+          @keyframes loading-shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+          }
+          
+          /* Enhanced swipe gestures */
+          .swipeable {
+            touch-action: pan-x;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          }
+          
+          .swipeable::-webkit-scrollbar {
+            display: none;
+          }
+          
+          /* iOS safe area support */
+          .safe-area-inset {
+            padding-top: env(safe-area-inset-top);
+            padding-right: env(safe-area-inset-right);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+          }
+          
+          /* Enhanced haptic feedback simulation */
+          .haptic-light {
+            transition: transform 0.1s ease-out;
+          }
+          
+          .haptic-light:active {
+            transform: scale(0.98);
+          }
+          
+          /* Better contrast for mobile screens */
+          .mobile-high-contrast {
+            color: #1c3310;
+            font-weight: 500;
+          }
+          
+          /* Optimized image loading */
+          img {
+            will-change: transform;
+            backface-visibility: hidden;
+          }
+          
+          /* Enhanced focus indicators for accessibility */
+          .focus-visible {
+            outline: 3px solid #4d7c2a;
+            outline-offset: 2px;
+            border-radius: 8px;
+          }
         }
         
-        /* Dark mode support */
+        /* Enhanced Dark mode support */
         @media (prefers-color-scheme: dark) {
           .auto-dark {
             background-color: #1a1a1a;
             color: #ffffff;
           }
+          
+          .auto-dark .glass {
+            background-color: rgba(26, 26, 26, 0.8);
+            border-color: rgba(255, 255, 255, 0.1);
+          }
         }
         
-        /* Reduced motion support */
+        /* Reduced motion preferences */
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
             transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+          }
+          
+          .respect-motion-preference {
+            transform: none !important;
           }
         }
         
@@ -304,6 +327,25 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
         @media (prefers-contrast: high) {
           .high-contrast {
             border: 2px solid currentColor;
+            background-color: white;
+            color: black;
+          }
+          
+          button {
+            border: 2px solid currentColor;
+          }
+        }
+        
+        /* Print optimizations */
+        @media print {
+          .no-print, .mobile-only {
+            display: none !important;
+          }
+          
+          .print-friendly {
+            background: white !important;
+            color: black !important;
+            box-shadow: none !important;
           }
         }
       `}</style>
@@ -311,32 +353,6 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
       {/* Main Content */}
       <div className={`${!isOnline ? 'pt-12' : ''} mobile-optimized`}>
         {children}
-      </div>
-
-      {/* Mobile Bottom Navigation (if needed) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-forest-100 safe-area-bottom">
-        <div className="flex items-center justify-around py-2">
-          <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-colors">
-            <Home className="h-5 w-5" />
-            <span className="text-xs mt-1">Home</span>
-          </button>
-          <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-colors">
-            <Search className="h-5 w-5" />
-            <span className="text-xs mt-1">Search</span>
-          </button>
-          <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-colors">
-            <Calendar className="h-5 w-5" />
-            <span className="text-xs mt-1">Events</span>
-          </button>
-          <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-colors">
-            <MessageCircle className="h-5 w-5" />
-            <span className="text-xs mt-1">Messages</span>
-          </button>
-          <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-colors">
-            <User className="h-5 w-5" />
-            <span className="text-xs mt-1">Profile</span>
-          </button>
-        </div>
       </div>
     </div>
   );

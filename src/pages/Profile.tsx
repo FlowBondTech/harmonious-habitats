@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Eye, Clock, Award, CheckCircle, MessageCircle, Share2, Image, FileText, Home as HomeIcon, Globe, Map } from 'lucide-react';
+import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Eye, Clock, Award, CheckCircle, MessageCircle, Share2, Image, FileText, Home as HomeIcon, Globe, Map, GraduationCap, Package, Briefcase, Languages, Accessibility } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
-import { updateProfile } from '../lib/supabase';
+import { updateProfile, ProfileSkill, ProfileOffering } from '../lib/supabase';
 import { Link } from 'react-router-dom';
+import ProfileSkillsSection from '../components/ProfileSkillsSection';
+import ProfileOfferingsSection from '../components/ProfileOfferingsSection';
 
 const Profile = () => {
   const { user, profile, loadUserProfile } = useAuthContext();
@@ -12,12 +14,15 @@ const Profile = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [discoveryRadius, setDiscoveryRadius] = useState(1);
+  const [customRadius, setCustomRadius] = useState(5);
+  const [showCustomRadius, setShowCustomRadius] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [notifications, setNotifications] = useState({
     newEvents: true,
     messages: true,
     reminders: true,
-    community: false
+    community: false,
+    globalEvents: true
   });
   
   const [formData, setFormData] = useState({
@@ -31,8 +36,18 @@ const Profile = () => {
       newEvents: true,
       messages: true,
       reminders: true,
-      community: false
-    }
+      community: false,
+      globalEvents: true
+    },
+    // Enhanced profile capabilities
+    skills: profile?.skills || [],
+    offerings: profile?.offerings || [],
+    languages: profile?.languages || [],
+    accessibility_needs: profile?.accessibility_needs || [],
+    accessibility_provided: profile?.accessibility_provided || [],
+    experience_since: profile?.experience_since || '',
+    teaching_experience: profile?.teaching_experience || 0,
+    mentorship_available: profile?.mentorship_available || false
   });
 
   // Update form data when profile changes
@@ -50,14 +65,28 @@ const Profile = () => {
           messages: true,
           reminders: true,
           community: false
-        }
+        },
+        // Enhanced profile capabilities
+        skills: profile.skills || [],
+        offerings: profile.offerings || [],
+        languages: profile.languages || [],
+        accessibility_needs: profile.accessibility_needs || [],
+        accessibility_provided: profile.accessibility_provided || [],
+        experience_since: profile.experience_since || '',
+        teaching_experience: profile.teaching_experience || 0,
+        mentorship_available: profile.mentorship_available || false
       });
       setDiscoveryRadius(profile.discovery_radius || 1);
-      setNotifications(profile.notification_preferences || {
+      const defaultNotifications = {
         newEvents: true,
         messages: true,
         reminders: true,
-        community: false
+        community: false,
+        globalEvents: true
+      };
+      setNotifications({
+        ...defaultNotifications,
+        ...profile.notification_preferences
       });
     }
   }, [profile]);
@@ -77,12 +106,21 @@ const Profile = () => {
     try {
       const updates = {
         full_name: formData.full_name,
-        username: formData.username || null,
-        bio: formData.bio || null,
-        neighborhood: formData.neighborhood || null,
+        username: formData.username || undefined,
+        bio: formData.bio || undefined,
+        neighborhood: formData.neighborhood || undefined,
         discovery_radius: discoveryRadius,
         holistic_interests: formData.holistic_interests,
         notification_preferences: notifications,
+        // Enhanced profile capabilities
+        skills: formData.skills,
+        offerings: formData.offerings,
+        languages: formData.languages,
+        accessibility_needs: formData.accessibility_needs,
+        accessibility_provided: formData.accessibility_provided,
+        experience_since: formData.experience_since,
+        teaching_experience: formData.teaching_experience,
+        mentorship_available: formData.mentorship_available,
         updated_at: new Date().toISOString()
       };
 
@@ -156,10 +194,10 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="container-responsive py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8">
           {/* Profile Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+                      <div className="lg:col-span-1 space-y-4 sm:space-y-6">
             {/* Profile Card */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="bg-gradient-to-br from-forest-600 to-earth-500 h-32 relative">
@@ -167,7 +205,7 @@ const Profile = () => {
                   <Camera className="h-4 w-4" />
                 </button>
               </div>
-              <div className="relative px-6 pb-6">
+                              <div className="relative px-4 pb-4 sm:px-6 sm:pb-6">
                 <div className="flex justify-center">
                   <div className="relative -mt-12">
                     <img
@@ -189,42 +227,44 @@ const Profile = () => {
                     <MapPin className="h-4 w-4 mr-1" />
                     <span>{profile.neighborhood || 'Neighborhood not set'}</span>
                   </div>
+                  {/* Rating Section */}
                   <div className="flex items-center justify-center mt-2">
                     <div className="flex items-center space-x-1">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} className={`h-4 w-4 ${i < Math.floor(profile.rating) ? 'text-earth-400 fill-current' : 'text-gray-300'}`} />
                       ))}
                     </div>
-
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-forest-700 mb-3">
-                        <Globe className="h-4 w-4 inline mr-2" />
-                        Global Discovery
-                      </label>
-                      <div className="bg-earth-50 rounded-lg p-4 border border-earth-200">
-                        <label className="flex items-start space-x-3">
-                          <input
-                            type="checkbox"
-                            checked={true}
-                            className="mt-1 w-4 h-4 text-forest-600 bg-forest-100 border-forest-300 rounded focus:ring-forest-500 focus:ring-2"
-                          />
-                          <div>
-                            <p className="font-medium text-forest-800">Discover global events</p>
-                            <p className="text-sm text-forest-600 mt-1">
-                              Allow me to discover virtual and global events beyond my local radius
-                            </p>
-                          </div>
-                        </label>
-                      </div>
-                    </div>
                     <span className="ml-2 text-sm text-forest-600">{profile.rating.toFixed(1)} rating ({profile.total_reviews} reviews)</span>
+                  </div>
+
+                  {/* Global Discovery Section */}
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium text-forest-700 mb-3">
+                      <Globe className="h-4 w-4 inline mr-2" />
+                      Global Discovery
+                    </label>
+                    <div className="bg-earth-50 rounded-lg p-4 border border-earth-200">
+                      <label className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          checked={true}
+                          className="mt-1 w-4 h-4 text-forest-600 bg-forest-100 border-forest-300 rounded focus:ring-forest-500 focus:ring-2"
+                        />
+                        <div>
+                          <p className="font-medium text-forest-800">Discover global events</p>
+                          <p className="text-sm text-forest-600 mt-1">
+                            Allow me to discover virtual and global events beyond my local radius
+                          </p>
+                        </div>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Achievements */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-forest-800">Community Achievements</h3>
                 <button 
@@ -259,7 +299,7 @@ const Profile = () => {
             </div>
 
             {/* Quick Stats */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
               <h3 className="font-semibold text-forest-800 mb-4">Community Impact</h3>
               <div className="space-y-4">
                 {communityStats.map((stat, index) => {
@@ -282,6 +322,9 @@ const Profile = () => {
               <nav className="space-y-1">
                 {[
                   { id: 'profile', label: 'Profile', icon: User },
+                  { id: 'skills', label: 'Skills', icon: GraduationCap },
+                  { id: 'offerings', label: 'Offerings', icon: Package },
+                  { id: 'capabilities', label: 'Capabilities', icon: Briefcase },
                   { id: 'settings', label: 'Settings', icon: Settings },
                   { id: 'privacy', label: 'Privacy', icon: Shield },
                 ].map((item) => {
@@ -323,7 +366,7 @@ const Profile = () => {
                 )}
 
                 {/* Basic Info */}
-                <div className="bg-white rounded-xl shadow-sm p-6">
+                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-semibold text-forest-800">Profile Information</h3>
                     {isEditing ? (
@@ -552,6 +595,197 @@ const Profile = () => {
               </div>
             )}
 
+            {/* Skills Tab */}
+            {activeTab === 'skills' && (
+              <div className="space-y-6">
+                <ProfileSkillsSection
+                  skills={formData.skills}
+                  onSkillsUpdate={(skills) => handleInputChange('skills', skills)}
+                  isEditing={isEditing}
+                />
+              </div>
+            )}
+
+            {/* Offerings Tab */}
+            {activeTab === 'offerings' && (
+              <div className="space-y-6">
+                <ProfileOfferingsSection
+                  offerings={formData.offerings}
+                  onOfferingsUpdate={(offerings) => handleInputChange('offerings', offerings)}
+                  isEditing={isEditing}
+                />
+              </div>
+            )}
+
+            {/* Capabilities Tab */}
+            {activeTab === 'capabilities' && (
+              <div className="space-y-6">
+                {/* Languages */}
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-2">
+                      <Languages className="h-5 w-5 text-forest-600" />
+                      <h3 className="text-xl font-semibold text-forest-800">Languages</h3>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {['English', 'Spanish', 'French', 'Portuguese', 'German', 'Italian', 'Mandarin', 'Japanese', 'Arabic', 'Hindi', 'Russian', 'Other'].map((language) => {
+                      const isSelected = formData.languages.includes(language);
+                      return (
+                        <button
+                          key={language}
+                          type="button"
+                          onClick={() => {
+                            if (!isEditing) return;
+                            const updated = isSelected 
+                              ? formData.languages.filter(l => l !== language)
+                              : [...formData.languages, language];
+                            handleInputChange('languages', updated);
+                          }}
+                          disabled={!isEditing}
+                          className={`p-3 rounded-lg border-2 text-center transition-colors ${
+                            isSelected
+                              ? 'border-forest-300 bg-forest-50 text-forest-700'
+                              : 'border-forest-100 bg-gray-50 text-forest-600 hover:bg-forest-50'
+                          } ${isEditing ? 'cursor-pointer' : 'cursor-default'}`}
+                        >
+                          <span className="font-medium">{language}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Experience & Teaching */}
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <GraduationCap className="h-5 w-5 text-forest-600" />
+                    <h3 className="text-xl font-semibold text-forest-800">Experience & Teaching</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-forest-700 mb-2">
+                        Started holistic journey in
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.experience_since}
+                        onChange={(e) => handleInputChange('experience_since', e.target.value)}
+                        placeholder="e.g., 2018, Early 2020s"
+                        className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                        readOnly={!isEditing}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-forest-700 mb-2">
+                        Years of teaching experience
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="50"
+                        value={formData.teaching_experience}
+                        onChange={(e) => handleInputChange('teaching_experience', parseInt(e.target.value) || 0)}
+                        className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                        readOnly={!isEditing}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6">
+                    <label className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.mentorship_available}
+                        onChange={(e) => handleInputChange('mentorship_available', e.target.checked)}
+                        disabled={!isEditing}
+                        className="w-4 h-4 text-forest-600 rounded focus:ring-forest-500"
+                      />
+                      <div>
+                        <div className="font-medium text-forest-800">Available for mentorship</div>
+                        <div className="text-sm text-gray-600">I'm willing to mentor newcomers to holistic practices</div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Accessibility */}
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <Accessibility className="h-5 w-5 text-forest-600" />
+                    <h3 className="text-xl font-semibold text-forest-800">Accessibility</h3>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-medium text-forest-800 mb-3">I need accommodation for:</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {['Wheelchair access', 'Visual impairment support', 'Hearing impairment support', 'Cognitive support', 'Mobility assistance', 'Dietary restrictions', 'Chemical sensitivities', 'Other needs'].map((need) => {
+                          const accessibilityNeeds = formData.accessibility_needs || [];
+                          const isSelected = accessibilityNeeds.includes(need);
+                          return (
+                            <button
+                              key={need}
+                              type="button"
+                              onClick={() => {
+                                if (!isEditing) return;
+                                const updated = isSelected 
+                                  ? accessibilityNeeds.filter(n => n !== need)
+                                  : [...accessibilityNeeds, need];
+                                handleInputChange('accessibility_needs', updated);
+                              }}
+                              disabled={!isEditing}
+                              className={`p-3 rounded-lg border-2 text-left transition-colors ${
+                                isSelected
+                                  ? 'border-forest-300 bg-forest-50 text-forest-700'
+                                  : 'border-forest-100 bg-gray-50 text-forest-600 hover:bg-forest-50'
+                              } ${isEditing ? 'cursor-pointer' : 'cursor-default'}`}
+                            >
+                              <span className="text-sm">{need}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium text-forest-800 mb-3">I can provide accommodation for:</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {['Wheelchair accessible space', 'Visual aids available', 'Sign language interpretation', 'Quiet/sensory-friendly environment', 'Mobility assistance', 'Dietary accommodations', 'Scent-free environment', 'Flexible pacing'].map((accommodation) => {
+                          const accessibilityProvided = formData.accessibility_provided || [];
+                          const isSelected = accessibilityProvided.includes(accommodation);
+                          return (
+                            <button
+                              key={accommodation}
+                              type="button"
+                              onClick={() => {
+                                if (!isEditing) return;
+                                const updated = isSelected 
+                                  ? accessibilityProvided.filter(a => a !== accommodation)
+                                  : [...accessibilityProvided, accommodation];
+                                handleInputChange('accessibility_provided', updated);
+                              }}
+                              disabled={!isEditing}
+                              className={`p-3 rounded-lg border-2 text-left transition-colors ${
+                                isSelected
+                                  ? 'border-forest-300 bg-forest-50 text-forest-700'
+                                  : 'border-forest-100 bg-gray-50 text-forest-600 hover:bg-forest-50'
+                              } ${isEditing ? 'cursor-pointer' : 'cursor-default'}`}
+                            >
+                              <span className="text-sm">{accommodation}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Settings Tab */}
             {activeTab === 'settings' && (
               <div className="space-y-6">
@@ -565,13 +799,16 @@ const Profile = () => {
                         <Target className="h-4 w-4 inline mr-2" />
                         Discovery Radius
                       </label>
-                      <div className="grid grid-cols-4 gap-3">
+                      <div className="grid grid-cols-5 gap-3">
                         {[0.5, 1, 2, 3].map((radius) => (
                           <button
                             key={radius}
-                            onClick={() => setDiscoveryRadius(radius)}
+                            onClick={() => {
+                              setDiscoveryRadius(radius);
+                              setShowCustomRadius(false);
+                            }}
                             className={`p-3 rounded-lg border-2 text-center transition-colors ${
-                              discoveryRadius === radius
+                              discoveryRadius === radius && !showCustomRadius
                                 ? 'border-forest-300 bg-forest-50 text-forest-700'
                                 : 'border-forest-100 bg-gray-50 text-forest-600 hover:bg-forest-50'
                             }`}
@@ -584,7 +821,53 @@ const Profile = () => {
                             </div>
                           </button>
                         ))}
+                        
+                        {/* Custom Radius Button */}
+                        <button
+                          onClick={() => {
+                            setShowCustomRadius(true);
+                            setDiscoveryRadius(customRadius);
+                          }}
+                          className={`p-3 rounded-lg border-2 text-center transition-colors ${
+                            showCustomRadius
+                              ? 'border-forest-300 bg-forest-50 text-forest-700'
+                              : 'border-forest-100 bg-gray-50 text-forest-600 hover:bg-forest-50'
+                          }`}
+                        >
+                          <div className="font-semibold">5+ mi</div>
+                          <div className="text-xs mt-1">Custom</div>
+                        </button>
                       </div>
+                      
+                      {/* Custom Radius Input */}
+                      {showCustomRadius && (
+                        <div className="mt-4 p-4 bg-earth-50 rounded-lg border border-earth-200">
+                          <label className="block text-sm font-medium text-forest-700 mb-2">
+                            Custom Discovery Radius
+                          </label>
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="number"
+                              min="5"
+                              max="50"
+                              value={customRadius}
+                              onChange={(e) => {
+                                const value = parseInt(e.target.value) || 5;
+                                setCustomRadius(Math.min(Math.max(value, 5), 50));
+                                setDiscoveryRadius(Math.min(Math.max(value, 5), 50));
+                              }}
+                              className="w-20 px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 text-center"
+                            />
+                            <span className="text-sm text-forest-600">miles</span>
+                            <span className="text-xs text-forest-500">
+                              (5-50 miles)
+                            </span>
+                          </div>
+                          <p className="text-xs text-forest-600 mt-2">
+                            Larger radius helps you discover more diverse holistic practices and connect with practitioners from wider communities.
+                          </p>
+                        </div>
+                      )}
                     </div>
                     
                     {discoveryRadius !== (profile?.discovery_radius || 1) && (
@@ -616,6 +899,7 @@ const Profile = () => {
                             {key === 'messages' && 'Receive notifications for new messages'}
                             {key === 'reminders' && 'Event reminders and updates'}
                             {key === 'community' && 'Community announcements and updates'}
+                            {key === 'globalEvents' && 'Discover virtual and global events beyond your radius'}
                           </p>
                         </div>
                         <button

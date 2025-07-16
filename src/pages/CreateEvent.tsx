@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, MapPin, Users, DollarSign, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Plus, X, Camera, Star } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, DollarSign, Plus, X, Camera, Star } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
+import HolisticCategorySelector from '../components/HolisticCategorySelector';
 
 const CreateEvent = () => {
   const { user } = useAuthContext();
@@ -23,7 +24,7 @@ const CreateEvent = () => {
     capacity: '',
     skillLevel: 'beginner',
     donationAmount: '',
-    materials: [],
+    materials: [] as string[],
     recurring: false,
     recurrencePattern: 'weekly',
     eventType: 'local' as 'local' | 'virtual' | 'global_physical'
@@ -31,14 +32,7 @@ const CreateEvent = () => {
 
   const [newMaterial, setNewMaterial] = useState('');
 
-  const categories = [
-    { id: 'gardening', name: 'Gardening & Sustainability', icon: Sprout, color: 'text-green-600 bg-green-50' },
-    { id: 'yoga', name: 'Yoga & Meditation', icon: Lotus, color: 'text-purple-600 bg-purple-50' },
-    { id: 'cooking', name: 'Cooking & Nutrition', icon: ChefHat, color: 'text-orange-600 bg-orange-50' },
-    { id: 'art', name: 'Art & Creativity', icon: Palette, color: 'text-pink-600 bg-pink-50' },
-    { id: 'healing', name: 'Healing & Wellness', icon: Stethoscope, color: 'text-blue-600 bg-blue-50' },
-    { id: 'music', name: 'Music & Movement', icon: Music, color: 'text-indigo-600 bg-indigo-50' },
-  ];
+
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -216,31 +210,10 @@ const CreateEvent = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-forest-700 mb-3">Holistic Category</label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {categories.map((category) => {
-                    const Icon = category.icon;
-                    return (
-                      <button
-                        key={category.id}
-                        type="button"
-                        onClick={() => handleInputChange('category', category.id)}
-                        className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                          formData.category === category.id
-                            ? 'border-forest-300 bg-forest-50 transform scale-105'
-                            : 'border-forest-100 hover:border-forest-200 hover:bg-forest-50'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className={`p-2 rounded-lg ${category.color}`}>
-                            <Icon className="h-5 w-5" />
-                          </div>
-                          <span className="font-medium text-forest-800 text-sm">{category.name}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                <HolisticCategorySelector
+                  selectedCategory={formData.category}
+                  onCategorySelect={(categoryId) => handleInputChange('category', categoryId)}
+                />
               </div>
 
               <div>
