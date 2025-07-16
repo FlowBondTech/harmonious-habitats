@@ -1,4 +1,4 @@
-name: Fancy Discord Notify
+name: Styled Discord Notify
 
 on:
   push:
@@ -12,27 +12,36 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Send fancy Discord embed
+      - name: Send styled Discord embed
         run: |
           COMMIT_MESSAGE=$(git log -1 --pretty=format:"%s")
+          COMMIT_AUTHOR=$(git log -1 --pretty=format:"%an")
           COMMIT_URL="https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+          REPO_NAME="${{ github.repository }}"
           curl -H "Content-Type: application/json" \
                -X POST \
                -d "{
+                 \"username\": \"GitHub [bot]\",
+                 \"avatar_url\": \"https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png\",
                  \"embeds\": [{
-                   \"title\": \"🚀 New push by ${{ github.actor }}\",
-                   \"description\": \"**${COMMIT_MESSAGE}**\",
-                   \"color\": 5814783,
+                   \"author\": {
+                     \"name\": \"${COMMIT_AUTHOR} pushed to ${REPO_NAME}\"
+                   },
+                   \"title\": \"🔄 New commit: ${COMMIT_MESSAGE}\",
                    \"url\": \"${COMMIT_URL}\",
-                   \"footer\": { \"text\": \"${{ github.repository }} on branch ${{ github.ref_name }}\" },
+                   \"description\": \"\`\`\`diff\\n+ ${COMMIT_MESSAGE}\\n\`\`\`\",
+                   \"color\": 3447003,
+                   \"footer\": {
+                     \"text\": \"Branch: ${{ github.ref_name }} • GitHub Action\"
+                   },
                    \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
                  }],
                  \"components\": [{
                    \"type\": 1,
                    \"components\": [{
                      \"type\": 2,
-                     \"label\": \"🔗 View Commit\",
                      \"style\": 5,
+                     \"label\": \"🔗 View Commit\",
                      \"url\": \"${COMMIT_URL}\"
                    }]
                  }]
