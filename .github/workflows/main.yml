@@ -1,34 +1,17 @@
-ebhooks / Manage webhook
-Settings
-Recent Deliveries
-  d1e98a66-6277-11f0-877e-dbb152de30dc push redelivery
-2025-07-16 14:08:53
-…
+name: Discord Notify
 
-Request
+on:
+  push:
+    branches:
+      - main
 
-Response 400
- Completed in 0.09 seconds.
-Headers
-Alt-Svc: h3=":443"; ma=86400
-Cf-Cache-Status: DYNAMIC
-Cf-Ray: 9603ca6fdd548bc3-IAD
-Content-Length: 58
-Content-Security-Policy: frame-ancestors 'none'; default-src https://o64374.ingest.sentry.io; report-to csp-sentry; report-uri https://o64374.ingest.sentry.io/api/5441894/security/?sentry_key=8fbbce30bf5244ec9429546beef21870&sentry_environment=stable
-Content-Type: application/json
-Date: Wed, 16 Jul 2025 19:08:53 GMT
-Nel: {"success_fraction":0,"report_to":"cf-nel","max_age":604800}
-Report-To: {"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v4?s=JmY2Tr%2B9flZ%2BsqbXbHnF9%2FNJewHSJu2pjtHq0rL9h4cq2tubuhgG9pTAVMTrwokqN6wWtADeZiza2hNxOj5YsrzG0SU1LaH%2F9amukM6FBYrPmJpmjaws0skw%2Bdqk"}],"group":"cf-nel","max_age":604800}
-Reporting-Endpoints: csp-sentry="https://o64374.ingest.sentry.io/api/5441894/security/?sentry_key=8fbbce30bf5244ec9429546beef21870&sentry_environment=stable"
-Server: cloudflare
-Set-Cookie: __dcfduid=5050deb8627811f0a577c23ba37db775; Expires=Mon, 15-Jul-2030 19:08:53 GMT; Max-Age=157680000; Secure; HttpOnly; Path=/; SameSite=Lax
-Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
-Via: 1.1 google
-X-Content-Type-Options: nosniff
-X-Discord-Features: webhooks
-X-Ratelimit-Bucket: 3d2712a9e4fe17cc9d3fed4a8e672e5f
-X-Ratelimit-Limit: 5
-X-Ratelimit-Remaining: 4
-X-Ratelimit-Reset: 1752692934
-X-Ratelimit-Reset-After: 1
-Body
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord message
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"content\": \"🚀 New push by ${{ github.actor }}\"}" \
+               ${{ secrets.DISCORD_WEBHOOK }}
