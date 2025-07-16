@@ -15,12 +15,9 @@ import {
   LogIn, 
   Sprout, 
   Shield,
-  Bell,
-  Search,
   Heart
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
-import NotificationCenter from './NotificationCenter';
 import MessagingSystem from './MessagingSystem';
 
 const Navbar = () => {
@@ -101,34 +98,10 @@ const Navbar = () => {
               ))}
             </div>
 
-            {/* Quick Action Buttons */}
-            {user && (
-              <div className="hidden lg:flex items-center space-x-2">
-                <button
-                  onClick={() => setShowMessages(true)}
-                  className="p-2.5 text-forest-600 hover:bg-white/50 rounded-xl transition-all duration-300 hover:scale-110 focus-ring relative group"
-                  title="Messages"
-                >
-                  <MessageCircle className="h-5 w-5 group-hover:text-forest-700" />
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-earth-500 to-earth-600 rounded-full animate-pulse-gentle"></div>
-                </button>
-                
-                <button
-                  className="p-2.5 text-forest-600 hover:bg-white/50 rounded-xl transition-all duration-300 hover:scale-110 focus-ring group"
-                  title="Search"
-                >
-                  <Search className="h-5 w-5 group-hover:text-forest-700" />
-                </button>
-              </div>
-            )}
 
-            {/* Auth Button, Notifications & Mobile Menu Button */}
+
+            {/* Auth Button & Mobile Menu Button */}
             <div className="flex items-center space-x-3">
-              {user && (
-                <div className="hidden lg:block">
-                  <NotificationCenter />
-                </div>
-              )}
               
               <div className="hidden lg:block">
                 {user ? (
@@ -220,21 +193,9 @@ const Navbar = () => {
                 {/* Mobile Quick Actions */}
                 {user && (
                   <div className="space-y-2 pt-4 border-t border-white/20">
-                    <button
-                      onClick={() => {
-                        setShowMessages(true);
-                        closeMenu();
-                      }}
-                      className="w-full flex items-center space-x-3 px-4 py-3.5 text-forest-600 hover:bg-white/50 rounded-xl transition-all duration-300 group"
-                    >
-                      <MessageCircle className="h-5 w-5 group-hover:text-forest-700" />
-                      <span className="flex-1 text-left">Open Messages</span>
-                      <div className="w-2 h-2 bg-earth-500 rounded-full animate-pulse-gentle"></div>
-                    </button>
+
                     
-                    <div className="px-4 py-3">
-                      <NotificationCenter />
-                    </div>
+
                   </div>
                 )}
                 
