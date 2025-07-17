@@ -80,13 +80,41 @@ export const SpaceSharerApplicationModal: React.FC<SpaceSharerApplicationModalPr
     setSuccess(null);
 
     try {
+      // Gather submission metadata
+      const submissionMetadata = {
+        submitted_at: new Date().toISOString(),
+        platform: 'web',
+        user_agent: navigator.userAgent,
+        screen_resolution: `${window.screen.width}x${window.screen.height}`,
+        viewport_size: `${window.innerWidth}x${window.innerHeight}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        language: navigator.language,
+        form_version: '1.0',
+        submission_method: 'modal_form',
+        character_counts: {
+          motivation: formData.motivation.length,
+          space_description: formData.space_description.length,
+          hosting_experience: formData.hosting_experience.length,
+          community_involvement: formData.community_involvement.length,
+          safety_measures: formData.safety_measures.length,
+          availability: formData.availability.length,
+          references: formData.references.length,
+          additional_info: formData.additional_info.length
+        },
+        completion_time_estimate: Date.now() // This would need to be calculated from form start time
+      };
+
+      console.log('📝 Submitting application with metadata:', submissionMetadata);
+
       // Submit application
       const { error: submitError } = await supabase
         .from('space_sharer_applications')
         .insert([{
           user_id: user.id,
           application_data: formData,
-          status: 'pending'
+          status: 'pending',
+          submission_metadata: submissionMetadata,
+          user_agent: navigator.userAgent
         }]);
 
       if (submitError) {

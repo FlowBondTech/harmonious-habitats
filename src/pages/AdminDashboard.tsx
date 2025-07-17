@@ -41,8 +41,10 @@ import {
   Space,
   Report
 } from '../lib/supabase';
+import { useAuthContext } from '../components/AuthProvider';
 
 const AdminDashboard = () => {
+  const { user, profile, loading: authLoading } = useAuthContext();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -206,12 +208,62 @@ const AdminDashboard = () => {
     return matchesSearch;
   });
 
-  if (loading) {
+  // Check for authentication and admin access
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-forest-200 border-t-forest-600 rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-forest-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user is authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-600 mb-6">You must be signed in to access the admin dashboard.</p>
+          <button 
+            onClick={() => window.location.href = '/'}
+            className="bg-forest-600 text-white px-6 py-2 rounded-lg hover:bg-forest-700 transition-colors"
+          >
+            Go to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user has admin access
+  if (!profile || profile.user_type !== 'admin') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Admin Access Required</h2>
+          <p className="text-gray-600 mb-4">
+            You don't have admin privileges to access this dashboard.
+          </p>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-gray-900 mb-2">Debug Information:</h3>
+            <div className="text-sm text-gray-600 space-y-1">
+              <p><strong>User ID:</strong> {user.id}</p>
+              <p><strong>Email:</strong> {user.email}</p>
+              <p><strong>User Type:</strong> {profile?.user_type || 'not set'}</p>
+              <p><strong>Profile Loaded:</strong> {profile ? 'Yes' : 'No'}</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => window.location.href = '/'}
+            className="bg-forest-600 text-white px-6 py-2 rounded-lg hover:bg-forest-700 transition-colors"
+          >
+            Go to Home
+          </button>
         </div>
       </div>
     );

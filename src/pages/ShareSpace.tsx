@@ -222,6 +222,37 @@ const ShareSpace = () => {
 
       // Create the space
       console.log('🏠 Creating space record...');
+      
+      // Gather submission metadata
+      const submissionMetadata = {
+        submitted_at: new Date().toISOString(),
+        platform: 'web',
+        user_agent: navigator.userAgent,
+        screen_resolution: `${window.screen.width}x${window.screen.height}`,
+        viewport_size: `${window.innerWidth}x${window.innerHeight}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        language: navigator.language,
+        form_version: '2.0',
+        submission_method: 'full_page_form',
+        debug_enabled: true,
+        images_attempted: formData.images.length,
+        images_successful: imageUrls.length,
+        images_failed: imageUploadErrors.length,
+        form_completeness: {
+          has_description: !!formData.description.trim(),
+          has_guidelines: !!formData.guidelines.trim(),
+          has_donation_info: !!formData.donationSuggested.trim(),
+          amenities_count: formData.amenities.length,
+          accessibility_count: formData.accessibility.length,
+          holistic_categories_count: formData.holisticFriendly.length,
+          animal_types_count: formData.animals.types.length,
+          allows_animals: formData.animals.allowed,
+          allows_facilitators: formData.allowFacilitatorApplications,
+          list_publicly: formData.listPublicly
+        },
+        estimated_completion_time: Date.now() // This could be calculated from page load
+      };
+
       const spaceData = {
         owner_id: user.id,
         name: formData.name.trim(),
@@ -243,7 +274,10 @@ const ShareSpace = () => {
         // Facilitator application settings
         allow_facilitator_applications: formData.allowFacilitatorApplications,
         application_requirements: formData.applicationRequirements,
-        booking_preferences: formData.bookingPreferences
+        booking_preferences: formData.bookingPreferences,
+        // Enhanced tracking
+        submission_metadata: submissionMetadata,
+        submission_user_agent: navigator.userAgent
       };
 
       console.log('📊 Space data to insert:', spaceData);
