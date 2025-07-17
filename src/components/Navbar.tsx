@@ -15,15 +15,18 @@ import {
   LogIn, 
   Sprout, 
   Shield,
-  Heart
+  Heart,
+  Share2
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import MessagingSystem from './MessagingSystem';
+import { ShareModal } from './ShareModal';
 
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const { user, profile, isAdmin, signOut, openAuthModalGlobal } = useAuthContext();
 
   const publicNavItems = [
@@ -35,7 +38,6 @@ const Navbar = () => {
     { path: '/map', icon: Map, label: 'Discover' },
     { path: '/global-feed', icon: Globe, label: 'Global Feed' },
     { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
-    { path: '/share-space', icon: HomePlus, label: 'Share Space' },
     { path: '/activities', icon: Calendar, label: 'Activities' },
     { path: '/messages', icon: MessageCircle, label: 'Messages' },
     { path: '/profile', icon: User, label: 'Profile' },
@@ -96,6 +98,17 @@ const Navbar = () => {
                   </span>
                 </Link>
               ))}
+              
+              {/* Share Button - Only show when authenticated */}
+              {user && (
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="ml-2 px-4 py-2.5 bg-gradient-to-r from-forest-600 to-earth-600 text-white rounded-xl text-sm font-medium transition-all duration-300 flex items-center space-x-2 hover:scale-105 hover:shadow-lg focus-ring group"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span>Share</span>
+                </button>
+              )}
             </div>
 
 
@@ -193,7 +206,16 @@ const Navbar = () => {
                 {/* Mobile Quick Actions */}
                 {user && (
                   <div className="space-y-2 pt-4 border-t border-white/20">
-                    {/* Additional quick actions can go here */}
+                    <button
+                      onClick={() => {
+                        setShowShareModal(true);
+                        closeMenu();
+                      }}
+                      className="w-full px-4 py-3.5 bg-gradient-to-r from-forest-600 to-earth-600 text-white rounded-xl text-base font-medium transition-all duration-300 flex items-center justify-center space-x-3 hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <Share2 className="h-5 w-5" />
+                      <span>Share</span>
+                    </button>
                   </div>
                 )}
                 
@@ -277,6 +299,12 @@ const Navbar = () => {
       <MessagingSystem
         isOpen={showMessages}
         onClose={() => setShowMessages(false)}
+      />
+      
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
       />
     </>
   );

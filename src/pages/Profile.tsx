@@ -5,7 +5,6 @@ import { updateProfile } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import ProfileSkillsSection from '../components/ProfileSkillsSection';
 import ProfileOfferingsSection from '../components/ProfileOfferingsSection';
-import { ShareTab } from '../components/ShareTab';
 
 const Profile = () => {
   const { user, profile, loadUserProfile } = useAuthContext();
@@ -328,7 +327,6 @@ const Profile = () => {
                   { id: 'skills', label: 'Skills', icon: GraduationCap },
                   { id: 'offerings', label: 'Offerings', icon: Package },
                   { id: 'capabilities', label: 'Capabilities', icon: Briefcase },
-                  { id: 'share', label: 'Share', icon: Share2 },
                   { id: 'settings', label: 'Settings', icon: Settings },
                   { id: 'privacy', label: 'Privacy', icon: Shield },
                 ].map((item) => {
@@ -790,8 +788,6 @@ const Profile = () => {
               </div>
             )}
 
-            {/* Share Tab */}
-            {activeTab === 'share' && <ShareTab />}
 
             {/* Settings Tab */}
             {activeTab === 'settings' && (
