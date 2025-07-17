@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { CheckCircle, XCircle, AlertTriangle, MessageSquare, Shield, Eye, Edit, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, MessageSquare, Eye } from 'lucide-react';
 import { updateEventStatus, updateSpaceStatus, updateReportStatus } from '../lib/supabase';
 import { useAuthContext } from './AuthProvider';
 
 interface AdminActionsProps {
   type: 'event' | 'space' | 'report';
-  item: any;
+  item: {
+    id: string;
+    status: string;
+    admin_notes?: string;
+  };
   onUpdate?: () => void;
 }
 

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Bell, X, Check, AlertCircle, Calendar, Users, MessageSquare, Star } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Bell, X, Check, AlertCircle, Calendar, Users, MessageSquare, Star, UserCheck, CheckCircle, XCircle, Clock, Send } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { getUserNotifications, markNotificationAsRead, Notification } from '../lib/supabase';
 
@@ -9,13 +9,7 @@ const NotificationCenter: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      loadNotifications();
-    }
-  }, [user]);
-
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     if (!user) return;
     
     setLoading(true);
@@ -29,7 +23,14 @@ const NotificationCenter: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadNotifications();
+    }
+  }, [user, loadNotifications]);
+
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
@@ -52,9 +53,68 @@ const NotificationCenter: React.FC = () => {
         return <Users className="h-4 w-4 text-forest-500" />;
       case 'review':
         return <Star className="h-4 w-4 text-yellow-500" />;
+      case 'space_application':
+        return <Send className="h-4 w-4 text-purple-500" />;
+      case 'application_status':
+        return <UserCheck className="h-4 w-4 text-blue-500" />;
       default:
         return <AlertCircle className="h-4 w-4 text-gray-500" />;
     }
+  };
+
+  const getNotificationActions = (notification: Notification) => {
+    if (notification.type === 'space_application' && notification.data?.application_id) {
+      return (
+        <div className="flex space-x-2 mt-2">
+          <button
+            onClick={() => handleApplicationAction(notification.data.application_id, 'approved')}
+            className="flex items-center space-x-1 px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 transition-colors"
+          >
+            <CheckCircle className="h-3 w-3" />
+            <span>Approve</span>
+          </button>
+          <button
+            onClick={() => handleApplicationAction(notification.data.application_id, 'rejected')}
+            className="flex items-center space-x-1 px-3 py-1 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200 transition-colors"
+          >
+            <XCircle className="h-3 w-3" />
+            <span>Decline</span>
+          </button>
+          <button
+            onClick={() => viewApplicationDetails(notification.data.application_id)}
+            className="flex items-center space-x-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-medium hover:bg-purple-200 transition-colors"
+          >
+            <Clock className="h-3 w-3" />
+            <span>Review</span>
+          </button>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const handleApplicationAction = async (applicationId: string, status: 'approved' | 'rejected') => {
+    try {
+      const { updateSpaceApplication } = await import('../lib/supabase');
+      await updateSpaceApplication(applicationId, { 
+        status,
+        owner_response: {
+          message: status === 'approved' ? 'Your application has been approved!' : 'Thank you for your application.'
+        }
+      });
+      
+      // Refresh notifications
+      loadNotifications();
+    } catch (error) {
+      console.error('Error updating application:', error);
+    }
+  };
+
+  const viewApplicationDetails = (applicationId: string) => {
+    // For now, just mark as read and close dropdown
+    // In a full implementation, this would open an application details modal
+    setShowDropdown(false);
+    console.log('View application details:', applicationId);
   };
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -129,6 +189,7 @@ const NotificationCenter: React.FC = () => {
                           <p className="text-xs text-forest-500">
                             {new Date(notification.created_at).toLocaleDateString()}
                           </p>
+                          {getNotificationActions(notification)}
                         </div>
                         {!notification.is_read && (
                           <button

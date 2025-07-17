@@ -28,22 +28,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
   const initialFocusRef = useRef<HTMLButtonElement>(null);
   const lastActiveElement = useRef<Element | null>(null);
   
-  // Update mode when initialMode prop changes
-  useEffect(() => {
-    setMode(initialMode);
-    // Reset form data when mode changes via prop
-    setFormData({
-      email: '',
-      password: '',
-      confirmPassword: '',
-      full_name: '',
-      username: '',
-      neighborhood: ''
-    });
-    setError(null);
-    setSuccess(null);
-  }, [initialMode]);
-  
   // Trap focus within modal
   useEffect(() => {
     if (isOpen) {

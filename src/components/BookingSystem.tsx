@@ -44,15 +44,27 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
     donationAmount: ''
   });
 
-  const [availability, setAvailability] = useState<any[]>([]);
-  const [existingBookings, setExistingBookings] = useState<any[]>([]);
+  const [availability, setAvailability] = useState<{
+    id: string;
+    space_id: string;
+    day_of_week: string;
+    is_available: boolean;
+    available_times: string;
+  }[]>([]);
+  const [existingBookings, setExistingBookings] = useState<{
+    id: string;
+    space_id: string;
+    start_time: string;
+    end_time: string;
+    status: string;
+  }[]>([]);
 
   useEffect(() => {
     if (isOpen && space) {
       loadAvailability();
       loadExistingBookings();
     }
-  }, [isOpen, space]);
+  }, [isOpen, space, loadAvailability, loadExistingBookings]);
 
   const loadAvailability = async () => {
     try {
@@ -82,7 +94,7 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
       setBookingData(prev => ({
@@ -163,7 +175,7 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
     try {
       // Parse available times
       const times = JSON.parse(dayAvailability.available_times);
-      return times.map((timeSlot: any) => ({
+      return times.map((timeSlot: { start: string; end: string }) => ({
         start: timeSlot.start,
         end: timeSlot.end,
         label: `${formatAvailabilityTime(timeSlot.start)} - ${formatAvailabilityTime(timeSlot.end)}`
@@ -224,8 +236,8 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
       setStep(3);
       setBookingSuccess(true);
       onBookingComplete?.(data.id);
-    } catch (err: any) {
-      setError(err.message || 'Failed to submit booking');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit booking');
     } finally {
       setLoading(false);
     }
@@ -240,14 +252,6 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
     return (end.getTime() - start.getTime()) / (1000 * 60 * 60); // hours
   };
 
-  const getEstimatedCost = () => {
-    const duration = calculateDuration();
-    if (space.donation_suggested && space.donation_suggested.includes('$')) {
-      const baseAmount = parseFloat(space.donation_suggested.replace(/[^0-9.]/g, ''));
-      return baseAmount * duration;
-    }
-    return 0;
-  };
 
   if (!isOpen) return null;
 
@@ -349,7 +353,7 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
                       </label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {getAvailableTimesForDate(bookingData.date).length > 0 ? (
-                          getAvailableTimesForDate(bookingData.date).map((slot: any, index: number) => (
+                          getAvailableTimesForDate(bookingData.date).map((slot: { start: string; end: string; label: string }, index: number) => (
                             <button
                               key={index}
                               type="button"

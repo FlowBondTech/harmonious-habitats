@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  BarChart3, 
   TrendingUp, 
   Users, 
   Calendar, 
@@ -8,12 +7,6 @@ import {
   Star,
   Download,
   RefreshCw,
-  Filter,
-  Eye,
-  Heart,
-  MessageCircle,
-  Share2,
-  Clock,
   Award,
   Target,
   Zap
@@ -148,7 +141,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   const loadAdminAnalytics = async () => {
     // Load platform-wide analytics
-    const [eventsResult, spacesResult, usersResult] = await Promise.all([
+    const [eventsResult, spacesResult] = await Promise.all([
       supabase.from('events').select('*', { count: 'exact', head: true }),
       supabase.from('spaces').select('*', { count: 'exact', head: true }),
       supabase.from('profiles').select('*', { count: 'exact', head: true })

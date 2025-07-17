@@ -1,20 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Search, 
   Users, 
   Plus, 
-  Filter, 
   MessageCircle, 
   Calendar, 
   Home,
-  Badge,
-  Star,
-  Bell,
-  BellOff,
-  Pin,
-  MoreVertical,
-  CheckCheck,
-  Clock,
   User
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
@@ -32,11 +23,36 @@ const ConversationList: React.FC<ConversationListProps> = ({
   onNewConversation
 }) => {
   const { user } = useAuthContext();
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<{
+    id: string;
+    name: string;
+    type: string;
+    participants: { user_id: string; user: { full_name: string; avatar_url: string } }[];
+    last_message: string;
+    last_message_at: string;
+    unread_count: number;
+  }[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, direct, group, event, space
-  const channelRef = useRef<any>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  const loadConversations = useCallback(async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .rpc('get_conversations_with_details', { p_user_id: user.id });
+
+      if (error) throw error;
+      setConversations(data || []);
+    } catch (error) {
+      console.error('Error loading conversations:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -54,7 +70,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                 schema: 'public',
                 table: 'messages'
               },
-              (payload) => {
+              () => {
                 // Refresh conversations when new messages arrive
                 loadConversations();
               }
@@ -72,31 +88,14 @@ const ConversationList: React.FC<ConversationListProps> = ({
         channelRef.current = null;
       }
     };
-  }, [user]);
+  }, [user, loadConversations]);
 
-  const loadConversations = async () => {
-    if (!user) return;
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .rpc('get_conversations_with_details', { p_user_id: user.id });
-
-      if (error) throw error;
-      setConversations(data || []);
-    } catch (error) {
-      console.error('Error loading conversations:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getConversationName = (conversation: any) => {
+  const getConversationName = (conversation: { name: string; type: string; participants: { user_id: string; user: { full_name: string } }[] }) => {
     if (conversation.name) return conversation.name;
     
     if (conversation.type === 'direct') {
       const otherParticipant = conversation.participants?.find(
-        (p: any) => p.user_id !== user?.id
+        (p) => p.user_id !== user?.id
       );
       return otherParticipant?.user?.full_name || 'Unknown User';
     }
@@ -112,10 +111,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
     return 'Group Chat';
   };
 
-  const getConversationAvatar = (conversation: any) => {
+  const getConversationAvatar = (conversation: { type: string; participants: { user_id: string; user: { avatar_url: string } }[] }) => {
     if (conversation.type === 'direct') {
       const otherParticipant = conversation.participants?.find(
-        (p: any) => p.user_id !== user?.id
+        (p) => p.user_id !== user?.id
       );
       return otherParticipant?.user?.avatar_url || 'https://images.pexels.com/photos/3772622/pexels-photo-3772622.jpeg?auto=compress&cs=tinysrgb&w=100';
     }

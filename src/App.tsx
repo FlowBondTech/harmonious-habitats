@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuthContext } from './components/AuthProvider';
 import KeyboardNavHelper from './components/KeyboardNavHelper';
@@ -8,18 +8,19 @@ import Navbar from './components/Navbar';
 import NotificationCenter from './components/NotificationCenter';
 import MobileOptimization from './components/MobileOptimization';
 import ScrollToTop from './components/ScrollToTop';
+import { LoadingSpinner } from './components/LoadingStates';
 
-// Pages
-import Home from './pages/Home';
-import Map from './pages/Map';
-import Search from './pages/Search';
-import CreateEvent from './pages/CreateEvent';
-import ShareSpace from './pages/ShareSpace';
-import MyActivities from './pages/MyActivities';
-import Messages from './pages/Messages';
-import Profile from './pages/Profile';
-import GlobalFeed from './pages/GlobalFeed';
-import AdminDashboard from './pages/AdminDashboard';
+// Lazy load pages for code splitting
+const Home = lazy(() => import('./pages/Home'));
+const Map = lazy(() => import('./pages/Map'));
+const Search = lazy(() => import('./pages/Search'));
+const CreateEvent = lazy(() => import('./pages/CreateEvent'));
+const ShareSpace = lazy(() => import('./pages/ShareSpace'));
+const MyActivities = lazy(() => import('./pages/MyActivities'));
+const Messages = lazy(() => import('./pages/Messages'));
+const Profile = lazy(() => import('./pages/Profile'));
+const GlobalFeed = lazy(() => import('./pages/GlobalFeed'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 const AppContent = () => {
   const { showAuthModalGlobal, globalAuthMode, closeAuthModalGlobal } = useAuthContext();
@@ -49,49 +50,55 @@ const AppContent = () => {
             
             {/* Main Content with responsive padding */}
             <main id="main" className="pt-16 pb-20 md:pb-8 min-h-screen relative z-10">
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<Home />} />
-                <Route path="/map" element={<Map />} />
-                <Route path="/search" element={<Search />} />
-                <Route path="/global-feed" element={<GlobalFeed />} />
-                
-                {/* Protected Routes */}
-                <Route path="/create-event" element={
-                  <ProtectedRoute>
-                    <CreateEvent />
-                  </ProtectedRoute>
-                } />
-                <Route path="/share-space" element={
-                  <ProtectedRoute>
-                    <ShareSpace />
-                  </ProtectedRoute>
-                } />
-                <Route path="/activities" element={
-                  <ProtectedRoute>
-                    <MyActivities />
-                  </ProtectedRoute>
-                } />
-                <Route path="/messages" element={
-                  <ProtectedRoute>
-                    <Messages />
-                  </ProtectedRoute>
-                } />
-                <Route path="/profile" element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin" element={
-                  <ProtectedRoute>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                } />
-                
-                {/* Fallback Routes */}
-                <Route path="/my-activities" element={<Navigate to="/activities" replace />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+              <Suspense fallback={
+                <div className="flex items-center justify-center min-h-screen">
+                  <LoadingSpinner size="lg" text="Loading..." />
+                </div>
+              }>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<Home />} />
+                  <Route path="/map" element={<Map />} />
+                  <Route path="/search" element={<Search />} />
+                  <Route path="/global-feed" element={<GlobalFeed />} />
+                  
+                  {/* Protected Routes */}
+                  <Route path="/create-event" element={
+                    <ProtectedRoute>
+                      <CreateEvent />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/share-space" element={
+                    <ProtectedRoute>
+                      <ShareSpace />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/activities" element={
+                    <ProtectedRoute>
+                      <MyActivities />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/messages" element={
+                    <ProtectedRoute>
+                      <Messages />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin" element={
+                    <ProtectedRoute>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Fallback Routes */}
+                  <Route path="/my-activities" element={<Navigate to="/activities" replace />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Suspense>
             </main>
             
             {/* Global Modals */}

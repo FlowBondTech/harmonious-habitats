@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Shield, 
   Flag, 
@@ -7,9 +7,7 @@ import {
   AlertTriangle, 
   CheckCircle, 
   X,
-  Send,
   Star,
-  Badge,
   Clock,
   MapPin,
   Heart,
@@ -26,11 +24,33 @@ interface CommunityFeaturesProps {
   onClose: () => void;
 }
 
+interface Report {
+  id: string;
+  target_type: string;
+  reason: string;
+  description: string;
+  status: string;
+  created_at: string;
+  reporter: {
+    id: string;
+    full_name: string;
+    avatar_url: string;
+  };
+}
+
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  type: string;
+}
+
 const CommunityFeatures: React.FC<CommunityFeaturesProps> = ({ isOpen, onClose }) => {
   const { user, isAdmin } = useAuthContext();
   const [activeTab, setActiveTab] = useState('guidelines');
-  const [reports, setReports] = useState<any[]>([]);
-  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [communityStats, setCommunityStats] = useState({
     totalMembers: 0,
     activeEvents: 0,
@@ -45,13 +65,7 @@ const CommunityFeatures: React.FC<CommunityFeaturesProps> = ({ isOpen, onClose }
   });
   const [showReportForm, setShowReportForm] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadCommunityData();
-    }
-  }, [isOpen]);
-
-  const loadCommunityData = async () => {
+  const loadCommunityData = useCallback(async () => {
     try {
       // Load community stats
       const [profilesCount, eventsCount, spacesCount] = await Promise.all([
@@ -93,7 +107,14 @@ const CommunityFeatures: React.FC<CommunityFeaturesProps> = ({ isOpen, onClose }
     } catch (error) {
       console.error('Error loading community data:', error);
     }
-  };
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadCommunityData();
+    }
+  }, [isOpen, loadCommunityData]);
+
 
   const submitReport = async () => {
     if (!user || !newReport.reason) return;

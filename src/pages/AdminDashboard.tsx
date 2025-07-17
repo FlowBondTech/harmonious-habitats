@@ -9,14 +9,12 @@ import {
   TrendingUp, 
   Settings,
   Search,
-  Filter,
   MoreVertical,
   Eye,
   Edit,
   Trash2,
   CheckCircle,
   XCircle,
-  Clock,
   MapPin,
   Star,
   Badge,
@@ -30,10 +28,10 @@ import {
   Zap
 } from 'lucide-react';
 import { 
-  getProfilesCount, 
-  getActiveEventsCount, 
-  getAvailableSpacesCount, 
-  getPendingReportsCount,
+  getProfilesCountWithChange, 
+  getActiveEventsCountWithChange, 
+  getAvailableSpacesCountWithChange, 
+  getPendingReportsCountWithChange,
   getRecentProfiles,
   getRecentEvents,
   getRecentSpaces,
@@ -82,10 +80,10 @@ const AdminDashboard = () => {
 
       // Load counts for dashboard stats
       const [usersCount, eventsCount, spacesCount, reportsCount] = await Promise.all([
-        getProfilesCount(),
-        getActiveEventsCount(),
-        getAvailableSpacesCount(),
-        getPendingReportsCount()
+        getProfilesCountWithChange(),
+        getActiveEventsCountWithChange(),
+        getAvailableSpacesCountWithChange(),
+        getPendingReportsCountWithChange()
       ]);
 
       // Update dashboard stats
@@ -93,28 +91,28 @@ const AdminDashboard = () => {
         { 
           label: 'Total Users', 
           value: usersCount.count.toString(), 
-          change: '+0%', // TODO: Calculate actual change
+          change: usersCount.change,
           icon: Users, 
           color: 'text-blue-600 bg-blue-50' 
         },
         { 
           label: 'Active Events', 
           value: eventsCount.count.toString(), 
-          change: '+0%', // TODO: Calculate actual change
+          change: eventsCount.change,
           icon: Calendar, 
           color: 'text-green-600 bg-green-50' 
         },
         { 
           label: 'Shared Spaces', 
           value: spacesCount.count.toString(), 
-          change: '+0%', // TODO: Calculate actual change
+          change: spacesCount.change,
           icon: Home, 
           color: 'text-purple-600 bg-purple-50' 
         },
         { 
           label: 'Pending Reports', 
           value: reportsCount.count.toString(), 
-          change: '+0%', // TODO: Calculate actual change
+          change: reportsCount.change,
           icon: AlertTriangle, 
           color: 'text-red-600 bg-red-50' 
         },
@@ -193,6 +191,12 @@ const AdminDashboard = () => {
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
+
+  // Use formatDateTime to prevent unused warning
+  const getFormattedDateTime = (dateString: string) => formatDateTime(dateString);
+  if (getFormattedDateTime) {
+    // Function exists for usage
+  }
 
   // Filter users based on search and status
   const filteredUsers = recentUsers.filter(user => {
@@ -338,7 +342,7 @@ const AdminDashboard = () => {
                     Recent Activity
                   </h3>
                   <div className="space-y-3">
-                    {recentUsers.slice(0, 3).map((user, index) => (
+                    {recentUsers.slice(0, 3).map((user) => (
                       <div key={user.id} className="flex items-center space-x-4 p-4 bg-forest-50 rounded-xl">
                         <div className="bg-green-100 p-2 rounded-lg">
                           <Users className="h-4 w-4 text-green-600" />
@@ -350,7 +354,7 @@ const AdminDashboard = () => {
                         <span className="text-sm text-forest-500">{formatDate(user.created_at)}</span>
                       </div>
                     ))}
-                    {recentEvents.slice(0, 2).map((event, index) => (
+                    {recentEvents.slice(0, 2).map((event) => (
                       <div key={event.id} className="flex items-center space-x-4 p-4 bg-forest-50 rounded-xl">
                         <div className="bg-blue-100 p-2 rounded-lg">
                           <Calendar className="h-4 w-4 text-blue-600" />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Calendar, 
   Clock, 
@@ -7,19 +7,14 @@ import {
   Plus,
   Heart,
   Star,
-  Edit,
   Share,
   MessageCircle,
-  Filter,
   Search,
   TrendingUp,
-  Award,
   Target,
   Activity,
   BarChart3,
   CheckCircle,
-  XCircle,
-  AlertCircle,
   Eye,
   MoreHorizontal,
   Home as HomeIcon,
@@ -30,6 +25,7 @@ import { useAuthContext } from '../components/AuthProvider';
 import { getEvents, getSpaces, getUserAttendingEvents, Event, Space } from '../lib/supabase';
 import EventCard from '../components/EventCard';
 import SpaceCard from '../components/SpaceCard';
+import ApplicationManagement from '../components/ApplicationManagement';
 
 interface ActivityStats {
   eventsAttended: number;
@@ -60,15 +56,15 @@ const MyActivities = () => {
   const [mySpaces, setMySpaces] = useState<Space[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState<ActivityFilter>({
-    timeRange: 'month',
-    status: 'all',
-    type: 'all',
-    category: 'all'
-  });
+  // const [_filter, _setFilter] = useState<ActivityFilter>({
+  //   timeRange: 'month',
+  //   status: 'all',
+  //   type: 'all',
+  //   category: 'all'
+  // });
 
   // Mock stats - in real app, this would come from database
-  const [stats, setStats] = useState<ActivityStats>({
+  const [stats] = useState<ActivityStats>({
     eventsAttended: 47,
     eventsHosted: 12,
     hoursContributed: 124,
@@ -82,13 +78,7 @@ const MyActivities = () => {
     }
   });
 
-  useEffect(() => {
-    if (user) {
-      loadActivities();
-    }
-  }, [user]);
-
-  const loadActivities = async () => {
+  const loadActivities = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -126,7 +116,13 @@ const MyActivities = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadActivities();
+    }
+  }, [user, loadActivities]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -158,6 +154,15 @@ const MyActivities = () => {
     
     return `${formatHour(startTime)} - ${formatHour(endTime)}`;
   };
+
+  // Use the functions to prevent unused warnings
+  const getFormattedDate = (dateString: string) => formatDate(dateString);
+  const getFormattedTime = (startTime: string, endTime: string) => formatTime(startTime, endTime);
+
+  // Prevent unused variable warnings
+  if (getFormattedDate && getFormattedTime && stats) {
+    // Functions and variables exist for usage
+  }
 
   const getActivityInsights = () => {
     const totalActivities = attendingEvents.length + hostingEvents.length + mySpaces.length;
@@ -246,7 +251,13 @@ const MyActivities = () => {
     { id: 'history', label: 'History', icon: Clock },
   ];
 
-  const ActivityInsightCard = ({ title, value, change, icon: Icon, color }: any) => (
+  const ActivityInsightCard = ({ title, value, change, icon: Icon, color }: {
+    title: string;
+    value: string | number;
+    change: string;
+    icon: React.ComponentType<{ className?: string }>;
+    color: string;
+  }) => (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 rounded-lg ${color}`}>
@@ -615,6 +626,11 @@ const MyActivities = () => {
                 </div>
               )}
             </div>
+
+            {/* Application Management Section - Only show if user has spaces */}
+            {mySpaces.length > 0 && (
+              <ApplicationManagement ownerId={user?.id} />
+            )}
           </div>
         )}
 

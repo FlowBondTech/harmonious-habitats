@@ -310,6 +310,42 @@ const SpaceDetailsModal: React.FC<SpaceDetailsModalProps> = ({
                   </div>
                 )}
 
+                {/* Owner Pet Information */}
+                {space.owner_has_pets && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-forest-800 mb-3">Owner Pet Information</h3>
+                    <div className="p-4 bg-amber-50 rounded-lg border border-amber-100">
+                      <div className="flex items-start space-x-3">
+                        <Dog className="h-5 w-5 text-amber-600 mt-1" />
+                        <div>
+                          <p className="text-sm text-amber-800 font-medium mb-1">
+                            The space owner has pets on the property
+                          </p>
+                          {space.owner_pet_types && space.owner_pet_types.length > 0 ? (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {space.owner_pet_types.map((petType, index) => (
+                                <span
+                                  key={index}
+                                  className="bg-amber-200 text-amber-800 px-2 py-1 rounded-full text-xs font-medium"
+                                >
+                                  {petType}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-amber-700 mt-1">
+                              Pet types not specified
+                            </p>
+                          )}
+                          <p className="text-xs text-amber-700 mt-2">
+                            Please consider this if you have allergies or concerns about animals.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Holistic Categories */}
                 {space.holistic_categories && space.holistic_categories.length > 0 && (
                   <div>

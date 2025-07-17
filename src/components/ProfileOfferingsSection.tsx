@@ -310,7 +310,7 @@ const ProfileOfferingsSection: React.FC<ProfileOfferingsSectionProps> = ({
                         <button
                           key={type.id}
                           type="button"
-                          onClick={() => setNewOffering(prev => ({ ...prev, type: type.id as any }))}
+                          onClick={() => setNewOffering(prev => ({ ...prev, type: type.id as ProfileOffering['type'] }))}
                           className={`p-4 rounded-lg border-2 text-left transition-colors ${
                             newOffering.type === type.id
                               ? 'border-forest-300 bg-forest-50'
@@ -355,7 +355,7 @@ const ProfileOfferingsSection: React.FC<ProfileOfferingsSectionProps> = ({
                           name="availability"
                           value={option.value}
                           checked={newOffering.availability === option.value}
-                          onChange={(e) => setNewOffering(prev => ({ ...prev, availability: e.target.value as any }))}
+                          onChange={(e) => setNewOffering(prev => ({ ...prev, availability: e.target.value as ProfileOffering['availability'] }))}
                           className="w-4 h-4 text-forest-600"
                         />
                         <div>

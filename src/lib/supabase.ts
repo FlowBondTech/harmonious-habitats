@@ -17,7 +17,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Validate URL format
 try {
   new URL(supabaseUrl)
-} catch (error) {
+} catch {
   throw new Error(`Invalid VITE_SUPABASE_URL format: "${supabaseUrl}"
     
     The URL should be a complete URL starting with https://, for example:
@@ -81,6 +81,30 @@ export interface Profile {
   experience_since?: string
   teaching_experience?: number
   mentorship_available?: boolean
+  // Facilitator-specific fields
+  is_facilitator: boolean
+  facilitator_verified: boolean
+  facilitator_data: {
+    facilitator_since?: string
+    specialties?: string[]
+    certifications?: ProfileCertification[]
+    insurance_info?: {
+      provider: string
+      policy_number: string
+      expiry_date: string
+      coverage_amount: string
+    }
+    portfolio_items?: ProfilePortfolioItem[]
+    rating?: number
+    completed_sessions?: number
+    years_experience?: number
+    bio?: string
+    teaching_philosophy?: string
+    approach?: string
+    equipment_provided?: string[]
+    languages_taught?: string[]
+    accessibility_accommodations?: string[]
+  }
 }
 
 export interface ProfileSkill {
@@ -197,12 +221,33 @@ export interface Space {
   verified: boolean
   status: 'available' | 'unavailable' | 'pending_approval' | 'suspended'
   animals_allowed: boolean
+  owner_has_pets: boolean
+  owner_pet_types?: string[]
   admin_notes?: string
   owner?: Profile
   amenities?: SpaceAmenity[]
   accessibility_features?: SpaceAccessibilityFeature[]
   holistic_categories?: SpaceHolisticCategory[]
   animal_types?: SpaceAnimalType[]
+  // Facilitator application fields
+  allow_facilitator_applications: boolean
+  application_requirements: {
+    min_experience_years?: number
+    required_certifications?: string[]
+    insurance_required?: boolean
+    portfolio_required?: boolean
+    description?: string
+  }
+  booking_preferences: {
+    min_advance_notice?: number // hours
+    max_booking_duration?: number // hours
+    available_days?: string[] // ['monday', 'tuesday', etc.]
+    available_times?: {
+      start: string
+      end: string
+    }[]
+    auto_approve_verified?: boolean
+  }
 }
 
 export interface SpaceAmenity {
@@ -255,6 +300,44 @@ export interface Report {
   reporter?: Profile
 }
 
+export interface SpaceApplication {
+  id: string
+  space_id: string
+  facilitator_id: string
+  status: 'pending' | 'approved' | 'rejected' | 'withdrawn'
+  application_data: {
+    event_type: string
+    practice_description: string
+    frequency: 'one_time' | 'weekly' | 'monthly' | 'custom'
+    frequency_details?: string
+    expected_attendance: number
+    equipment_needed?: string[]
+    message_to_owner: string
+    proposed_dates?: string[]
+    insurance_confirmed?: boolean
+    portfolio_links?: string[]
+    experience_years?: number
+    certifications?: string[]
+    references?: string[]
+    preferred_times?: string[]
+    special_requirements?: string
+  }
+  owner_response: {
+    message?: string
+    approved_terms?: {
+      donation_amount?: string
+      schedule_constraints?: string
+      house_rules?: string
+    }
+    rejection_reason?: string
+    meeting_requested?: boolean
+  }
+  created_at: string
+  updated_at: string
+  space?: Space
+  facilitator?: Profile
+}
+
 export interface Notification {
   id: string
   user_id: string
@@ -263,7 +346,7 @@ export interface Notification {
   content?: string
   data: Record<string, any>
   created_at: string
-  is_read: boolean
+  read: boolean
   read_at?: string
 }
 
@@ -307,13 +390,13 @@ export const getUserRole = async (userId: string): Promise<string | null> => {
       .rpc('get_user_role_safe', { user_id: userId })
 
     if (error) {
-      console.warn('Error getting user role:', error)
+      logWarning('Error getting user role:', error)
       return 'user' // Default role
     }
 
     return data || 'user'
   } catch (error) {
-    console.error('Error in getUserRole:', error)
+    logError(error as Error, 'getUserRole')
     return 'user'
   }
 }
@@ -381,7 +464,7 @@ export const getEvents = async (filters?: {
   const result = await query;
   
   if (result.error) {
-    console.error("Error fetching events:", result.error);
+    logError(result.error as Error, 'getEvents');
   }
   
   return result;
@@ -419,7 +502,7 @@ export const getUserAttendingEvents = async (userId: string) => {
     if (eventsError) throw eventsError;
     return { data: events || [] };
   } catch (error) {
-    console.error('Error fetching user attending events:', error);
+    logError(error as Error, 'getUserAttendingEvents');
     return { data: [], error };
   }
 };
@@ -763,4 +846,301 @@ export const getUserNotifications = async (userId: string, limit = 20) => {
     .limit(limit)
 
   return { data: data || [], error }
+}
+
+// Dashboard analytics with percentage changes
+export const getProfilesCountWithChange = async () => {
+  const now = new Date()
+  const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+  const [currentResult, lastWeekResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true }),
+    supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .lt('created_at', lastWeek.toISOString())
+  ])
+
+  const currentCount = currentResult.count || 0
+  const lastWeekCount = lastWeekResult.count || 0
+  const change = lastWeekCount > 0 
+    ? ((currentCount - lastWeekCount) / lastWeekCount * 100).toFixed(1)
+    : '0'
+
+  return { 
+    count: currentCount, 
+    change: `${change > 0 ? '+' : ''}${change}%`, 
+    error: currentResult.error || lastWeekResult.error 
+  }
+}
+
+export const getActiveEventsCountWithChange = async () => {
+  const now = new Date()
+  const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+  const [currentResult, lastWeekResult] = await Promise.all([
+    supabase
+      .from('events')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'active'),
+    supabase
+      .from('events')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'active')
+      .lt('created_at', lastWeek.toISOString())
+  ])
+
+  const currentCount = currentResult.count || 0
+  const lastWeekCount = lastWeekResult.count || 0
+  const change = lastWeekCount > 0 
+    ? ((currentCount - lastWeekCount) / lastWeekCount * 100).toFixed(1)
+    : currentCount > 0 ? '100' : '0'
+
+  return { 
+    count: currentCount, 
+    change: `${change > 0 ? '+' : ''}${change}%`, 
+    error: currentResult.error || lastWeekResult.error 
+  }
+}
+
+export const getAvailableSpacesCountWithChange = async () => {
+  const now = new Date()
+  const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+  const [currentResult, lastWeekResult] = await Promise.all([
+    supabase
+      .from('spaces')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'available'),
+    supabase
+      .from('spaces')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'available')
+      .lt('created_at', lastWeek.toISOString())
+  ])
+
+  const currentCount = currentResult.count || 0
+  const lastWeekCount = lastWeekResult.count || 0
+  const change = lastWeekCount > 0 
+    ? ((currentCount - lastWeekCount) / lastWeekCount * 100).toFixed(1)
+    : currentCount > 0 ? '100' : '0'
+
+  return { 
+    count: currentCount, 
+    change: `${change > 0 ? '+' : ''}${change}%`, 
+    error: currentResult.error || lastWeekResult.error 
+  }
+}
+
+export const getPendingReportsCountWithChange = async () => {
+  const now = new Date()
+  const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+  const [currentResult, lastWeekResult] = await Promise.all([
+    supabase
+      .from('reports')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending'),
+    supabase
+      .from('reports')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending')
+      .lt('created_at', lastWeek.toISOString())
+  ])
+
+  const currentCount = currentResult.count || 0
+  const lastWeekCount = lastWeekResult.count || 0
+  const change = lastWeekCount > 0 
+    ? ((currentCount - lastWeekCount) / lastWeekCount * 100).toFixed(1)
+    : currentCount > 0 ? '100' : '0'
+
+  return { 
+    count: currentCount, 
+    change: `${change > 0 ? '+' : ''}${change}%`, 
+    error: currentResult.error || lastWeekResult.error 
+  }
+}
+
+// Space Application functions
+export const createSpaceApplication = async (application: Omit<SpaceApplication, 'id' | 'created_at' | 'updated_at' | 'space' | 'facilitator'>) => {
+  const { data, error } = await supabase
+    .from('space_applications')
+    .insert(application)
+    .select(`
+      *,
+      space:spaces(*),
+      facilitator:profiles(*)
+    `)
+    .single()
+
+  return { data, error }
+}
+
+export const getSpaceApplications = async (filters?: {
+  space_id?: string
+  facilitator_id?: string
+  status?: string
+  limit?: number
+}) => {
+  let query = supabase
+    .from('space_applications')
+    .select(`
+      *,
+      space:spaces(*),
+      facilitator:profiles(*)
+    `)
+
+  if (filters?.space_id) {
+    query = query.eq('space_id', filters.space_id)
+  }
+  if (filters?.facilitator_id) {
+    query = query.eq('facilitator_id', filters.facilitator_id)
+  }
+  if (filters?.status) {
+    query = query.eq('status', filters.status)
+  }
+  if (filters?.limit) {
+    query = query.limit(filters.limit)
+  }
+
+  query = query.order('created_at', { ascending: false })
+
+  return await query
+}
+
+export const updateSpaceApplication = async (
+  applicationId: string, 
+  updates: Partial<Pick<SpaceApplication, 'status' | 'owner_response'>>
+) => {
+  const { data, error } = await supabase
+    .from('space_applications')
+    .update(updates)
+    .eq('id', applicationId)
+    .select(`
+      *,
+      space:spaces(*),
+      facilitator:profiles(*)
+    `)
+    .single()
+
+  return { data, error }
+}
+
+export const getSpaceApplication = async (applicationId: string) => {
+  const { data, error } = await supabase
+    .from('space_applications')
+    .select(`
+      *,
+      space:spaces(*),
+      facilitator:profiles(*)
+    `)
+    .eq('id', applicationId)
+    .single()
+
+  return { data, error }
+}
+
+export const withdrawSpaceApplication = async (applicationId: string) => {
+  const { data, error } = await supabase
+    .from('space_applications')
+    .update({ status: 'withdrawn' })
+    .eq('id', applicationId)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const getSpaceApplicationsForOwner = async (ownerId: string, status?: string) => {
+  let query = supabase
+    .from('space_applications')
+    .select(`
+      *,
+      space:spaces!inner(*),
+      facilitator:profiles(*)
+    `)
+    .eq('spaces.owner_id', ownerId)
+
+  if (status) {
+    query = query.eq('status', status)
+  }
+
+  query = query.order('created_at', { ascending: false })
+
+  return await query
+}
+
+export const getSpaceApplicationsForFacilitator = async (facilitatorId: string, status?: string) => {
+  let query = supabase
+    .from('space_applications')
+    .select(`
+      *,
+      space:spaces(*),
+      facilitator:profiles(*)
+    `)
+    .eq('facilitator_id', facilitatorId)
+
+  if (status) {
+    query = query.eq('status', status)
+  }
+
+  query = query.order('created_at', { ascending: false })
+
+  return await query
+}
+
+// Facilitator profile functions
+export const updateFacilitatorProfile = async (userId: string, facilitatorData: any) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ 
+      is_facilitator: true,
+      facilitator_data: facilitatorData 
+    })
+    .eq('id', userId)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const getFacilitatorProfile = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .eq('is_facilitator', true)
+    .single()
+
+  return { data, error }
+}
+
+export const getSpacesAcceptingApplications = async (filters?: {
+  type?: string
+  limit?: number
+}) => {
+  let query = supabase
+    .from('spaces')
+    .select(`
+      *,
+      owner:profiles!spaces_owner_id_fkey(id, full_name, avatar_url, verified),
+      amenities:space_amenities(amenity),
+      accessibility_features:space_accessibility_features(feature),
+      holistic_categories:space_holistic_categories(category)
+    `)
+    .eq('status', 'available')
+    .eq('allow_facilitator_applications', true)
+
+  if (filters?.type) {
+    query = query.eq('type', filters.type)
+  }
+  if (filters?.limit) {
+    query = query.limit(filters.limit)
+  }
+
+  query = query.order('created_at', { ascending: false })
+
+  return await query
 }

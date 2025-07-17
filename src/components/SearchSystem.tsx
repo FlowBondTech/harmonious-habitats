@@ -18,10 +18,15 @@ import {
   ArrowRight,
   CheckCircle,
   Tag,
-  Heart
+  Heart,
+  Sparkles,
+  TrendingUp,
+  Shield
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase, Event, Space } from '../lib/supabase';
+import { logger } from '../lib/logger';
+import { LoadingSpinner, SearchResultsSkeleton, LoadingButton } from './LoadingStates';
 import { Link } from 'react-router-dom';
 
 interface SearchSystemProps {
@@ -178,7 +183,7 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
       setShowResults(true);
       onResults?.(searchResults);
     } catch (error) {
-      console.error('Search error:', error);
+      logger.error('Search error:', error);
     } finally {
       setLoading(false);
     }
@@ -247,7 +252,7 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
         
         {loading && (
           <div className="absolute right-12 top-1/2 transform -translate-y-1/2">
-            <div className="w-5 h-5 border-2 border-forest-200 border-t-forest-600 rounded-full animate-spin"></div>
+            <LoadingSpinner size="sm" variant="primary" />
           </div>
         )}
       </div>

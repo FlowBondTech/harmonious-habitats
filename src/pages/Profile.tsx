@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Eye, Clock, Award, CheckCircle, MessageCircle, Share2, Image, FileText, Home as HomeIcon, Globe, Map, GraduationCap, Package, Briefcase, Languages, Accessibility } from 'lucide-react';
+import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Clock, Award, CheckCircle, MessageCircle, Share2, Image, Home as HomeIcon, Globe, Map, GraduationCap, Package, Briefcase, Languages, Accessibility } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
-import { updateProfile, ProfileSkill, ProfileOffering } from '../lib/supabase';
+import { updateProfile } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import ProfileSkillsSection from '../components/ProfileSkillsSection';
 import ProfileOfferingsSection from '../components/ProfileOfferingsSection';

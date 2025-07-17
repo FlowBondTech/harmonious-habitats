@@ -51,7 +51,7 @@ const Home = () => {
   const [todayEvents, setTodayEvents] = useState<Event[]>([]);
   const [featuredSpaces, setFeaturedSpaces] = useState<Space[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadEvents = async () => {
@@ -92,8 +92,9 @@ const Home = () => {
         });
         setFeaturedSpaces(spacesData || []);
         
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        setError(errorMessage);
         console.error('Failed to load events:', err);
       } finally {
         setLoading(false);
@@ -128,7 +129,7 @@ const Home = () => {
       });
       setFeaturedSpaces(spacesData || []);
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error reloading activities:', err);
     } finally {
       setLoading(false);

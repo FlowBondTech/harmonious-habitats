@@ -7,4 +7,23 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core React libraries
+          'react-vendor': ['react', 'react-dom'],
+          'react-router': ['react-router-dom'],
+          
+          // Supabase and auth
+          'supabase-vendor': ['@supabase/supabase-js'],
+          
+          // UI libraries
+          'ui-vendor': ['lucide-react'],
+        }
+      }
+    },
+    target: 'esnext',
+    minify: 'esbuild', // Use esbuild instead of terser
+  },
 });

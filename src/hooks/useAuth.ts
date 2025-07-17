@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase, Profile, getUserRole } from '../lib/supabase'
+import { logger, logError, logWarning } from '../lib/logger'
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null)
@@ -23,14 +24,14 @@ export const useAuth = () => {
           setUserRole(role)
         }
       } catch (error) {
-        console.error('Error loading initial session:', error)
+        logError(error as Error, 'loadInitialSession')
         
         // Check if the error is related to invalid refresh token
         if (error && typeof error === 'object' && 'message' in error) {
           const errorMessage = String(error.message).toLowerCase()
           if (errorMessage.includes('refresh token not found') || 
               errorMessage.includes('invalid refresh token')) {
-            console.log('Invalid refresh token detected, clearing session...')
+            logger.log('Invalid refresh token detected, clearing session...')
             // Clear the invalid session data
             await supabase.auth.signOut()
           }
@@ -70,7 +71,7 @@ export const useAuth = () => {
         .rpc('ensure_profile_exists', { user_id: userId })
 
       if (ensureError) {
-        console.warn('Could not ensure profile exists:', ensureError)
+        logWarning('Could not ensure profile exists:', ensureError)
       }
 
       // Then load the profile
@@ -83,7 +84,7 @@ export const useAuth = () => {
       if (data) {
         setProfile(data)
       } else if (error) {
-        console.error('Error loading profile:', error)
+        logError(error as Error, 'loadProfile')
         // If profile doesn't exist, create a basic one
         if (error.code === 'PGRST116') {
           const { data: newProfile, error: createError } = await supabase
@@ -99,12 +100,12 @@ export const useAuth = () => {
           if (newProfile) {
             setProfile(newProfile)
           } else if (createError) {
-            console.error('Error creating profile:', createError)
+            logError(createError as Error, 'createProfile')
           }
         }
       }
     } catch (error) {
-      console.error('Error in loadUserProfile:', error)
+      logError(error as Error, 'loadUserProfile')
     }
   }
 
@@ -160,7 +161,7 @@ export const useAuth = () => {
         }
 
         if (profileError) {
-          console.error('Error creating profile after retries:', profileError)
+          logError(profileError as Error, 'createProfileAfterRetries')
           return { data, error: profileError }
         }
 
@@ -171,7 +172,7 @@ export const useAuth = () => {
 
       return { data, error: authError }
     } catch (error) {
-      console.error('Error in signUp:', error)
+      logError(error as Error, 'signUp')
       return { data: null, error: error as any }
     }
   }

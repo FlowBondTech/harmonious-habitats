@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
-import { useAuthContext } from './AuthProvider';
 import ConversationList from './ConversationList';
 import ConversationView from './ConversationView';
 import NewConversationModal from './NewConversationModal';
@@ -20,13 +19,10 @@ const EnhancedMessagingSystem: React.FC<EnhancedMessagingSystemProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuthContext();
   const [selectedConversation, setSelectedConversation] = useState<string | null>(initialConversationId || null);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [showNewConversationModal, setShowNewConversationModal] = useState(false);
   const [showConversationInfo, setShowConversationInfo] = useState(false);
-  const [typingUsers, setTypingUsers] = useState<string[]>([]);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
     if (initialConversationId) {

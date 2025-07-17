@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, MapPin, Users, DollarSign, Plus, X, Camera, Star } from 'lucide-react';
+import { Calendar, MapPin, Users, DollarSign, Plus, X, Star } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
 import HolisticCategorySelector from '../components/HolisticCategorySelector';
@@ -34,7 +34,7 @@ const CreateEvent = () => {
 
 
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -161,8 +161,9 @@ const CreateEvent = () => {
         navigate('/activities');
       }, 2000);
 
-    } catch (err: any) {
-      setError(err.message || 'Failed to create event');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create event';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   MessageCircle, 
   Send, 
@@ -11,13 +11,7 @@ import {
   Image,
   Smile,
   ArrowLeft,
-  Online,
-  Badge,
-  Star,
-  Calendar,
-  MapPin,
-  CheckCheck,
-  Check
+  CheckCheck
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -86,78 +80,57 @@ const MessagingSystem: React.FC<MessagingSystemProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (isOpen && user) {
-      loadConversations();
-      setupRealtimeSubscription();
-    }
-  }, [isOpen, user]);
-
-  useEffect(() => {
-    if (selectedConversation) {
-      loadMessages(selectedConversation);
-      markAsRead(selectedConversation);
-    }
-  }, [selectedConversation]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     if (!user) return;
-
+    
+    setLoading(true);
     try {
-      const { data } = await supabase
-        .from('conversation_participants')
+      const { data, error } = await supabase
+        .from('conversations')
         .select(`
-          conversation_id,
-          conversations!inner(
+          *,
+          participants:conversation_participants(
+            user_id,
+            role,
+            joined_at,
+            last_read_message_id,
+            user:profiles!conversation_participants_user_id_fkey(
+              id,
+              full_name,
+              avatar_url,
+              verified
+            )
+          ),
+          last_message:messages(
             id,
+            content,
+            sent_at,
             type,
-            name,
-            created_at,
-            updated_at,
-            event_id,
-            space_id
+            sender:profiles!messages_sender_id_fkey(
+              id,
+              full_name,
+              avatar_url,
+              verified
+            )
           )
         `)
-        .eq('user_id', user.id);
+        .eq('participants.user_id', user.id)
+        .order('updated_at', { ascending: false });
 
-      if (data) {
-        const conversationIds = data.map(d => d.conversation_id);
-        
-        // Load full conversation details with participants
-        const { data: fullConversations } = await supabase
-          .from('conversations')
-          .select(`
-            *,
-            participants:conversation_participants(
-              user_id,
-              role,
-              joined_at,
-              last_read_message_id,
-              user:profiles!conversation_participants_user_id_fkey(
-                id,
-                full_name,
-                avatar_url,
-                verified
-              )
-            )
-          `)
-          .in('id', conversationIds)
-          .order('updated_at', { ascending: false });
-
-        setConversations(fullConversations || []);
-      }
+      if (error) throw error;
+      setConversations(data || []);
     } catch (error) {
       console.error('Error loading conversations:', error);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [user]);
 
-  const loadMessages = async (conversationId: string) => {
+  const loadMessages = useCallback(async (conversationId: string) => {
+    if (!user) return;
+    
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('messages')
         .select(`
           *,
@@ -170,20 +143,33 @@ const MessagingSystem: React.FC<MessagingSystemProps> = ({
         `)
         .eq('conversation_id', conversationId)
         .is('deleted_at', null)
-        .order('sent_at', { ascending: true })
-        .limit(50);
+        .order('sent_at', { ascending: true });
 
+      if (error) throw error;
       setMessages(data || []);
     } catch (error) {
       console.error('Error loading messages:', error);
     }
-  };
+  }, [user]);
 
-  const setupRealtimeSubscription = () => {
+  const markAsRead = useCallback(async (conversationId: string) => {
+    if (!user) return;
+    
+    try {
+      await supabase.rpc('mark_messages_as_read', {
+        p_conversation_id: conversationId,
+        p_user_id: user.id
+      });
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+    }
+  }, [user]);
+
+  const setupRealtimeSubscription = useCallback(() => {
     if (!user) return;
 
     const subscription = supabase
-      .channel('messages')
+      .channel('messaging')
       .on(
         'postgres_changes',
         {
@@ -192,11 +178,10 @@ const MessagingSystem: React.FC<MessagingSystemProps> = ({
           table: 'messages'
         },
         (payload) => {
-          const newMessage = payload.new as Message;
-          if (newMessage.conversation_id === selectedConversation) {
-            setMessages(prev => [...prev, newMessage]);
+          // Handle new message
+          if (payload.new.conversation_id === selectedConversation) {
+            loadMessages(selectedConversation);
           }
-          // Update conversation list
           loadConversations();
         }
       )
@@ -205,7 +190,28 @@ const MessagingSystem: React.FC<MessagingSystemProps> = ({
     return () => {
       subscription.unsubscribe();
     };
-  };
+  }, [user, selectedConversation, loadMessages, loadConversations]);
+
+  useEffect(() => {
+    if (isOpen && user) {
+      loadConversations();
+      setupRealtimeSubscription();
+    }
+  }, [isOpen, user, loadConversations, setupRealtimeSubscription]);
+
+  useEffect(() => {
+    if (selectedConversation) {
+      loadMessages(selectedConversation);
+      markAsRead(selectedConversation);
+    }
+  }, [selectedConversation, loadMessages, markAsRead]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+
+
 
   const sendMessage = async () => {
     if (!user || !selectedConversation || !newMessage.trim()) return;
@@ -232,30 +238,6 @@ const MessagingSystem: React.FC<MessagingSystemProps> = ({
     }
   };
 
-  const markAsRead = async (conversationId: string) => {
-    if (!user) return;
-
-    try {
-      // Get the latest message in the conversation
-      const { data: latestMessage } = await supabase
-        .from('messages')
-        .select('id')
-        .eq('conversation_id', conversationId)
-        .order('sent_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (latestMessage) {
-        await supabase
-          .from('conversation_participants')
-          .update({ last_read_message_id: latestMessage.id })
-          .eq('conversation_id', conversationId)
-          .eq('user_id', user.id);
-      }
-    } catch (error) {
-      console.error('Error marking as read:', error);
-    }
-  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

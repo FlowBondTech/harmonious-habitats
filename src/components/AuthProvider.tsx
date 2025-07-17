@@ -12,9 +12,9 @@ interface AuthContextType {
   isModerator: boolean
   showAuthModalGlobal: boolean
   globalAuthMode: 'signin' | 'signup'
-  signUp: (email: string, password: string, userData: any) => Promise<any>
-  signIn: (email: string, password: string) => Promise<any>
-  signOut: () => Promise<any>
+  signUp: (email: string, password: string, userData: Record<string, unknown>) => Promise<{ user: User | null; error: Error | null }>
+  signIn: (email: string, password: string) => Promise<{ user: User | null; error: Error | null }>
+  signOut: () => Promise<{ error: Error | null }>
   loadUserProfile: (userId: string) => Promise<void>
   openAuthModalGlobal: (mode: 'signin' | 'signup') => void
   closeAuthModalGlobal: () => void
@@ -39,3 +39,6 @@ export const useAuthContext = () => {
   }
   return context
 }
+
+// Separate export for the hook to avoid React refresh issues
+export { useAuthContext as default }

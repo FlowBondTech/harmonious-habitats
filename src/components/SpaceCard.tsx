@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { MapPin, Users, Star, Badge, Home, Globe, Accessibility, DollarSign, Calendar, Cat, Dog, Share2, Heart, BookmarkPlus, Eye } from 'lucide-react';
+import { MapPin, Users, Star, Badge, Home, Globe, Accessibility, DollarSign, Calendar, Cat, Dog, Share2, Heart, BookmarkPlus, Eye, UserCheck, Send } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase, Space } from '../lib/supabase';
 import SpaceDetailsModal from './SpaceDetailsModal';
 import BookingSystem from './BookingSystem';
+import FacilitatorApplicationModal from './FacilitatorApplicationModal';
 
 interface SpaceCardProps {
   space: Space;
@@ -17,6 +18,7 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
   const [error, setError] = useState<string | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
 
   const formatSpaceType = (type: string) => {
     return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -118,6 +120,11 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
                 <Globe className="h-3 w-3" />
               </div>
             )}
+            {space.allow_facilitator_applications && (
+              <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-2 rounded-full backdrop-blur-sm shadow-lg">
+                <UserCheck className="h-3 w-3" />
+              </div>
+            )}
           </div>
           
           {/* Action Buttons */}
@@ -172,6 +179,17 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
               <div className="flex items-center text-forest-600 group/detail hover:text-forest-700 transition-colors">
                 <Cat className="h-4 w-4 mr-2.5 text-forest-500 group-hover/detail:text-forest-600 transition-colors" />
                 <span className="body-sm font-medium">Pet friendly</span>
+              </div>
+            )}
+            
+            {space.owner_has_pets && (
+              <div className="flex items-center text-amber-600 group/detail hover:text-amber-700 transition-colors">
+                <Dog className="h-4 w-4 mr-2.5 text-amber-500 group-hover/detail:text-amber-600 transition-colors" />
+                <span className="body-sm font-medium">
+                  Owner has {space.owner_pet_types && space.owner_pet_types.length > 0 
+                    ? space.owner_pet_types.join(', ').toLowerCase()
+                    : 'pets'}
+                </span>
               </div>
             )}
             
@@ -245,40 +263,80 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
           
           {/* Action Buttons */}
           <div className="space-y-3">
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleBookSpace();
-              }}
-              disabled={isBooking || !user}
-              className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] shadow-sm hover:shadow-md ${
-                !user
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'btn-secondary'
-              }`}
-            >
-              {isBooking ? (
+            {/* Primary Action - Book or Apply */}
+            {space.allow_facilitator_applications ? (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowApplicationModal(true);
+                }}
+                disabled={!user}
+                className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] shadow-sm hover:shadow-md ${
+                  !user
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white'
+                }`}
+              >
                 <div className="flex items-center justify-center space-x-2">
-                  <div className="loading-spinner" />
-                  <span>Booking...</span>
+                  <Send className="h-4 w-4" />
+                  <span>{!user ? 'Sign in to Apply' : 'Apply as Facilitator'}</span>
                 </div>
-              ) : !user ? (
-                'Sign in to Book'
-              ) : (
-                'Book Space'
-              )}
-            </button>
+              </button>
+            ) : (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleBookSpace();
+                }}
+                disabled={isBooking || !user}
+                className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] shadow-sm hover:shadow-md ${
+                  !user
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'btn-secondary'
+                }`}
+              >
+                {isBooking ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="loading-spinner" />
+                    <span>Booking...</span>
+                  </div>
+                ) : !user ? (
+                  'Sign in to Book'
+                ) : (
+                  'Book Space'
+                )}
+              </button>
+            )}
             
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowDetailsModal(true);
-              }}
-              className="w-full btn-outline py-3 text-sm"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              View Details
-            </button>
+            {/* Secondary Actions */}
+            <div className="grid grid-cols-2 gap-3">
+              {space.allow_facilitator_applications && (
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleBookSpace();
+                  }}
+                  disabled={isBooking || !user}
+                  className={`py-2 px-3 rounded-lg font-medium text-sm transition-all duration-300 ${
+                    !user
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                      : 'btn-outline'
+                  }`}
+                >
+                  {!user ? 'Sign in' : 'Book Space'}
+                </button>
+              )}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDetailsModal(true);
+                }}
+                className={`py-2 px-3 rounded-lg font-medium text-sm btn-outline ${space.allow_facilitator_applications ? '' : 'col-span-2'}`}
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                View Details
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -302,6 +360,16 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
         onBookingComplete={() => {
           onUpdate?.();
           setShowBookingModal(false);
+        }}
+      />
+
+      <FacilitatorApplicationModal
+        space={space}
+        isOpen={showApplicationModal}
+        onClose={() => setShowApplicationModal(false)}
+        onSubmitted={() => {
+          onUpdate?.();
+          setShowApplicationModal(false);
         }}
       />
     </>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, MapPin, Users, Camera, Plus, X, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Clock, DollarSign, Accessibility, Globe, Cat, Dog, Bird, Fish, Rabbit, Info } from 'lucide-react';
+import { Home, MapPin, Users, Camera, X, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, DollarSign, Accessibility, Globe, Cat, Dog, Bird, Fish, Rabbit, Info, Calendar } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
 
@@ -35,9 +35,32 @@ const ShareSpace = () => {
       allowed: false,
       types: []
     },
+    ownerPets: {
+      hasPets: false,
+      types: []
+    },
     holisticFriendly: [],
     listPublicly: false,
-    images: [] as File[]
+    images: [] as File[],
+    // Facilitator application settings
+    allowFacilitatorApplications: false,
+    applicationRequirements: {
+      min_experience_years: 0,
+      required_certifications: [] as string[],
+      insurance_required: true,
+      portfolio_required: false,
+      description: ''
+    },
+    bookingPreferences: {
+      min_advance_notice: 24,
+      max_booking_duration: 4,
+      available_days: [] as string[],
+      available_times: {
+        start: '09:00',
+        end: '18:00'
+      },
+      auto_approve_verified: false
+    }
   });
 
   const spaceTypes = [
@@ -104,6 +127,21 @@ const ShareSpace = () => {
     }));
   };
 
+  const toggleOwnerPetType = (animalId: string) => {
+    const current = formData.ownerPets.types;
+    const updated = current.includes(animalId)
+      ? current.filter(id => id !== animalId)
+      : [...current, animalId];
+    
+    setFormData(prev => ({
+      ...prev,
+      ownerPets: {
+        ...prev.ownerPets,
+        types: updated
+      }
+    }));
+  };
+
   const validateForm = () => {
     if (!formData.name.trim()) {
       setError('Space name is required');
@@ -156,12 +194,34 @@ const ShareSpace = () => {
     setSuccess(null);
 
     try {
-      // Upload images first (for now, we'll use placeholder URLs)
+      // Upload images to Supabase Storage
       const imageUrls: string[] = [];
-      // TODO: Implement actual image upload to storage
-      // For now, using placeholder images
+      
       if (formData.images.length > 0) {
-        imageUrls.push('https://images.pexels.com/photos/8633077/pexels-photo-8633077.jpeg?auto=compress&cs=tinysrgb&w=400');
+        
+        for (const image of formData.images) {
+          const fileExt = image.name.split('.').pop();
+          const fileName = `${user.id}_${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+          
+          // Upload to Supabase Storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('space-images')
+            .upload(fileName, image, {
+              cacheControl: '3600',
+              upsert: false
+            });
+          
+          if (uploadError) {
+            throw new Error(`Failed to upload image: ${uploadError.message}`);
+          }
+          
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('space-images')
+            .getPublicUrl(fileName);
+          
+          imageUrls.push(publicUrl);
+        }
       }
 
       // Create the space
@@ -176,10 +236,16 @@ const ShareSpace = () => {
         list_publicly: formData.listPublicly,
         guidelines: formData.guidelines.trim() || null,
         animals_allowed: formData.animals.allowed,
+        owner_has_pets: formData.ownerPets.hasPets,
+        owner_pet_types: formData.ownerPets.hasPets ? formData.ownerPets.types : null,
         donation_suggested: formData.donationSuggested.trim() || null,
         image_urls: imageUrls,
         verified: false,
-        status: 'pending_approval' as const
+        status: 'pending_approval' as const,
+        // Facilitator application settings
+        allow_facilitator_applications: formData.allowFacilitatorApplications,
+        application_requirements: formData.applicationRequirements,
+        booking_preferences: formData.bookingPreferences
       };
 
       const { data: space, error: spaceError } = await supabase
@@ -544,6 +610,64 @@ const ShareSpace = () => {
                   </div>
                 </div>
               )}
+
+              {/* Owner Pets Section */}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-6 border border-amber-200">
+                <label className="flex items-start space-x-4 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.ownerPets.hasPets}
+                    onChange={(e) => setFormData(prev => ({ 
+                      ...prev, 
+                      ownerPets: {
+                        ...prev.ownerPets,
+                        hasPets: e.target.checked
+                      }
+                    }))}
+                    className="w-5 h-5 text-orange-600 bg-orange-100 border-orange-300 rounded focus:ring-orange-500 focus:ring-2 mt-1"
+                  />
+                  <div>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Cat className="h-5 w-5 text-amber-600" />
+                      <span className="font-semibold text-forest-800">I have pets at this space</span>
+                    </div>
+                    <p className="text-sm text-forest-600 leading-relaxed">
+                      Let facilitators know if you have pets living at this space. This helps them prepare appropriately for their sessions.
+                    </p>
+                  </div>
+                </label>
+              </div>
+              
+              {formData.ownerPets.hasPets && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-forest-700 mb-3">
+                    What pets do you have?
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {animalTypes.map((animal) => {
+                      const Icon = animal.icon;
+                      const isSelected = formData.ownerPets.types.includes(animal.id);
+                      return (
+                        <button
+                          key={animal.id}
+                          type="button"
+                          onClick={() => toggleOwnerPetType(animal.id)}
+                          className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+                            isSelected 
+                              ? 'border-amber-500 bg-amber-100 text-amber-800' 
+                              : 'border-gray-200 bg-white text-gray-600 hover:border-amber-300'
+                          }`}
+                        >
+                          <div className="flex flex-col items-center space-y-2">
+                            <Icon className={`h-6 w-6 ${isSelected ? 'text-amber-600' : 'text-gray-500'}`} />
+                            <span className="font-medium text-forest-800 text-sm">{animal.name}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Holistic Categories */}
@@ -604,6 +728,203 @@ const ShareSpace = () => {
                   Optional contribution to help with utilities, maintenance, or community fund
                 </p>
               </div>
+            </div>
+
+            {/* Facilitator Applications */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-forest-800 border-b border-forest-100 pb-3">
+                <Users className="h-5 w-5 inline mr-2" />
+                Facilitator Applications
+              </h2>
+              
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200">
+                <label className="flex items-start space-x-4 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.allowFacilitatorApplications}
+                    onChange={(e) => handleInputChange('allowFacilitatorApplications', e.target.checked)}
+                    className="w-5 h-5 text-purple-600 bg-purple-100 border-purple-300 rounded focus:ring-purple-500 focus:ring-2 mt-1"
+                  />
+                  <div>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Shield className="h-5 w-5 text-purple-600" />
+                      <span className="font-medium text-forest-800">Accept Applications from Facilitators</span>
+                    </div>
+                    <p className="text-sm text-forest-600">
+                      Allow verified community facilitators to apply to use your space for regular classes, workshops, or healing sessions. 
+                      You'll review each application and can set specific requirements.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {formData.allowFacilitatorApplications && (
+                <div className="space-y-6 bg-gray-50 rounded-lg p-6">
+                  <h3 className="font-medium text-forest-800 flex items-center">
+                    <Info className="h-4 w-4 mr-2" />
+                    Application Requirements
+                  </h3>
+
+                  {/* Minimum Experience */}
+                  <div>
+                    <label className="block text-sm font-medium text-forest-700 mb-2">
+                      Minimum Years of Experience
+                    </label>
+                    <select
+                      value={formData.applicationRequirements.min_experience_years}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        applicationRequirements: {
+                          ...prev.applicationRequirements,
+                          min_experience_years: parseInt(e.target.value)
+                        }
+                      }))}
+                      className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                    >
+                      <option value={0}>No minimum requirement</option>
+                      <option value={1}>1+ years</option>
+                      <option value={2}>2+ years</option>
+                      <option value={3}>3+ years</option>
+                      <option value={5}>5+ years</option>
+                    </select>
+                  </div>
+
+                  {/* Requirements Checkboxes */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-forest-200 cursor-pointer hover:bg-forest-50">
+                      <input
+                        type="checkbox"
+                        checked={formData.applicationRequirements.insurance_required}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          applicationRequirements: {
+                            ...prev.applicationRequirements,
+                            insurance_required: e.target.checked
+                          }
+                        }))}
+                        className="w-4 h-4 text-forest-600"
+                      />
+                      <span className="text-sm text-forest-700">Liability Insurance Required</span>
+                    </label>
+
+                    <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-forest-200 cursor-pointer hover:bg-forest-50">
+                      <input
+                        type="checkbox"
+                        checked={formData.applicationRequirements.portfolio_required}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          applicationRequirements: {
+                            ...prev.applicationRequirements,
+                            portfolio_required: e.target.checked
+                          }
+                        }))}
+                        className="w-4 h-4 text-forest-600"
+                      />
+                      <span className="text-sm text-forest-700">Portfolio/References Required</span>
+                    </label>
+                  </div>
+
+                  {/* Application Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-forest-700 mb-2">
+                      Requirements Description
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={formData.applicationRequirements.description}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        applicationRequirements: {
+                          ...prev.applicationRequirements,
+                          description: e.target.value
+                        }
+                      }))}
+                      placeholder="Describe any specific requirements, preferred practices, or what you're looking for in facilitators..."
+                      className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                    />
+                  </div>
+
+                  <h3 className="font-medium text-forest-800 flex items-center border-t border-forest-200 pt-4">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Booking Preferences
+                  </h3>
+
+                  {/* Advance Notice */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-forest-700 mb-2">
+                        Minimum Advance Notice
+                      </label>
+                      <select
+                        value={formData.bookingPreferences.min_advance_notice}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          bookingPreferences: {
+                            ...prev.bookingPreferences,
+                            min_advance_notice: parseInt(e.target.value)
+                          }
+                        }))}
+                        className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                      >
+                        <option value={2}>2 hours</option>
+                        <option value={6}>6 hours</option>
+                        <option value={12}>12 hours</option>
+                        <option value={24}>24 hours</option>
+                        <option value={48}>48 hours</option>
+                        <option value={168}>1 week</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-forest-700 mb-2">
+                        Maximum Session Duration
+                      </label>
+                      <select
+                        value={formData.bookingPreferences.max_booking_duration}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          bookingPreferences: {
+                            ...prev.bookingPreferences,
+                            max_booking_duration: parseInt(e.target.value)
+                          }
+                        }))}
+                        className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                      >
+                        <option value={1}>1 hour</option>
+                        <option value={2}>2 hours</option>
+                        <option value={3}>3 hours</option>
+                        <option value={4}>4 hours</option>
+                        <option value={6}>6 hours</option>
+                        <option value={8}>8 hours</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Auto-approve Verified */}
+                  <div>
+                    <label className="flex items-center space-x-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.bookingPreferences.auto_approve_verified}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          bookingPreferences: {
+                            ...prev.bookingPreferences,
+                            auto_approve_verified: e.target.checked
+                          }
+                        }))}
+                        className="w-4 h-4 text-forest-600"
+                      />
+                      <span className="text-sm text-forest-700">
+                        Auto-approve applications from verified facilitators
+                      </span>
+                    </label>
+                    <p className="text-xs text-forest-500 ml-7 mt-1">
+                      Verified facilitators with good community standing will be automatically approved
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Photos */}

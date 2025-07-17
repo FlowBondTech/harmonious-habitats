@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   ArrowLeft, 
   Phone, 
@@ -7,22 +7,17 @@ import {
   MoreVertical, 
   Info, 
   Users, 
-  Badge, 
   Calendar,
   CheckCheck,
-  Clock,
   Heart,
-  ThumbsUp,
   MessageSquare,
   Reply,
   Trash2,
   Edit,
   Copy,
   AlertTriangle,
-  Image as ImageIcon,
   FileText,
-  Download,
-  User
+  Download
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -34,14 +29,60 @@ interface ConversationViewProps {
   onInfoClick?: () => void;
 }
 
+interface ConversationParticipant {
+  user_id: string;
+  role: string;
+  joined_at: string;
+  typing_at?: string;
+  user: {
+    id: string;
+    full_name: string;
+    avatar_url: string;
+    verified: boolean;
+    username?: string;
+  };
+}
+
+interface ConversationData {
+  id: string;
+  name?: string;
+  type: string;
+  participants?: ConversationParticipant[];
+}
+
+interface MessageSender {
+  id: string;
+  full_name: string;
+  avatar_url: string;
+  verified: boolean;
+}
+
+interface MessageAttachment {
+  id: string;
+  file_name: string;
+  file_type: string;
+  file_url: string;
+  file_size: number;
+}
+
+interface Message {
+  id: string;
+  sender_id: string;
+  content: string;
+  sent_at: string;
+  deleted_at?: string;
+  sender?: MessageSender;
+  attachments?: MessageAttachment[];
+}
+
 const ConversationView: React.FC<ConversationViewProps> = ({
   conversationId,
   onBack,
   onInfoClick
 }) => {
   const { user } = useAuthContext();
-  const [conversation, setConversation] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [conversation, setConversation] = useState<ConversationData | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
@@ -56,6 +97,127 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [newMessageCount, setNewMessageCount] = useState(0);
 
+  const loadConversation = useCallback(async () => {
+    if (!conversationId || !user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .select(`
+          *,
+          participants:conversation_participants(
+            user_id,
+            role,
+            joined_at,
+            typing_at,
+            user:profiles!conversation_participants_user_id_fkey(
+              id,
+              full_name,
+              avatar_url,
+              verified,
+              username
+            )
+          )
+        `)
+        .eq('id', conversationId)
+        .single();
+
+      if (error) throw error;
+      setConversation(data);
+    } catch (error) {
+      console.error('Error loading conversation:', error);
+      setError('Failed to load conversation');
+    }
+  }, [conversationId, user]);
+
+  const loadMessages = useCallback(async () => {
+    if (!conversationId || !user) return;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          sender:profiles!messages_sender_id_fkey(
+            id,
+            full_name,
+            avatar_url,
+            verified
+          ),
+          attachments:message_attachments(*)
+        `)
+        .eq('conversation_id', conversationId)
+        .is('deleted_at', null)
+        .order('sent_at', { ascending: true });
+
+      if (error) throw error;
+      setMessages(data || []);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      setError('Failed to load messages');
+      setLoading(false);
+    }
+  }, [conversationId, user]);
+
+  const markAsRead = useCallback(async () => {
+    if (!conversationId || !user) return;
+
+    try {
+      await supabase.rpc('mark_messages_as_read', {
+        p_conversation_id: conversationId,
+        p_user_id: user.id
+      });
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+    }
+  }, [conversationId, user]);
+
+  const setupRealtimeSubscription = useCallback(() => {
+    if (!conversationId) return;
+
+    // Subscribe to new messages
+    const messageSubscription = supabase
+      .channel(`messages:${conversationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${conversationId}`
+        },
+        (payload) => {
+          // Fetch the complete message with sender info
+          fetchMessage(payload.new.id);
+        }
+      )
+      .subscribe();
+
+    // Subscribe to typing indicators
+    const typingSubscription = supabase
+      .channel(`typing:${conversationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversation_participants',
+          filter: `conversation_id=eq.${conversationId}`
+        },
+        () => {
+          updateTypingUsers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      messageSubscription.unsubscribe();
+      typingSubscription.unsubscribe();
+    };
+  }, [conversationId]);
+
   useEffect(() => {
     if (conversationId && user) {
       loadConversation();
@@ -63,7 +225,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
       markAsRead();
       setupRealtimeSubscription();
     }
-  }, [conversationId, user]);
+  }, [conversationId, user, loadConversation, loadMessages, markAsRead, setupRealtimeSubscription]);
 
   useEffect(() => {
     if (isAtBottom || messages.length <= 1) {
@@ -112,126 +274,6 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     return () => container.removeEventListener('scroll', handleScroll);
   }, [unreadCount]);
 
-  const loadConversation = async () => {
-    if (!conversationId || !user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select(`
-          *,
-          participants:conversation_participants(
-            user_id,
-            role,
-            joined_at,
-            typing_at,
-            user:profiles!conversation_participants_user_id_fkey(
-              id,
-              full_name,
-              avatar_url,
-              verified,
-              username
-            )
-          )
-        `)
-        .eq('id', conversationId)
-        .single();
-
-      if (error) throw error;
-      setConversation(data);
-    } catch (error) {
-      console.error('Error loading conversation:', error);
-      setError('Failed to load conversation');
-    }
-  };
-
-  const loadMessages = async () => {
-    if (!conversationId || !user) return;
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select(`
-          *,
-          sender:profiles!messages_sender_id_fkey(
-            id,
-            full_name,
-            avatar_url,
-            verified
-          ),
-          attachments:message_attachments(*)
-        `)
-        .eq('conversation_id', conversationId)
-        .is('deleted_at', null)
-        .order('sent_at', { ascending: true });
-
-      if (error) throw error;
-      setMessages(data || []);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error loading messages:', error);
-      setError('Failed to load messages');
-      setLoading(false);
-    }
-  };
-
-  const markAsRead = async () => {
-    if (!conversationId || !user) return;
-
-    try {
-      await supabase.rpc('mark_messages_as_read', {
-        p_conversation_id: conversationId,
-        p_user_id: user.id
-      });
-    } catch (error) {
-      console.error('Error marking messages as read:', error);
-    }
-  };
-
-  const setupRealtimeSubscription = () => {
-    if (!conversationId) return;
-
-    // Subscribe to new messages
-    const messageSubscription = supabase
-      .channel(`messages:${conversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`
-        },
-        (payload) => {
-          // Fetch the complete message with sender info
-          fetchMessage(payload.new.id);
-        }
-      )
-      .subscribe();
-
-    // Subscribe to typing indicators
-    const typingSubscription = supabase
-      .channel(`typing:${conversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'conversation_participants',
-          filter: `conversation_id=eq.${conversationId}`
-        },
-        (payload) => {
-          updateTypingUsers();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      messageSubscription.unsubscribe();
-      typingSubscription.unsubscribe();
-    };
-  };
 
   const fetchMessage = async (messageId: string) => {
     try {
@@ -424,7 +466,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     
     if (conversation.type === 'direct') {
       const otherParticipant = conversation.participants?.find(
-        (p: any) => p.user_id !== user?.id
+        (p: ConversationParticipant) => p.user_id !== user?.id
       );
       return otherParticipant?.user?.full_name || 'Unknown User';
     }
@@ -445,7 +487,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     
     if (conversation.type === 'direct') {
       const otherParticipant = conversation.participants?.find(
-        (p: any) => p.user_id !== user?.id
+        (p: ConversationParticipant) => p.user_id !== user?.id
       );
       return otherParticipant?.user?.avatar_url || 'https://images.pexels.com/photos/3772622/pexels-photo-3772622.jpeg?auto=compress&cs=tinysrgb&w=100';
     }
@@ -648,7 +690,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
                           {/* Attachments */}
                           {message.attachments && message.attachments.length > 0 && (
                             <div className="mt-2 space-y-2">
-                              {message.attachments.map((attachment: any) => (
+                              {message.attachments.map((attachment: MessageAttachment) => (
                                 <div 
                                   key={attachment.id}
                                   className={`rounded-lg overflow-hidden border ${

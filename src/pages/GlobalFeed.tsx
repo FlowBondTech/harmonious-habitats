@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Globe, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, MapPin, Clock, Users, Search, Zap, TrendingUp, Award } from 'lucide-react';
+import { Globe, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, MapPin, Users, Zap, TrendingUp, Award } from 'lucide-react';
 import EventCard from '../components/EventCard';
 import { getEvents, Event } from '../lib/supabase';
 import SearchSystem from '../components/SearchSystem';
@@ -50,7 +50,7 @@ const GlobalFeed = () => {
         
         setGlobalEvents(filteredEvents);
         
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(err.message);
       } finally {
         setLoading(false);

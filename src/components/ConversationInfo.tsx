@@ -1,22 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Users, 
   Bell, 
   BellOff, 
   Trash2, 
   LogOut, 
-  Settings, 
   User, 
   Calendar, 
   Home, 
   Star, 
   Badge, 
-  MessageSquare,
   UserPlus,
   UserMinus,
   ShieldAlert,
   Image,
-  Link,
   Share2
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
@@ -27,12 +24,56 @@ interface ConversationInfoProps {
   onClose: () => void;
 }
 
+interface ConversationParticipant {
+  user_id: string;
+  role: string;
+  joined_at: string;
+  user: {
+    id: string;
+    full_name: string;
+    avatar_url: string;
+    verified: boolean;
+    username: string;
+    neighborhood: string;
+  };
+}
+
+interface ConversationData {
+  id: string;
+  name?: string;
+  type: string;
+  participants?: ConversationParticipant[];
+  event?: {
+    id: string;
+    title: string;
+    date: string;
+    location_name: string;
+    image_url?: string;
+  };
+  space?: {
+    id: string;
+    name: string;
+    type: string;
+    address: string;
+    image_urls?: string[];
+  };
+}
+
+interface UserSearchResult {
+  id: string;
+  full_name: string;
+  username: string;
+  avatar_url: string;
+  verified: boolean;
+  neighborhood: string;
+}
+
 const ConversationInfo: React.FC<ConversationInfoProps> = ({
   conversationId,
   onClose
 }) => {
   const { user } = useAuthContext();
-  const [conversation, setConversation] = useState<any>(null);
+  const [conversation, setConversation] = useState<ConversationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState({
@@ -43,22 +84,9 @@ const ConversationInfo: React.FC<ConversationInfoProps> = ({
   });
   const [showAddParticipants, setShowAddParticipants] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
 
-  useEffect(() => {
-    if (conversationId && user) {
-      loadConversation();
-      loadSettings();
-    }
-  }, [conversationId, user]);
-
-  useEffect(() => {
-    if (showAddParticipants && searchQuery.length > 2) {
-      searchUsers();
-    }
-  }, [searchQuery, showAddParticipants]);
-
-  const loadConversation = async () => {
+  const loadConversation = useCallback(async () => {
     if (!conversationId || !user) return;
 
     setLoading(true);
@@ -106,9 +134,9 @@ const ConversationInfo: React.FC<ConversationInfoProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [conversationId, user]);
 
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     if (!conversationId || !user) return;
 
     try {
@@ -141,9 +169,9 @@ const ConversationInfo: React.FC<ConversationInfoProps> = ({
     } catch (error) {
       console.error('Error loading conversation settings:', error);
     }
-  };
+  }, [conversationId, user]);
 
-  const searchUsers = async () => {
+  const searchUsers = useCallback(async () => {
     if (!user || searchQuery.length < 3) return;
 
     try {
@@ -155,14 +183,28 @@ const ConversationInfo: React.FC<ConversationInfoProps> = ({
         .limit(10);
       
       // Filter out users who are already participants
-      const existingParticipantIds = conversation?.participants?.map((p: any) => p.user_id) || [];
+      const existingParticipantIds = conversation?.participants?.map((p: ConversationParticipant) => p.user_id) || [];
       const filteredResults = data?.filter(u => !existingParticipantIds.includes(u.id)) || [];
       
       setSearchResults(filteredResults);
     } catch (error) {
       console.error('Error searching users:', error);
     }
-  };
+  }, [user, searchQuery, conversation?.participants]);
+
+  useEffect(() => {
+    if (conversationId && user) {
+      loadConversation();
+      loadSettings();
+    }
+  }, [conversationId, user, loadConversation, loadSettings]);
+
+  useEffect(() => {
+    if (showAddParticipants && searchQuery.length > 2) {
+      searchUsers();
+    }
+  }, [searchQuery, showAddParticipants, searchUsers]);
+
 
   const updateSettings = async (updates: Partial<typeof settings>) => {
     if (!conversationId || !user) return;
@@ -255,7 +297,7 @@ const ConversationInfo: React.FC<ConversationInfoProps> = ({
       if (error) throw error;
       
       // Add system message
-      const userToRemove = conversation?.participants?.find((p: any) => p.user_id === userId);
+      const userToRemove = conversation?.participants?.find((p: ConversationParticipant) => p.user_id === userId);
       if (userToRemove) {
         await supabase
           .from('messages')
@@ -277,7 +319,7 @@ const ConversationInfo: React.FC<ConversationInfoProps> = ({
   const isAdmin = () => {
     if (!user || !conversation) return false;
     
-    const userParticipant = conversation.participants?.find((p: any) => p.user_id === user.id);
+    const userParticipant = conversation.participants?.find((p: ConversationParticipant) => p.user_id === user.id);
     return userParticipant?.role === 'admin';
   };
 
@@ -288,7 +330,7 @@ const ConversationInfo: React.FC<ConversationInfoProps> = ({
     
     if (conversation.type === 'direct') {
       const otherParticipant = conversation.participants?.find(
-        (p: any) => p.user_id !== user?.id
+        (p: ConversationParticipant) => p.user_id !== user?.id
       );
       return otherParticipant?.user?.full_name || 'Unknown User';
     }
@@ -334,7 +376,7 @@ const ConversationInfo: React.FC<ConversationInfoProps> = ({
           {conversation?.type === 'direct' ? (
             // Direct message avatar
             <img
-              src={conversation.participants?.find((p: any) => p.user_id !== user?.id)?.user?.avatar_url || 'https://images.pexels.com/photos/3772622/pexels-photo-3772622.jpeg?auto=compress&cs=tinysrgb&w=100'}
+              src={conversation.participants?.find((p: ConversationParticipant) => p.user_id !== user?.id)?.user?.avatar_url || 'https://images.pexels.com/photos/3772622/pexels-photo-3772622.jpeg?auto=compress&cs=tinysrgb&w=100'}
               alt={getConversationTitle()}
               className="w-full h-full rounded-full object-cover"
             />
@@ -511,7 +553,7 @@ const ConversationInfo: React.FC<ConversationInfoProps> = ({
         
         {/* Participants List */}
         <div className="space-y-2 max-h-60 overflow-y-auto">
-          {conversation?.participants?.map((participant: any) => (
+          {conversation?.participants?.map((participant: ConversationParticipant) => (
             <div key={participant.user_id} className="flex items-center justify-between p-3 bg-forest-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="relative">

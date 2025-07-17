@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Users, Clock, Heart, Navigation } from 'lucide-react';
+import { MapPin, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Users, Clock, Navigation } from 'lucide-react';
 import { getEvents, getSpaces, Event, Space } from '../lib/supabase';
 import SearchSystem from '../components/SearchSystem';
 
@@ -256,7 +256,7 @@ const Map = () => {
                         <div
                           key={item.id}
                           className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
-                          style={(item as any).position}
+                          style={(item as Event & Space & { position: React.CSSProperties }).position}
                         >
                           <div className="bg-white rounded-full p-3 shadow-lg border-2 border-forest-200 hover:border-forest-400 transition-all duration-200 hover:scale-110">
                             <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${category?.color || 'text-forest-600'}`} />

@@ -1,8 +1,8 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
-import { MapPin, Clock, Users, Heart, Star, Badge, BookmarkPlus, Share2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Clock, Users, Badge, BookmarkPlus, Share2 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase, Event } from '../lib/supabase';
+import { logger } from '../lib/logger';
 import EventDetailsModal from './EventDetailsModal';
 import EventManagementModal from './EventManagementModal';
 
@@ -31,7 +31,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
   const checkParticipationStatus = async () => {
     if (!user) return;
 
-    console.log("Checking participation status for event", event.id);
+    logger.log("Checking participation status for event", event.id);
     try {
       const { data } = await supabase
         .from('event_participants')
@@ -40,7 +40,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
         .eq('user_id', user.id)
         .single();
 
-      console.log("Participation data:", data);
+      logger.log("Participation data:", data);
       if (data) {
         setHasJoined(true);
       }
@@ -169,7 +169,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
           url: window.location.origin
         });
       } catch (error) {
-        console.log('Error sharing:', error);
+        logger.log('Error sharing:', error);
       }
     }
   };

@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageCircle, X } from 'lucide-react';
-import { useAuthContext } from '../components/AuthProvider';
+import { X } from 'lucide-react';
 import EnhancedMessagingSystem from '../components/EnhancedMessagingSystem';
 
 const Messages = () => {
-  const { user } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
   const [initialConversationId, setInitialConversationId] = useState<string | null>(null);
