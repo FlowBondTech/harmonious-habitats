@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuthContext } from './AuthProvider';
 import { 
   Smartphone, 
   Wifi, 
@@ -13,7 +15,9 @@ import {
   Heart,
   Settings,
   Plus,
-  Zap
+  Zap,
+  Globe,
+  Shield
 } from 'lucide-react';
 
 interface MobileOptimizationProps {
@@ -21,6 +25,8 @@ interface MobileOptimizationProps {
 }
 
 const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => {
+  const location = useLocation();
+  const { user, isAdmin } = useAuthContext();
   const [isInstallable, setIsInstallable] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -126,35 +132,103 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
 
 
       {/* Enhanced Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 safe-area-bottom z-20">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-20">
         <div className="glass border-t border-white/20 shadow-2xl">
-          <div className="flex items-center justify-around py-2 px-2">
-            <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group">
-              <Home className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
+          <div className="flex items-center justify-around py-2 px-2" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
+            {/* Home */}
+            <Link 
+              to="/" 
+              className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
+                location.pathname === '/' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
+              }`}
+            >
+              <Home className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
+                location.pathname === '/' ? 'text-forest-800' : ''
+              }`} />
               <span className="text-xs font-medium">Home</span>
-            </button>
-            <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group">
-              <Search className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-medium">Search</span>
-            </button>
-            <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group relative">
-              <div className="relative">
-                <Calendar className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
-                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-earth-500 rounded-full"></div>
-              </div>
-              <span className="text-xs font-medium">Events</span>
-            </button>
-            <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group relative">
-              <div className="relative">
-                <MessageCircle className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
-                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></div>
-              </div>
-              <span className="text-xs font-medium">Messages</span>
-            </button>
-            <button className="flex flex-col items-center p-2 text-forest-600 hover:text-forest-800 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group">
-              <User className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-medium">Profile</span>
-            </button>
+            </Link>
+
+            {/* Discover/Map */}
+            {user && (
+              <Link 
+                to="/map" 
+                className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
+                  location.pathname === '/map' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
+                }`}
+              >
+                <MapPin className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
+                  location.pathname === '/map' ? 'text-forest-800' : ''
+                }`} />
+                <span className="text-xs font-medium">Discover</span>
+              </Link>
+            )}
+
+            {/* Global Feed or Search */}
+            <Link 
+              to={user ? "/global-feed" : "/search"} 
+              className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
+                location.pathname === '/global-feed' || location.pathname === '/search' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
+              }`}
+            >
+              {user ? (
+                <Globe className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
+                  location.pathname === '/global-feed' ? 'text-forest-800' : ''
+                }`} />
+              ) : (
+                <Search className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
+                  location.pathname === '/search' ? 'text-forest-800' : ''
+                }`} />
+              )}
+              <span className="text-xs font-medium">{user ? 'Feed' : 'Search'}</span>
+            </Link>
+
+            {/* Activities or Messages */}
+            {user && (
+              <Link 
+                to="/activities" 
+                className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
+                  location.pathname === '/activities' || location.pathname === '/my-activities' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
+                }`}
+              >
+                <Calendar className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
+                  location.pathname === '/activities' || location.pathname === '/my-activities' ? 'text-forest-800' : ''
+                }`} />
+                <span className="text-xs font-medium">Activities</span>
+              </Link>
+            )}
+
+            {/* Profile or Admin */}
+            {user ? (
+              <Link 
+                to={isAdmin ? "/admin" : "/profile"} 
+                className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
+                  location.pathname === '/profile' || location.pathname === '/admin' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
+                }`}
+              >
+                {isAdmin ? (
+                  <Shield className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
+                    location.pathname === '/admin' ? 'text-forest-800' : ''
+                  }`} />
+                ) : (
+                  <User className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
+                    location.pathname === '/profile' ? 'text-forest-800' : ''
+                  }`} />
+                )}
+                <span className="text-xs font-medium">{isAdmin ? 'Admin' : 'Profile'}</span>
+              </Link>
+            ) : (
+              <Link 
+                to="/search" 
+                className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
+                  location.pathname === '/search' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
+                }`}
+              >
+                <User className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
+                  location.pathname === '/search' ? 'text-forest-800' : ''
+                }`} />
+                <span className="text-xs font-medium">Join</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>

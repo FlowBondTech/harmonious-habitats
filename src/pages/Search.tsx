@@ -18,6 +18,7 @@ import {
   Heart,
   Bell,
   Bookmark,
+  Sprout,
   History
 } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';

@@ -505,7 +505,7 @@ const SearchSystem: React.FC<SearchSystemProps> = ({
               </h4>
               <div className={`space-y-2 ${isFullPage ? 'grid grid-cols-1 md:grid-cols-2 gap-3' : ''}`}>
                 {results.spaces.slice(0, isFullPage ? results.spaces.length : 5).map((space) => (
-                  <Link to={`/space/${space.id}`} key={space.id} className="flex items-center space-x-3 p-3 hover:bg-forest-50 rounded-lg cursor-pointer transition-colors">
+                                     <Link to={`/space/${space.id}`} key={space.id} className="flex items-center space-x-3 p-3 hover:bg-forest-50 rounded-lg cursor-pointer transition-colors">
                     <img
                       src={space.image_urls?.[0] || 'https://images.pexels.com/photos/8633077/pexels-photo-8633077.jpeg?auto=compress&cs=tinysrgb&w=100'}
                       alt={space.name}
