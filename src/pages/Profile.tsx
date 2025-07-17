@@ -5,8 +5,7 @@ import { updateProfile } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import ProfileSkillsSection from '../components/ProfileSkillsSection';
 import ProfileOfferingsSection from '../components/ProfileOfferingsSection';
-import { SpaceSharerApplicationModal } from '../components/SpaceSharerApplicationModal';
-import { SpaceManagementModal } from '../components/SpaceManagementModal';
+import { ShareTab } from '../components/ShareTab';
 
 const Profile = () => {
   const { user, profile, loadUserProfile } = useAuthContext();
@@ -28,8 +27,6 @@ const Profile = () => {
   });
   
   // Space sharer modals
-  const [showSpaceSharerApplication, setShowSpaceSharerApplication] = useState(false);
-  const [showSpaceManagement, setShowSpaceManagement] = useState(false);
   
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || '',
@@ -331,7 +328,7 @@ const Profile = () => {
                   { id: 'skills', label: 'Skills', icon: GraduationCap },
                   { id: 'offerings', label: 'Offerings', icon: Package },
                   { id: 'capabilities', label: 'Capabilities', icon: Briefcase },
-                  { id: 'spaces', label: 'Space Sharing', icon: HomeIcon },
+                  { id: 'share', label: 'Share', icon: Share2 },
                   { id: 'settings', label: 'Settings', icon: Settings },
                   { id: 'privacy', label: 'Privacy', icon: Shield },
                 ].map((item) => {
@@ -793,143 +790,8 @@ const Profile = () => {
               </div>
             )}
 
-            {/* Space Sharing Tab */}
-            {activeTab === 'spaces' && (
-              <div className="space-y-6">
-                {/* Space Sharer Status */}
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-2">
-                      <HomeIcon className="h-5 w-5 text-forest-600" />
-                      <h3 className="text-xl font-semibold text-forest-800">Space Sharing</h3>
-                    </div>
-                  </div>
-
-                  {/* Status Display */}
-                  {(!profile?.space_sharer_status || profile?.space_sharer_status === 'none') && (
-                    <div className="text-center py-8">
-                      <div className="max-w-md mx-auto">
-                        <HomeIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <h4 className="text-lg font-medium text-gray-900 mb-2">Become a Space Sharer</h4>
-                        <p className="text-gray-600 mb-6">
-                          Share your space with the holistic community. Host workshops, healing sessions, and community gatherings in your home.
-                        </p>
-                        <button
-                          onClick={() => setShowSpaceSharerApplication(true)}
-                          className="inline-flex items-center space-x-2 px-6 py-3 bg-forest-600 text-white rounded-lg hover:bg-forest-700 transition-colors"
-                        >
-                          <HomeIcon className="h-4 w-4" />
-                          <span>Apply to Share Space</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {profile?.space_sharer_status === 'pending' && (
-                    <div className="text-center py-8">
-                      <div className="max-w-md mx-auto">
-                        <div className="h-12 w-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Clock className="h-6 w-6 text-yellow-600" />
-                        </div>
-                        <h4 className="text-lg font-medium text-gray-900 mb-2">Application Under Review</h4>
-                        <p className="text-gray-600 mb-4">
-                          We're reviewing your space sharer application. You'll hear back from us within 3-5 business days.
-                        </p>
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                          <p className="text-sm text-yellow-800">
-                            <strong>What's next?</strong> Our community team will review your application and may contact you for additional information.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {profile?.space_sharer_status === 'rejected' && (
-                    <div className="text-center py-8">
-                      <div className="max-w-md mx-auto">
-                        <div className="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <X className="h-6 w-6 text-red-600" />
-                        </div>
-                        <h4 className="text-lg font-medium text-gray-900 mb-2">Application Not Approved</h4>
-                        <p className="text-gray-600 mb-6">
-                          Your space sharer application was not approved at this time. You can apply again in the future.
-                        </p>
-                        <button
-                          onClick={() => setShowSpaceSharerApplication(true)}
-                          className="inline-flex items-center space-x-2 px-6 py-3 bg-forest-600 text-white rounded-lg hover:bg-forest-700 transition-colors"
-                        >
-                          <HomeIcon className="h-4 w-4" />
-                          <span>Apply Again</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {profile?.space_sharer_status === 'approved' && (
-                    <div className="space-y-6">
-                      {/* Approved Status */}
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <CheckCircle className="h-5 w-5 text-green-600" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium text-green-900">Approved Space Sharer</h4>
-                            <p className="text-sm text-green-700">
-                              You're approved to share spaces with the community!
-                              {profile.space_sharer_approved_at && (
-                                <span> Approved on {new Date(profile.space_sharer_approved_at).toLocaleDateString()}</span>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Space Management */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <button
-                          onClick={() => setShowSpaceManagement(true)}
-                          className="flex items-center justify-center space-x-3 p-6 border-2 border-dashed border-forest-300 rounded-lg hover:border-forest-400 hover:bg-forest-50 transition-colors group"
-                        >
-                          <HomeIcon className="h-8 w-8 text-forest-600 group-hover:text-forest-700" />
-                          <div className="text-left">
-                            <h4 className="font-medium text-forest-900">Manage Spaces</h4>
-                            <p className="text-sm text-forest-600">View and edit your shared spaces</p>
-                          </div>
-                        </button>
-
-                        <button
-                          onClick={() => setShowSpaceManagement(true)}
-                          className="flex items-center justify-center space-x-3 p-6 border-2 border-dashed border-forest-300 rounded-lg hover:border-forest-400 hover:bg-forest-50 transition-colors group"
-                        >
-                          <Calendar className="h-8 w-8 text-forest-600 group-hover:text-forest-700" />
-                          <div className="text-left">
-                            <h4 className="font-medium text-forest-900">View Bookings</h4>
-                            <p className="text-sm text-forest-600">See upcoming events at your spaces</p>
-                          </div>
-                        </button>
-                      </div>
-
-                      {/* Quick Stats */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-forest-50 rounded-lg p-4 text-center">
-                          <div className="text-2xl font-bold text-forest-700">0</div>
-                          <div className="text-sm text-forest-600">Active Spaces</div>
-                        </div>
-                        <div className="bg-forest-50 rounded-lg p-4 text-center">
-                          <div className="text-2xl font-bold text-forest-700">0</div>
-                          <div className="text-sm text-forest-600">Events Hosted</div>
-                        </div>
-                        <div className="bg-forest-50 rounded-lg p-4 text-center">
-                          <div className="text-2xl font-bold text-forest-700">0</div>
-                          <div className="text-sm text-forest-600">Community Members Served</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* Share Tab */}
+            {activeTab === 'share' && <ShareTab />}
 
             {/* Settings Tab */}
             {activeTab === 'settings' && (
@@ -1171,21 +1033,6 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Space Sharer Application Modal */}
-      <SpaceSharerApplicationModal
-        isOpen={showSpaceSharerApplication}
-        onClose={() => setShowSpaceSharerApplication(false)}
-        onSubmit={() => {
-          setShowSpaceSharerApplication(false);
-          loadUserProfile(); // Refresh profile data
-        }}
-      />
-
-      {/* Space Management Modal */}
-      <SpaceManagementModal
-        isOpen={showSpaceManagement}
-        onClose={() => setShowSpaceManagement(false)}
-      />
     </div>
   );
 };

@@ -83,9 +83,18 @@ export interface Profile {
   mentorship_available?: boolean
   // User type and permissions
   user_type: 'user' | 'admin' | 'moderator'
-  // Space sharer fields
+  // Space sharer fields (legacy - will be removed)
   space_sharer_status: 'none' | 'pending' | 'approved' | 'rejected'
   space_sharer_approved_at?: string
+  // Unified holder status
+  holder_status: {
+    space: 'none' | 'pending' | 'approved' | 'rejected'
+    time: 'none' | 'pending' | 'approved' | 'rejected'
+  }
+  holder_approved_at?: {
+    space?: string
+    time?: string
+  }
   // Facilitator-specific fields
   is_facilitator: boolean
   facilitator_verified: boolean
@@ -1318,6 +1327,7 @@ export const getBookingsForOwner = async (ownerId: string, status?: string) => {
   return await query
 }
 
+// Legacy interface - kept for compatibility
 export interface SpaceSharerApplication {
   id: string
   user_id: string
@@ -1338,6 +1348,93 @@ export interface SpaceSharerApplication {
   created_at: string
   updated_at: string
   user?: Profile
+}
+
+// Unified holder application
+export interface HolderApplication {
+  id: string
+  user_id: string
+  holder_type: ('space' | 'time')[]
+  status: 'pending' | 'approved' | 'rejected' | 'under_review'
+  application_data: {
+    // Common fields
+    motivation: string
+    availability: string
+    references?: string
+    additional_info?: string
+    
+    // Space-specific fields
+    space_description?: string
+    hosting_experience?: string
+    safety_measures?: string
+    
+    // Time-specific fields
+    skills_offered?: string[]
+    experience_summary?: string
+    certifications?: string[]
+    offering_types?: string[]
+  }
+  admin_notes?: string
+  reviewed_by?: string
+  reviewed_at?: string
+  submission_metadata?: any
+  created_at: string
+  updated_at: string
+  user?: Profile
+}
+
+// Time offering interface
+export interface TimeOffering {
+  id: string
+  holder_id: string
+  title: string
+  description?: string
+  category: 'workshop' | 'healing' | 'class' | 'consultation' | 'ceremony' | 'other'
+  duration_minutes: number
+  min_participants: number
+  max_participants: number
+  availability_type: 'recurring' | 'on_demand' | 'scheduled'
+  availability_data: any
+  location_type: 'holder_space' | 'participant_space' | 'virtual' | 'flexible'
+  location_radius: number
+  suggested_donation?: string
+  exchange_type: 'donation' | 'fixed' | 'sliding_scale' | 'barter' | 'free'
+  status: 'draft' | 'active' | 'paused' | 'archived'
+  verified: boolean
+  requirements?: any
+  image_urls: string[]
+  submission_metadata?: any
+  created_at: string
+  updated_at: string
+  holder?: Profile
+  categories?: string[]
+  skills?: string[]
+}
+
+// Unified contribution view
+export interface UserContribution {
+  contribution_type: 'space' | 'time'
+  id: string
+  contributor_id: string
+  title: string
+  description?: string
+  status: string
+  created_at: string
+  image_urls: string[]
+  details: {
+    // Space details
+    type?: string
+    capacity?: number
+    address?: string
+    
+    // Time details
+    category?: string
+    duration?: number
+    participants?: {
+      min: number
+      max: number
+    }
+  }
 }
 
 export const getBookingsForUser = async (userId: string, status?: string) => {
