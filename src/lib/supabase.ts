@@ -1144,3 +1144,190 @@ export const getSpacesAcceptingApplications = async (filters?: {
 
   return await query
 }
+
+// Booking System Interfaces and Functions
+
+export interface SpaceBooking {
+  id: string
+  space_id: string
+  user_id: string
+  start_time: string
+  end_time: string
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'rejected'
+  notes: {
+    eventTitle?: string
+    eventDescription?: string
+    attendees?: number
+    specialRequests?: string
+    contactInfo?: {
+      phone?: string
+      email?: string
+    }
+    donationAmount?: string
+  }
+  created_at: string
+  updated_at: string
+  space?: Space
+  user?: Profile
+}
+
+export interface SpaceAvailability {
+  id: string
+  space_id: string
+  day_of_week: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
+  is_available: boolean
+  available_times: {
+    start: string
+    end: string
+  }[]
+  created_at: string
+  updated_at: string
+}
+
+// Booking functions
+export const createSpaceBooking = async (booking: Omit<SpaceBooking, 'id' | 'created_at' | 'updated_at' | 'space' | 'user'>) => {
+  const { data, error } = await supabase
+    .from('space_bookings')
+    .insert(booking)
+    .select(`
+      *,
+      space:spaces(*),
+      user:profiles(*)
+    `)
+    .single()
+
+  return { data, error }
+}
+
+export const getSpaceBookings = async (filters?: {
+  space_id?: string
+  user_id?: string
+  status?: string
+  limit?: number
+}) => {
+  let query = supabase
+    .from('space_bookings')
+    .select(`
+      *,
+      space:spaces(*),
+      user:profiles(*)
+    `)
+
+  if (filters?.space_id) {
+    query = query.eq('space_id', filters.space_id)
+  }
+  if (filters?.user_id) {
+    query = query.eq('user_id', filters.user_id)
+  }
+  if (filters?.status) {
+    query = query.eq('status', filters.status)
+  }
+  if (filters?.limit) {
+    query = query.limit(filters.limit)
+  }
+
+  query = query.order('created_at', { ascending: false })
+
+  return await query
+}
+
+export const updateSpaceBooking = async (
+  bookingId: string, 
+  updates: Partial<Pick<SpaceBooking, 'status' | 'notes'>>
+) => {
+  const { data, error } = await supabase
+    .from('space_bookings')
+    .update(updates)
+    .eq('id', bookingId)
+    .select(`
+      *,
+      space:spaces(*),
+      user:profiles(*)
+    `)
+    .single()
+
+  return { data, error }
+}
+
+export const getSpaceAvailability = async (spaceId: string) => {
+  const { data, error } = await supabase
+    .from('space_availability')
+    .select('*')
+    .eq('space_id', spaceId)
+    .order('day_of_week')
+
+  return { data, error }
+}
+
+export const updateSpaceAvailability = async (
+  spaceId: string,
+  dayOfWeek: string,
+  availability: Partial<Pick<SpaceAvailability, 'is_available' | 'available_times'>>
+) => {
+  const { data, error } = await supabase
+    .from('space_availability')
+    .upsert({
+      space_id: spaceId,
+      day_of_week: dayOfWeek,
+      ...availability
+    })
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const checkBookingConflicts = async (
+  spaceId: string,
+  startTime: string,
+  endTime: string,
+  excludeBookingId?: string
+) => {
+  const { data, error } = await supabase
+    .rpc('check_booking_conflicts', {
+      p_space_id: spaceId,
+      p_start_time: startTime,
+      p_end_time: endTime,
+      p_exclude_booking_id: excludeBookingId || null
+    })
+
+  return { data, error }
+}
+
+export const getBookingsForOwner = async (ownerId: string, status?: string) => {
+  let query = supabase
+    .from('space_bookings')
+    .select(`
+      *,
+      space:spaces!inner(*),
+      user:profiles(*)
+    `)
+    .eq('spaces.owner_id', ownerId)
+
+  if (status) {
+    query = query.eq('status', status)
+  }
+
+  query = query.order('created_at', { ascending: false })
+
+  return await query
+}
+
+export const getBookingsForUser = async (userId: string, status?: string) => {
+  let query = supabase
+    .from('space_bookings')
+    .select(`
+      *,
+      space:spaces(*),
+      user:profiles(*)
+    `)
+    .eq('user_id', userId)
+
+  if (status) {
+    query = query.eq('status', status)
+  }
+
+  query = query.order('created_at', { ascending: false })
+
+  return await query
+}

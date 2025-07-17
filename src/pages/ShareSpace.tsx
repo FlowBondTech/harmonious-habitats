@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Home, MapPin, Users, Camera, X, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, DollarSign, Accessibility, Globe, Cat, Dog, Bird, Fish, Rabbit, Info, Calendar } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
+import { uploadFiles, UPLOAD_PRESETS } from '../lib/storage';
 
 const ShareSpace = () => {
   const { user } = useAuthContext();
@@ -194,34 +195,18 @@ const ShareSpace = () => {
     setSuccess(null);
 
     try {
-      // Upload images to Supabase Storage
-      const imageUrls: string[] = [];
+      // Upload images to Supabase Storage using utility function
+      let imageUrls: string[] = [];
+      let imageUploadErrors: string[] = [];
       
       if (formData.images.length > 0) {
-        
-        for (const image of formData.images) {
-          const fileExt = image.name.split('.').pop();
-          const fileName = `${user.id}_${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-          
-          // Upload to Supabase Storage
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('space-images')
-            .upload(fileName, image, {
-              cacheControl: '3600',
-              upsert: false
-            });
-          
-          if (uploadError) {
-            throw new Error(`Failed to upload image: ${uploadError.message}`);
-          }
-          
-          // Get public URL
-          const { data: { publicUrl } } = supabase.storage
-            .from('space-images')
-            .getPublicUrl(fileName);
-          
-          imageUrls.push(publicUrl);
-        }
+        const { urls, errors } = await uploadFiles(
+          formData.images, 
+          user.id, 
+          UPLOAD_PRESETS.SPACE_IMAGES
+        );
+        imageUrls = urls;
+        imageUploadErrors = errors;
       }
 
       // Create the space
@@ -312,12 +297,17 @@ const ShareSpace = () => {
         if (animalError) throw animalError;
       }
 
-      setSuccess('Space shared successfully! It will be reviewed before being published.');
+      // Show success message with image upload warnings if any
+      let successMessage = 'Space shared successfully! It will be reviewed before being published.';
+      if (imageUploadErrors.length > 0) {
+        successMessage += ` Note: ${imageUploadErrors.length} image(s) failed to upload: ${imageUploadErrors.join(', ')}`;
+      }
+      setSuccess(successMessage);
       
       // Redirect after success
       setTimeout(() => {
         navigate('/activities');
-      }, 2000);
+      }, 3000);
 
     } catch (err: any) {
       setError(err.message || 'Failed to share space');

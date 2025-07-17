@@ -7,7 +7,7 @@ import {
   Loader
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
-import { supabase, Space } from '../lib/supabase';
+import { supabase, Space, SpaceBooking, SpaceAvailability, createSpaceBooking, getSpaceAvailability } from '../lib/supabase';
 
 interface BookingSystemProps {
   space: Space;
@@ -44,35 +44,19 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
     donationAmount: ''
   });
 
-  const [availability, setAvailability] = useState<{
-    id: string;
-    space_id: string;
-    day_of_week: string;
-    is_available: boolean;
-    available_times: string;
-  }[]>([]);
-  const [existingBookings, setExistingBookings] = useState<{
-    id: string;
-    space_id: string;
-    start_time: string;
-    end_time: string;
-    status: string;
-  }[]>([]);
+  const [availability, setAvailability] = useState<SpaceAvailability[]>([]);
+  const [existingBookings, setExistingBookings] = useState<SpaceBooking[]>([]);
 
   useEffect(() => {
     if (isOpen && space) {
       loadAvailability();
       loadExistingBookings();
     }
-  }, [isOpen, space, loadAvailability, loadExistingBookings]);
+  }, [isOpen, space]);
 
   const loadAvailability = async () => {
     try {
-      const { data } = await supabase
-        .from('space_availability')
-        .select('*')
-        .eq('space_id', space.id);
-      
+      const { data } = await getSpaceAvailability(space.id);
       setAvailability(data || []);
     } catch (error) {
       console.error('Error loading availability:', error);
@@ -163,7 +147,7 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
     if (!date) return [];
     
     // Get day of week
-    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'lowercase' });
+    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'lowercase' }) as SpaceAvailability['day_of_week'];
     
     // Find availability for this day
     const dayAvailability = availability.find(a => a.day_of_week === dayOfWeek);
@@ -173,9 +157,8 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
     }
     
     try {
-      // Parse available times
-      const times = JSON.parse(dayAvailability.available_times);
-      return times.map((timeSlot: { start: string; end: string }) => ({
+      // Available times are already parsed as an array
+      return dayAvailability.available_times.map((timeSlot) => ({
         start: timeSlot.start,
         end: timeSlot.end,
         label: `${formatAvailabilityTime(timeSlot.start)} - ${formatAvailabilityTime(timeSlot.end)}`
@@ -196,42 +179,23 @@ const BookingSystem: React.FC<BookingSystemProps> = ({
       const startDateTime = new Date(`${bookingData.date}T${bookingData.startTime}`);
       const endDateTime = new Date(`${bookingData.date}T${bookingData.endTime}`);
       
-      const { data, error: bookingError } = await supabase
-        .from('space_bookings')
-        .insert([{
-          space_id: space.id,
-          user_id: user.id,
-          start_time: startDateTime.toISOString(),
-          end_time: endDateTime.toISOString(),
-          status: 'pending',
-          notes: JSON.stringify({
-            eventTitle: bookingData.eventTitle,
-            eventDescription: bookingData.eventDescription,
-            attendees: bookingData.attendees,
-            specialRequests: bookingData.specialRequests,
-            contactInfo: bookingData.contactInfo,
-            donationAmount: bookingData.donationAmount
-          })
-        }])
-        .select()
-        .single();
+      const { data, error: bookingError } = await createSpaceBooking({
+        space_id: space.id,
+        user_id: user.id,
+        start_time: startDateTime.toISOString(),
+        end_time: endDateTime.toISOString(),
+        status: 'pending',
+        notes: {
+          eventTitle: bookingData.eventTitle,
+          eventDescription: bookingData.eventDescription,
+          attendees: bookingData.attendees,
+          specialRequests: bookingData.specialRequests,
+          contactInfo: bookingData.contactInfo,
+          donationAmount: bookingData.donationAmount
+        }
+      });
       
       if (bookingError) throw bookingError;
-      
-      // Create notification for space owner
-      await supabase
-        .from('notifications')
-        .insert([{
-          user_id: space.owner_id,
-          type: 'booking',
-          title: 'New Booking Request',
-          content: `${user.email} has requested to book ${space.name} for ${bookingData.date}`,
-          data: {
-            booking_id: data.id,
-            space_id: space.id,
-            requester_id: user.id
-          }
-        }]);
       
       setStep(3);
       setBookingSuccess(true);
