@@ -195,21 +195,33 @@ const ShareSpace = () => {
     setSuccess(null);
 
     try {
+      console.log('🚀 Starting space submission...');
+      
       // Upload images to Supabase Storage using utility function
       let imageUrls: string[] = [];
       let imageUploadErrors: string[] = [];
       
       if (formData.images.length > 0) {
-        const { urls, errors } = await uploadFiles(
-          formData.images, 
-          user.id, 
-          UPLOAD_PRESETS.SPACE_IMAGES
-        );
-        imageUrls = urls;
-        imageUploadErrors = errors;
+        console.log(`📸 Uploading ${formData.images.length} images...`);
+        try {
+          const { urls, errors } = await uploadFiles(
+            formData.images, 
+            user.id, 
+            UPLOAD_PRESETS.SPACE_IMAGES
+          );
+          imageUrls = urls;
+          imageUploadErrors = errors;
+          console.log(`✅ Image upload complete. ${urls.length} successful, ${errors.length} errors`);
+        } catch (uploadError: any) {
+          console.warn('⚠️ Image upload failed, continuing without images:', uploadError.message);
+          imageUploadErrors = [`Image upload temporarily disabled: ${uploadError.message}`];
+        }
+      } else {
+        console.log('📸 No images to upload');
       }
 
       // Create the space
+      console.log('🏠 Creating space record...');
       const spaceData = {
         owner_id: user.id,
         name: formData.name.trim(),
@@ -221,8 +233,9 @@ const ShareSpace = () => {
         list_publicly: formData.listPublicly,
         guidelines: formData.guidelines.trim() || null,
         animals_allowed: formData.animals.allowed,
-        owner_has_pets: formData.ownerPets.hasPets,
-        owner_pet_types: formData.ownerPets.hasPets ? formData.ownerPets.types : null,
+        // Temporarily disabled due to schema cache issue
+        // owner_has_pets: formData.ownerPets.hasPets,
+        // owner_pet_types: formData.ownerPets.hasPets ? formData.ownerPets.types : null,
         donation_suggested: formData.donationSuggested.trim() || null,
         image_urls: imageUrls,
         verified: false,
@@ -233,16 +246,24 @@ const ShareSpace = () => {
         booking_preferences: formData.bookingPreferences
       };
 
+      console.log('📊 Space data to insert:', spaceData);
+
       const { data: space, error: spaceError } = await supabase
         .from('spaces')
         .insert([spaceData])
         .select()
         .single();
 
-      if (spaceError) throw spaceError;
+      if (spaceError) {
+        console.error('❌ Space creation failed:', spaceError);
+        throw spaceError;
+      }
+      
+      console.log('✅ Space created successfully:', space.id);
 
       // Add amenities
       if (formData.amenities.length > 0) {
+        console.log(`🛠️ Adding ${formData.amenities.length} amenities...`);
         const amenityData = formData.amenities.map(amenity => ({
           space_id: space.id,
           amenity
@@ -252,11 +273,16 @@ const ShareSpace = () => {
           .from('space_amenities')
           .insert(amenityData);
         
-        if (amenityError) throw amenityError;
+        if (amenityError) {
+          console.error('❌ Amenities insert failed:', amenityError);
+          throw amenityError;
+        }
+        console.log('✅ Amenities added successfully');
       }
 
       // Add accessibility features
       if (formData.accessibility.length > 0) {
+        console.log(`♿ Adding ${formData.accessibility.length} accessibility features...`);
         const accessibilityData = formData.accessibility.map(feature => ({
           space_id: space.id,
           feature
@@ -266,11 +292,16 @@ const ShareSpace = () => {
           .from('space_accessibility_features')
           .insert(accessibilityData);
         
-        if (accessibilityError) throw accessibilityError;
+        if (accessibilityError) {
+          console.error('❌ Accessibility features insert failed:', accessibilityError);
+          throw accessibilityError;
+        }
+        console.log('✅ Accessibility features added successfully');
       }
 
       // Add holistic categories
       if (formData.holisticFriendly.length > 0) {
+        console.log(`🌱 Adding ${formData.holisticFriendly.length} holistic categories...`);
         const categoryData = formData.holisticFriendly.map(category => ({
           space_id: space.id,
           category
@@ -280,11 +311,16 @@ const ShareSpace = () => {
           .from('space_holistic_categories')
           .insert(categoryData);
         
-        if (categoryError) throw categoryError;
+        if (categoryError) {
+          console.error('❌ Holistic categories insert failed:', categoryError);
+          throw categoryError;
+        }
+        console.log('✅ Holistic categories added successfully');
       }
 
       // Add animal types if animals are allowed
       if (formData.animals.allowed && formData.animals.types.length > 0) {
+        console.log(`🐾 Adding ${formData.animals.types.length} animal types...`);
         const animalData = formData.animals.types.map(animal => ({
           space_id: space.id,
           animal_type: animal
@@ -294,8 +330,14 @@ const ShareSpace = () => {
           .from('space_animal_types')
           .insert(animalData);
         
-        if (animalError) throw animalError;
+        if (animalError) {
+          console.error('❌ Animal types insert failed:', animalError);
+          throw animalError;
+        }
+        console.log('✅ Animal types added successfully');
       }
+
+      console.log('🎉 All space data added successfully!');
 
       // Show success message with image upload warnings if any
       let successMessage = 'Space shared successfully! It will be reviewed before being published.';
@@ -304,14 +346,19 @@ const ShareSpace = () => {
       }
       setSuccess(successMessage);
       
+      console.log('✅ Success message set, redirecting in 3 seconds...');
+      
       // Redirect after success
       setTimeout(() => {
+        console.log('🔄 Redirecting to activities page...');
         navigate('/activities');
       }, 3000);
 
     } catch (err: any) {
+      console.error('❌ Space submission failed:', err);
       setError(err.message || 'Failed to share space');
     } finally {
+      console.log('🔄 Setting loading to false');
       setLoading(false);
     }
   };

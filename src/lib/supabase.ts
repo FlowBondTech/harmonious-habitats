@@ -81,6 +81,11 @@ export interface Profile {
   experience_since?: string
   teaching_experience?: number
   mentorship_available?: boolean
+  // User type and permissions
+  user_type: 'user' | 'admin' | 'moderator'
+  // Space sharer fields
+  space_sharer_status: 'none' | 'pending' | 'approved' | 'rejected'
+  space_sharer_approved_at?: string
   // Facilitator-specific fields
   is_facilitator: boolean
   facilitator_verified: boolean
@@ -1311,6 +1316,28 @@ export const getBookingsForOwner = async (ownerId: string, status?: string) => {
   query = query.order('created_at', { ascending: false })
 
   return await query
+}
+
+export interface SpaceSharerApplication {
+  id: string
+  user_id: string
+  status: 'pending' | 'approved' | 'rejected' | 'under_review'
+  application_data: {
+    motivation: string
+    space_description: string
+    hosting_experience: string
+    community_involvement: string
+    safety_measures: string
+    availability: string
+    references?: string
+    additional_info?: string
+  }
+  admin_notes?: string
+  reviewed_by?: string
+  reviewed_at?: string
+  created_at: string
+  updated_at: string
+  user?: Profile
 }
 
 export const getBookingsForUser = async (userId: string, status?: string) => {
