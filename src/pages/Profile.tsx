@@ -249,7 +249,7 @@ const Profile = () => {
                       <label className="flex items-start space-x-3">
                         <input
                           type="checkbox"
-                          checked={true}
+                          defaultChecked={true}
                           className="mt-1 w-4 h-4 text-forest-600 bg-forest-100 border-forest-300 rounded focus:ring-forest-500 focus:ring-2"
                         />
                         <div>
@@ -930,11 +930,11 @@ const Profile = () => {
                           </p>
                           <div className="space-y-2">
                             <label className="flex items-center space-x-2">
-                              <input type="checkbox" checked className="w-4 h-4 text-forest-600" />
+                              <input type="checkbox" defaultChecked className="w-4 h-4 text-forest-600" />
                               <span className="text-blue-700">In-app notifications</span>
                             </label>
                             <label className="flex items-center space-x-2">
-                              <input type="checkbox" checked className="w-4 h-4 text-forest-600" />
+                              <input type="checkbox" defaultChecked className="w-4 h-4 text-forest-600" />
                               <span className="text-blue-700">Email notifications</span>
                             </label>
                             <label className="flex items-center space-x-2">
@@ -995,11 +995,11 @@ const Profile = () => {
                       <p className="text-sm text-forest-600 mb-3">Manage how your data is used</p>
                       <div className="space-y-3">
                         <label className="flex items-center space-x-3">
-                          <input type="checkbox" checked className="w-4 h-4 text-forest-600" />
+                          <input type="checkbox" defaultChecked className="w-4 h-4 text-forest-600" />
                           <span className="text-sm text-forest-700">Allow community recommendations based on my interests</span>
                         </label>
                         <label className="flex items-center space-x-3">
-                          <input type="checkbox" checked className="w-4 h-4 text-forest-600" />
+                          <input type="checkbox" defaultChecked className="w-4 h-4 text-forest-600" />
                           <span className="text-sm text-forest-700">Show my profile in community searches</span>
                         </label>
                         <label className="flex items-center space-x-3">
