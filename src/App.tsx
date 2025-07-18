@@ -47,7 +47,7 @@ const AppContent = () => {
             </div>
             
             {/* Main Content Area */}
-            <div className={`flex-1 min-h-screen relative overflow-x-hidden transition-transform duration-300 ease-in-out lg:ml-72 ${
+            <div className={`flex-1 min-h-screen relative overflow-x-hidden transition-transform duration-300 ease-in-out lg:ml-20 xl:ml-72 ${
               isMenuOpen ? 'transform translate-x-80 lg:translate-x-0' : 'transform translate-x-0'
             }`}>
               {/* Background Pattern */}
@@ -65,8 +65,10 @@ const AppContent = () => {
                 <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
               </div>
               
-              {/* Notification Center */}
-              <NotificationCenter />
+              {/* Notification Center - Mobile only */}
+              <div className="lg:hidden">
+                <NotificationCenter />
+              </div>
               
               {/* Main Content with responsive padding */}
               <main id="main" className="pt-16 lg:pt-8 pb-20 md:pb-8 min-h-screen relative z-10">
