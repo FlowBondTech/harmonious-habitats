@@ -15,25 +15,26 @@ import {
   AlertCircle,
   User,
   Globe,
-  Zap
+  Zap,
+  Video,
+  Tag,
+  Book,
+  Package
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
-import { supabase, Event } from '../lib/supabase';
+import { supabase, Event, EventParticipant, EventReview } from '../lib/supabase';
+import EventRegistrationModal from './EventRegistrationModal';
 
 interface EventDetailsModalProps {
-  event: Event | null;
+  eventId: string;
   isOpen: boolean;
   onClose: () => void;
-  onJoin?: (eventId: string) => void;
-  onLeave?: (eventId: string) => void;
 }
 
 const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
-  event,
+  eventId,
   isOpen,
-  onClose,
-  onJoin,
-  onLeave
+  onClose
 }) => {
   const { user } = useAuthContext();
   const [loading, setLoading] = useState(false);

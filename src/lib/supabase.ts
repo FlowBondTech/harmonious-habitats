@@ -180,38 +180,196 @@ export interface Event {
   id: string
   created_at: string
   updated_at: string
+  
+  // Ownership
   organizer_id: string
+  space_id?: string
+  time_offering_id?: string
+  
+  // Basic info
   title: string
   description?: string
   category: string
   event_type: 'local' | 'virtual' | 'global_physical'
+  
+  // Timing
   date: string
   start_time: string
   end_time: string
+  timezone?: string
+  
+  // Location
   location_name?: string
   address?: string
   latitude?: number
   longitude?: number
+  location_details?: string
+  
+  // Virtual
+  virtual_meeting_url?: string
+  virtual_meeting_password?: string
+  virtual_platform?: string
+  
+  // Capacity
   capacity: number
+  registration_required?: boolean
+  registration_deadline?: string
+  waitlist_enabled?: boolean
+  
+  // Requirements
   skill_level: 'beginner' | 'intermediate' | 'advanced' | 'all'
-  donation_suggested?: string
+  prerequisites?: string
+  what_to_bring?: string
+  
+  // Pricing
+  is_free?: boolean
+  suggested_donation?: string
+  minimum_donation?: number
+  maximum_donation?: number
+  exchange_type?: 'donation' | 'fixed' | 'sliding_scale' | 'barter' | 'free'
+  
+  // Media
   image_url?: string
-  verified: boolean
-  is_recurring: boolean
-  recurrence_pattern?: string
-  materials_needed: string[]
-  status: 'active' | 'cancelled' | 'completed' | 'pending_approval'
-  distance_description?: string
+  image_urls?: string[]
+  
+  // Status
+  status: 'draft' | 'published' | 'cancelled' | 'completed' | 'postponed'
+  visibility?: 'public' | 'private' | 'unlisted'
+  verified?: boolean
+  featured?: boolean
+  
+  // Recurring
+  is_recurring?: boolean
+  recurrence_rule?: string
+  recurring_event_id?: string
+  
+  // Metadata
+  tags?: string[]
+  holistic_categories?: string[]
+  submission_metadata?: any
+  cancellation_reason?: string
+  cancellation_date?: string
+  completion_notes?: string
   admin_notes?: string
+  distance_description?: string
+  
+  // Relations
   organizer?: Profile
+  space?: Space
+  time_offering?: TimeOffering
   participants?: EventParticipant[]
+  participant_count?: number
+  average_rating?: number
 }
 
 export interface EventParticipant {
+  id: string
   event_id: string
   user_id: string
-  joined_at: string
-  status: 'confirmed' | 'waitlist' | 'cancelled'
+  
+  // Registration
+  registered_at: string
+  status: 'registered' | 'waitlisted' | 'cancelled' | 'attended' | 'no_show'
+  
+  // Attendance
+  checked_in_at?: string
+  checked_out_at?: string
+  attendance_confirmed?: boolean
+  
+  // Additional info
+  guest_count?: number
+  special_requirements?: string
+  emergency_contact?: string
+  
+  // Payment
+  donation_amount?: number
+  payment_status?: 'pending' | 'completed' | 'refunded' | 'waived'
+  payment_date?: string
+  
+  // Communication
+  reminder_sent_at?: string
+  feedback_requested_at?: string
+  
+  // Relations
+  event?: Event
+  user?: Profile
+}
+
+export interface EventReview {
+  id: string
+  event_id: string
+  user_id: string
+  
+  // Review
+  rating: number
+  review_text?: string
+  
+  // Detailed ratings
+  content_rating?: number
+  facilitator_rating?: number
+  venue_rating?: number
+  value_rating?: number
+  
+  // Metadata
+  created_at: string
+  updated_at: string
+  verified_attendance?: boolean
+  
+  // Relations
+  event?: Event
+  user?: Profile
+}
+
+export interface EventAnnouncement {
+  id: string
+  event_id: string
+  author_id: string
+  
+  title: string
+  content: string
+  priority: 'low' | 'normal' | 'high' | 'urgent'
+  
+  created_at: string
+  updated_at: string
+  
+  read_by?: string[]
+  pinned?: boolean
+  
+  // Relations
+  event?: Event
+  author?: Profile
+}
+
+export interface EventCategory {
+  id: string
+  name: string
+  description?: string
+  icon?: string
+  color?: string
+  parent_category_id?: string
+  display_order?: number
+  active?: boolean
+}
+
+export interface EventMaterial {
+  id: string
+  event_id: string
+  item: string
+  quantity?: string
+  is_required?: boolean
+  provider?: 'participant' | 'organizer' | 'either'
+  notes?: string
+}
+
+export interface EventFacilitator {
+  id: string
+  event_id: string
+  user_id: string
+  role?: string
+  bio?: string
+  
+  // Relations
+  event?: Event
   user?: Profile
 }
 
