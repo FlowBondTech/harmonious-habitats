@@ -42,6 +42,7 @@ import {
   Report
 } from '../lib/supabase';
 import { useAuthContext } from '../components/AuthProvider';
+import FeedbackModerationDashboard from '../components/FeedbackModerationDashboard';
 
 const AdminDashboard = () => {
   const { user, profile, loading: authLoading } = useAuthContext();
@@ -70,6 +71,7 @@ const AdminDashboard = () => {
     { id: 'users', label: 'Users', icon: Users },
     { id: 'events', label: 'Events', icon: Calendar },
     { id: 'spaces', label: 'Spaces', icon: Home },
+    { id: 'feedback', label: 'Feedback', icon: Star },
     { id: 'reports', label: 'Reports', icon: AlertTriangle },
     { id: 'messages', label: 'Messages', icon: MessageSquare },
     { id: 'settings', label: 'Settings', icon: Settings },
@@ -655,6 +657,11 @@ const AdminDashboard = () => {
               </div>
             )}
 
+            {/* Feedback Tab */}
+            {activeTab === 'feedback' && (
+              <FeedbackModerationDashboard isAdmin={true} />
+            )}
+            
             {/* Reports Tab */}
             {activeTab === 'reports' && (
               <div className="space-y-6">

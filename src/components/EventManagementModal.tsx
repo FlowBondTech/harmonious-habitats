@@ -18,10 +18,12 @@ import {
   UserCheck,
   UserX,
   Star,
-  Badge
+  Badge,
+  Settings
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase, Event } from '../lib/supabase';
+import EventParticipantManagement from './EventParticipantManagement';
 
 interface EventManagementModalProps {
   event: Event | null;
@@ -43,6 +45,7 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showParticipantManagement, setShowParticipantManagement] = useState(false);
 
   useEffect(() => {
     if (event && isOpen) {
@@ -324,6 +327,13 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
                   </h3>
                   <div className="flex space-x-2">
                     <button
+                      onClick={() => setShowParticipantManagement(true)}
+                      className="flex items-center space-x-2 bg-purple-100 text-purple-700 hover:bg-purple-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <Settings className="h-4 w-4" />
+                      <span>Manage</span>
+                    </button>
+                    <button
                       onClick={exportParticipants}
                       className="flex items-center space-x-2 bg-forest-100 text-forest-700 hover:bg-forest-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                     >
@@ -594,6 +604,20 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
         </div>
       </div>
     </div>
+    
+    {/* Participant Management Modal */}
+    {event && (
+      <EventParticipantManagement
+        eventId={event.id}
+        organizerId={event.organizer_id}
+        isOpen={showParticipantManagement}
+        onClose={() => {
+          setShowParticipantManagement(false);
+          loadParticipants();
+          loadWaitlist();
+        }}
+      />
+    )}
   );
 };
 

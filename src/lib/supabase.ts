@@ -269,7 +269,7 @@ export interface EventParticipant {
   
   // Registration
   registered_at: string
-  status: 'registered' | 'waitlisted' | 'cancelled' | 'attended' | 'no_show'
+  status: 'registered' | 'waitlisted' | 'cancelled' | 'attended' | 'no_show' | 'rejected'
   
   // Attendance
   checked_in_at?: string
@@ -289,6 +289,13 @@ export interface EventParticipant {
   // Communication
   reminder_sent_at?: string
   feedback_requested_at?: string
+  
+  // Rejection/Reinstatement
+  rejected_at?: string
+  rejected_by?: string
+  rejection_reason?: string
+  reinstated_at?: string
+  reinstated_by?: string
   
   // Relations
   event?: Event
@@ -371,6 +378,118 @@ export interface EventFacilitator {
   // Relations
   event?: Event
   user?: Profile
+}
+
+export interface Notification {
+  id: string
+  created_at: string
+  updated_at: string
+  
+  // Recipient
+  user_id: string
+  
+  // Notification details
+  type: 'event_reminder_24h' | 'event_reminder_1h' | 'event_starting_soon' | 
+        'event_cancelled' | 'event_updated' | 'feedback_request' | 
+        'registration_confirmed' | 'waitlist_promoted' | 'space_booking_request' |
+        'space_booking_approved' | 'space_booking_rejected'
+  title: string
+  message: string
+  
+  // Related entities
+  event_id?: string
+  space_id?: string
+  related_user_id?: string
+  
+  // Notification state
+  read_at?: string
+  sent_at?: string
+  email_sent_at?: string
+  
+  // Metadata
+  metadata?: any
+  
+  // Scheduling
+  scheduled_for?: string
+  expires_at?: string
+  
+  // Relations
+  event?: Event
+  space?: Space
+  related_user?: Profile
+}
+
+export interface EventFeedback {
+  id: string
+  created_at: string
+  updated_at: string
+  
+  // Feedback details
+  event_id: string
+  user_id: string
+  
+  // Basic feedback
+  overall_rating: number
+  would_recommend?: boolean
+  
+  // Detailed ratings
+  content_rating?: number
+  facilitator_rating?: number
+  venue_rating?: number
+  value_rating?: number
+  
+  // Written feedback
+  what_went_well?: string
+  what_could_improve?: string
+  additional_comments?: string
+  
+  // Follow-up questions
+  learned_something_new?: boolean
+  felt_welcomed?: boolean
+  clear_instructions?: boolean
+  appropriate_skill_level?: boolean
+  
+  // Moderation
+  is_public?: boolean
+  moderated_at?: string
+  moderated_by?: string
+  moderation_notes?: string
+  
+  // Metadata
+  feedback_metadata?: any
+  
+  // Relations
+  event?: Event
+  user?: Profile
+  moderator?: Profile
+}
+
+export interface NotificationPreferences {
+  id: string
+  user_id: string
+  created_at: string
+  updated_at: string
+  
+  // In-app notifications
+  event_reminders?: boolean
+  feedback_requests?: boolean
+  registration_updates?: boolean
+  space_updates?: boolean
+  
+  // Future email notifications
+  email_notifications_enabled?: boolean
+  email_daily_digest?: boolean
+  email_weekly_summary?: boolean
+  email_event_reminders?: boolean
+  email_feedback_requests?: boolean
+  
+  // Timing preferences
+  reminder_24h?: boolean
+  reminder_1h?: boolean
+  reminder_starting_soon?: boolean
+  
+  // Metadata
+  preferences_metadata?: any
 }
 
 export interface Space {
