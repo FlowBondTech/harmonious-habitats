@@ -37,6 +37,7 @@ const Navbar = () => {
     { path: '/', icon: Home, label: 'Home' },
     { path: '/map', icon: Map, label: 'Discover' },
     { path: '/global-feed', icon: Globe, label: 'Global Feed' },
+    { path: '/calendar', icon: Calendar, label: 'Calendar' },
     { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
     { path: '/activities', icon: Calendar, label: 'Activities' },
     { path: '/messages', icon: MessageCircle, label: 'Messages' },

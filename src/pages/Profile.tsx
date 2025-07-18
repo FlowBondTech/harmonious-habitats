@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Clock, Award, CheckCircle, MessageCircle, Share2, Image, Home as HomeIcon, Globe, Map, GraduationCap, Package, Briefcase, Languages, Accessibility, X } from 'lucide-react';
+import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Clock, Award, CheckCircle, MessageCircle, Share2, Image, Home as HomeIcon, Globe, Map, GraduationCap, Package, Briefcase, Languages, Accessibility, X, BarChart3 } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
-import { updateProfile } from '../lib/supabase';
+import { updateProfile, supabase } from '../lib/supabase';
 import { Link, useLocation } from 'react-router-dom';
 import ProfileSkillsSection from '../components/ProfileSkillsSection';
 import ProfileOfferingsSection from '../components/ProfileOfferingsSection';
 import { ShareTab } from '../components/ShareTab';
+import EventAnalyticsDashboard from '../components/EventAnalyticsDashboard';
 
 const Profile = () => {
   const { user, profile, loadUserProfile } = useAuthContext();
@@ -26,6 +27,7 @@ const Profile = () => {
     community: false,
     globalEvents: true
   });
+  const [hasEvents, setHasEvents] = useState(false);
 
   // Handle navigation state
   useEffect(() => {
@@ -58,6 +60,22 @@ const Profile = () => {
     teaching_experience: profile?.teaching_experience || 0,
     mentorship_available: profile?.mentorship_available || false
   });
+
+  // Check if user has events
+  useEffect(() => {
+    const checkUserEvents = async () => {
+      if (user) {
+        const { count } = await supabase
+          .from('events')
+          .select('*', { count: 'exact', head: true })
+          .eq('organizer_id', user.id);
+        
+        setHasEvents((count || 0) > 0);
+      }
+    };
+    
+    checkUserEvents();
+  }, [user]);
 
   // Update form data when profile changes
   React.useEffect(() => {
@@ -334,6 +352,7 @@ const Profile = () => {
                   { id: 'skills', label: 'Skills', icon: GraduationCap },
                   { id: 'offerings', label: 'Offerings', icon: Package },
                   { id: 'capabilities', label: 'Capabilities', icon: Briefcase },
+                  ...(hasEvents ? [{ id: 'analytics', label: 'Event Analytics', icon: BarChart3 }] : []),
                   { id: 'share', label: 'My Shares', icon: Share2 },
                   { id: 'settings', label: 'Settings', icon: Settings },
                   { id: 'privacy', label: 'Privacy', icon: Shield },
@@ -794,6 +813,11 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Analytics Tab */}
+            {activeTab === 'analytics' && hasEvents && (
+              <EventAnalyticsDashboard organizerId={user?.id} />
             )}
 
             {/* Share Tab - Dashboard for existing holders */}

@@ -22,6 +22,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const GlobalFeed = lazy(() => import('./pages/GlobalFeed'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const EventFeedbackForm = lazy(() => import('./components/EventFeedbackForm'));
+const EventCalendarPage = lazy(() => import('./pages/EventCalendar'));
 
 const AppContent = () => {
   const { showAuthModalGlobal, globalAuthMode, closeAuthModalGlobal } = useAuthContext();
@@ -98,6 +99,9 @@ const AppContent = () => {
                     <ProtectedRoute>
                       <EventFeedbackForm />
                     </ProtectedRoute>
+                  } />
+                  <Route path="/calendar" element={
+                    <EventCalendarPage />
                   } />
                   
                   {/* Fallback Routes */}
