@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Clock, Award, CheckCircle, MessageCircle, Share2, Image, Home as HomeIcon, Globe, Map, GraduationCap, Package, Briefcase, Languages, Accessibility, X } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { updateProfile } from '../lib/supabase';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import ProfileSkillsSection from '../components/ProfileSkillsSection';
 import ProfileOfferingsSection from '../components/ProfileOfferingsSection';
+import { ShareTab } from '../components/ShareTab';
 
 const Profile = () => {
   const { user, profile, loadUserProfile } = useAuthContext();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,8 +26,13 @@ const Profile = () => {
     community: false,
     globalEvents: true
   });
-  
-  // Space sharer modals
+
+  // Handle navigation state
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
   
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || '',
@@ -327,6 +334,7 @@ const Profile = () => {
                   { id: 'skills', label: 'Skills', icon: GraduationCap },
                   { id: 'offerings', label: 'Offerings', icon: Package },
                   { id: 'capabilities', label: 'Capabilities', icon: Briefcase },
+                  { id: 'share', label: 'My Shares', icon: Share2 },
                   { id: 'settings', label: 'Settings', icon: Settings },
                   { id: 'privacy', label: 'Privacy', icon: Shield },
                 ].map((item) => {
@@ -788,6 +796,8 @@ const Profile = () => {
               </div>
             )}
 
+            {/* Share Tab - Dashboard for existing holders */}
+            {activeTab === 'share' && <ShareTab />}
 
             {/* Settings Tab */}
             {activeTab === 'settings' && (
