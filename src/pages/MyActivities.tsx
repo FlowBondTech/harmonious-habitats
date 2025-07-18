@@ -22,10 +22,12 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuthContext } from '../components/AuthProvider';
-import { getEvents, getSpaces, getUserAttendingEvents, Event, Space } from '../lib/supabase';
-import EventCard from '../components/EventCard';
+import { supabase, Event, Space } from '../lib/supabase';
+import EventCardV2 from '../components/EventCardV2';
 import SpaceCard from '../components/SpaceCard';
 import ApplicationManagement from '../components/ApplicationManagement';
+import EventDetailsModal from '../components/EventDetailsModal';
+import { getSpaces } from '../lib/supabase';
 
 interface ActivityStats {
   eventsAttended: number;
@@ -56,6 +58,7 @@ const MyActivities = () => {
   const [mySpaces, setMySpaces] = useState<Space[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   // const [_filter, _setFilter] = useState<ActivityFilter>({
   //   timeRange: 'month',
   //   status: 'all',
@@ -85,23 +88,47 @@ const MyActivities = () => {
       setLoading(true);
       
       // Load events the user is attending
-      const { data: attendingData, error: attendingError } = await getUserAttendingEvents(user.id);
-      if (attendingError) {
-        console.error('Error loading attending events:', attendingError);
-      } else {
-        setAttendingEvents(attendingData || []);
+      const { data: attendingData } = await supabase
+        .from('event_participants')
+        .select(`
+          event_id,
+          status,
+          event:events!inner(*,
+            organizer:profiles!organizer_id(id, full_name, avatar_url, verified),
+            participant_count:event_participants(count)
+          )
+        `)
+        .eq('user_id', user.id)
+        .in('status', ['registered', 'waitlisted'])
+        .gte('event.date', new Date().toISOString().split('T')[0]);
+
+      if (attendingData) {
+        const events = attendingData.map(item => ({
+          ...item.event,
+          participant_count: item.event.participant_count?.[0]?.count || 0,
+          userStatus: item.status
+        }));
+        setAttendingEvents(events);
       }
       
       // Load events user is hosting
-      const { data: hostingData, error: hostingError } = await getEvents({
-        status: 'active'
-      });
-      if (hostingError) {
-        console.error('Error loading hosting events:', hostingError);
-      } else {
-        // Filter for events where user is the organizer
-        const userHostingEvents = hostingData?.filter(event => event.organizer_id === user.id) || [];
-        setHostingEvents(userHostingEvents);
+      const { data: hostingData } = await supabase
+        .from('events')
+        .select(`
+          *,
+          organizer:profiles!organizer_id(id, full_name, avatar_url, verified),
+          participant_count:event_participants(count)
+        `)
+        .eq('organizer_id', user.id)
+        .in('status', ['published', 'draft'])
+        .order('date', { ascending: true });
+
+      if (hostingData) {
+        const events = hostingData.map(event => ({
+          ...event,
+          participant_count: event.participant_count?.[0]?.count || 0
+        }));
+        setHostingEvents(events);
       }
       
       // Load user's spaces
@@ -502,7 +529,12 @@ const MyActivities = () => {
                       event.description?.toLowerCase().includes(searchTerm.toLowerCase())
                     )
                     .map((event) => (
-                      <EventCard key={event.id} event={event} onUpdate={loadActivities} />
+                      <EventCardV2 
+                        key={event.id} 
+                        event={event} 
+                        onViewDetails={setSelectedEventId}
+                        isRegistered={true}
+                      />
                     ))}
                 </div>
               ) : (
@@ -556,7 +588,11 @@ const MyActivities = () => {
               ) : hostingEvents.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {hostingEvents.map((event) => (
-                                         <EventCard key={event.id} event={event} onUpdate={loadActivities} showManagement />
+                    <EventCardV2 
+                      key={event.id} 
+                      event={event} 
+                      onViewDetails={setSelectedEventId}
+                    />
                   ))}
                 </div>
               ) : (
@@ -757,6 +793,18 @@ const MyActivities = () => {
           </div>
         )}
       </div>
+
+      {/* Event Details Modal */}
+      {selectedEventId && (
+        <EventDetailsModal
+          eventId={selectedEventId}
+          isOpen={!!selectedEventId}
+          onClose={() => {
+            setSelectedEventId(null);
+            loadActivities();
+          }}
+        />
+      )}
     </div>
   );
 };
