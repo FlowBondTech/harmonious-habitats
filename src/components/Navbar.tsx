@@ -175,34 +175,16 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
               </div>
             </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-1">
-              {navItems.map(({ path, icon, label }) => (
-                <NavLink
-                  key={path}
-                  path={path}
-                  icon={icon}
-                  label={label}
-                  isActive={location.pathname === path}
-                  isAdmin={path === '/admin'}
-                />
-              ))}
+            {/* Desktop: Empty space or minimal content since we have sidebar */}
+            <div className="hidden lg:flex items-center space-x-4">
+              {/* Could add search bar, notifications, etc. here in the future */}
             </div>
 
 
 
-            {/* Auth Section */}
-            <div className="flex items-center space-x-3">
-              <div className="hidden lg:block">
-                {user ? (
-                  <UserProfile user={user} profile={profile} onSignOut={signOut} />
-                ) : (
-                  <AuthButtons 
-                    onSignIn={() => openAuthModalGlobal('signin')}
-                    onSignUp={() => openAuthModalGlobal('signup')}
-                  />
-                )}
-              </div>
+            {/* Auth Section - Only show on mobile since desktop has sidebar */}
+            <div className="lg:hidden flex items-center space-x-3">
+              {/* Mobile auth handled by avatar menu trigger */}
             </div>
           </div>
         </div>

@@ -1,24 +1,29 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuthContext } from './components/AuthProvider';
 import KeyboardNavHelper from './components/KeyboardNavHelper';
 import AuthModal from './components/AuthModal';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
 import NotificationCenter from './components/NotificationCenter';
 import MobileOptimization from './components/MobileOptimization';
 import ScrollToTop from './components/ScrollToTop';
 import { LoadingSpinner } from './components/LoadingStates';
+import MobileMenu from './components/MobileMenu';
+import { ShareModal } from './components/ShareModal';
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import('./pages/Home'));
 const Map = lazy(() => import('./pages/Map'));
 const Search = lazy(() => import('./pages/Search'));
 const CreateEvent = lazy(() => import('./pages/CreateEvent'));
+const CreateEventSimple = lazy(() => import('./pages/CreateEventSimple'));
+const TestMinimalEvent = lazy(() => import('./pages/TestMinimalEvent'));
 const ShareSpace = lazy(() => import('./pages/ShareSpace'));
 const MyActivities = lazy(() => import('./pages/MyActivities'));
 const Messages = lazy(() => import('./pages/Messages'));
-const Profile = lazy(() => import('./pages/Profile'));
+const Account = lazy(() => import('./pages/Account'));
 const GlobalFeed = lazy(() => import('./pages/GlobalFeed'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const EventFeedbackForm = lazy(() => import('./components/EventFeedbackForm'));
@@ -26,6 +31,8 @@ const EventCalendarPage = lazy(() => import('./pages/EventCalendar'));
 
 const AppContent = () => {
   const { showAuthModalGlobal, globalAuthMode, closeAuthModalGlobal } = useAuthContext();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   return (
     <>
@@ -33,25 +40,36 @@ const AppContent = () => {
       <Router>
         <MobileOptimization>
           <ScrollToTop />
-          <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-earth-50/30 relative overflow-x-hidden">
-            {/* Background Pattern */}
-            <div className="fixed inset-0 opacity-[0.02] pointer-events-none">
-              <div 
-                className="absolute inset-0 bg-repeat"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234d7c2a' fill-opacity='1'%3E%3Ccircle cx='30' cy='30' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-                }}
-              ></div>
+          <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-earth-50/30 relative flex">
+            {/* Desktop Sidebar */}
+            <div className="hidden lg:block">
+              <Sidebar />
             </div>
             
-            {/* Navigation */}
-            <Navbar />
-            
-            {/* Notification Center */}
-            <NotificationCenter />
-            
-            {/* Main Content with responsive padding */}
-            <main id="main" className="pt-16 pb-20 md:pb-8 min-h-screen relative z-10">
+            {/* Main Content Area */}
+            <div className={`flex-1 min-h-screen relative overflow-x-hidden transition-transform duration-300 ease-in-out lg:ml-72 ${
+              isMenuOpen ? 'transform translate-x-80 lg:translate-x-0' : 'transform translate-x-0'
+            }`}>
+              {/* Background Pattern */}
+              <div className="fixed inset-0 opacity-[0.02] pointer-events-none">
+                <div 
+                  className="absolute inset-0 bg-repeat"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234d7c2a' fill-opacity='1'%3E%3Ccircle cx='30' cy='30' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+                  }}
+                ></div>
+              </div>
+              
+              {/* Navigation - Only show on mobile */}
+              <div className="lg:hidden">
+                <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+              </div>
+              
+              {/* Notification Center */}
+              <NotificationCenter />
+              
+              {/* Main Content with responsive padding */}
+              <main id="main" className="pt-16 lg:pt-8 pb-20 md:pb-8 min-h-screen relative z-10">
               <Suspense fallback={
                 <div className="flex items-center justify-center min-h-screen">
                   <LoadingSpinner size="lg" text="Loading..." />
@@ -70,6 +88,16 @@ const AppContent = () => {
                       <CreateEvent />
                     </ProtectedRoute>
                   } />
+                  <Route path="/create-event-simple" element={
+                    <ProtectedRoute>
+                      <CreateEventSimple />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/test-minimal-event" element={
+                    <ProtectedRoute>
+                      <TestMinimalEvent />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/share-space" element={
                     <ProtectedRoute>
                       <ShareSpace />
@@ -85,9 +113,9 @@ const AppContent = () => {
                       <Messages />
                     </ProtectedRoute>
                   } />
-                  <Route path="/profile" element={
+                  <Route path="/account" element={
                     <ProtectedRoute>
-                      <Profile />
+                      <Account />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin" element={
@@ -106,6 +134,7 @@ const AppContent = () => {
                   
                   {/* Fallback Routes */}
                   <Route path="/my-activities" element={<Navigate to="/activities" replace />} />
+                  <Route path="/profile" element={<Navigate to="/account" replace />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
@@ -125,6 +154,20 @@ const AppContent = () => {
               <div className="absolute bottom-1/4 left-1/4 w-48 h-48 bg-blue-100/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
             </div>
           </div>
+          </div>
+          
+          {/* Mobile Menu */}
+          <MobileMenu 
+            isOpen={isMenuOpen} 
+            onClose={() => setIsMenuOpen(false)}
+            onShareClick={() => setShowShareModal(true)}
+          />
+          
+          {/* Share Modal */}
+          <ShareModal
+            isOpen={showShareModal}
+            onClose={() => setShowShareModal(false)}
+          />
         </MobileOptimization>
       </Router>
     </>

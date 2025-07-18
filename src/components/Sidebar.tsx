@@ -1,0 +1,215 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { 
+  Home, 
+  Map, 
+  Globe, 
+  CalendarPlus, 
+  Calendar, 
+  MessageCircle, 
+  User, 
+  LogOut,
+  Shield,
+  Star,
+  Plus,
+  ChevronRight,
+  Settings,
+  Heart
+} from 'lucide-react';
+import { useAuthContext } from './AuthProvider';
+import Avatar from './Avatar';
+import { Space, getSpaces } from '../lib/supabase';
+
+interface NavItemProps {
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  isActive: boolean;
+  badge?: number;
+}
+
+const NavItem: React.FC<NavItemProps> = ({ path, icon: Icon, label, isActive, badge }) => {
+  return (
+    <Link
+      to={path}
+      className={`
+        flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+        ${isActive 
+          ? 'bg-gradient-to-r from-forest-100 to-earth-50 text-forest-700 shadow-sm' 
+          : 'hover:bg-gray-50 text-gray-700 hover:text-forest-600'
+        }
+      `}
+    >
+      <Icon className={`h-5 w-5 ${isActive ? 'text-forest-600' : ''}`} />
+      <span className="font-medium">{label}</span>
+      {badge && badge > 0 && (
+        <span className="ml-auto bg-forest-500 text-white text-xs px-2 py-0.5 rounded-full">
+          {badge}
+        </span>
+      )}
+    </Link>
+  );
+};
+
+const FavoriteSpace: React.FC<{ space: Space; isActive?: boolean }> = ({ space, isActive }) => {
+  return (
+    <Link
+      to={`/spaces/${space.id}`}
+      className={`
+        flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
+        ${isActive 
+          ? 'bg-forest-50 text-forest-700' 
+          : 'hover:bg-gray-50 text-gray-600 hover:text-forest-600'
+        }
+      `}
+    >
+      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-forest-100 to-earth-100 flex items-center justify-center flex-shrink-0">
+        {space.image_url ? (
+          <img src={space.image_url} alt={space.name} className="w-full h-full rounded-lg object-cover" />
+        ) : (
+          <Home className="h-4 w-4 text-forest-600" />
+        )}
+      </div>
+      <span className="text-sm font-medium truncate">{space.name}</span>
+    </Link>
+  );
+};
+
+const Sidebar: React.FC = () => {
+  const location = useLocation();
+  const { user, profile, isAdmin, signOut } = useAuthContext();
+  const [favoriteSpaces, setFavoriteSpaces] = useState<Space[]>([]);
+  const [showAllFavorites, setShowAllFavorites] = useState(false);
+
+  // Navigation items
+  const navItems = [
+    { path: '/', icon: Home, label: 'Home' },
+    { path: '/map', icon: Map, label: 'Discover' },
+    { path: '/global-feed', icon: Globe, label: 'Global Feed' },
+    { path: '/calendar', icon: Calendar, label: 'Calendar' },
+    { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
+    { path: '/activities', icon: Calendar, label: 'My Activities' },
+    { path: '/messages', icon: MessageCircle, label: 'Messages', badge: 3 },
+  ];
+
+  if (isAdmin) {
+    navItems.push({ path: '/admin', icon: Shield, label: 'Admin', badge: 0 });
+  }
+
+  // Load favorite spaces
+  useEffect(() => {
+    const loadFavorites = async () => {
+      if (!user) return;
+      
+      try {
+        // For now, just load the first 5 spaces as favorites
+        // In a real app, you'd have a favorites system
+        const spaces = await getSpaces({ limit: 5 });
+        setFavoriteSpaces(spaces);
+      } catch (error) {
+        console.error('Failed to load favorite spaces:', error);
+      }
+    };
+
+    loadFavorites();
+  }, [user]);
+
+  const displayedFavorites = showAllFavorites ? favoriteSpaces : favoriteSpaces.slice(0, 3);
+
+  return (
+    <aside className="fixed left-0 top-0 h-full w-72 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
+      {/* Logo/Brand */}
+      <div className="p-6 border-b border-gray-100">
+        <h1 className="text-2xl font-bold text-gradient">Harmony Spaces</h1>
+        <p className="text-xs text-gray-500 mt-1">Community Connection Platform</p>
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Favorites Section */}
+        {user && favoriteSpaces.length > 0 && (
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-yellow-500" />
+                <h2 className="text-sm font-semibold text-gray-700">Favorite Spaces</h2>
+              </div>
+              <button className="text-forest-600 hover:bg-forest-50 p-1 rounded-lg transition-colors">
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+            
+            <div className="space-y-1">
+              {displayedFavorites.map((space) => (
+                <FavoriteSpace 
+                  key={space.id} 
+                  space={space} 
+                  isActive={location.pathname === `/spaces/${space.id}`}
+                />
+              ))}
+            </div>
+
+            {favoriteSpaces.length > 3 && (
+              <button
+                onClick={() => setShowAllFavorites(!showAllFavorites)}
+                className="flex items-center gap-1 text-sm text-forest-600 hover:text-forest-700 mt-2 px-4 py-1"
+              >
+                <ChevronRight className={`h-3 w-3 transition-transform ${showAllFavorites ? 'rotate-90' : ''}`} />
+                {showAllFavorites ? 'Show less' : `Show ${favoriteSpaces.length - 3} more`}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Main Navigation */}
+        <nav className="p-4 space-y-1">
+          {navItems.map((item) => (
+            <NavItem
+              key={item.path}
+              {...item}
+              isActive={location.pathname === item.path}
+            />
+          ))}
+        </nav>
+      </div>
+
+      {/* User Profile Section */}
+      {user && (
+        <div className="border-t border-gray-100 p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <Avatar 
+              name={profile?.full_name || user.email?.split('@')[0]}
+              imageUrl={profile?.avatar_url}
+              size="md"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {profile?.full_name || user.email?.split('@')[0]}
+              </p>
+              <p className="text-xs text-gray-500 truncate">{user.email}</p>
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <Link
+              to="/account"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <Settings className="h-4 w-4" />
+              Settings
+            </Link>
+            <button
+              onClick={signOut}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </button>
+          </div>
+        </div>
+      )}
+    </aside>
+  );
+};
+
+export default Sidebar;
