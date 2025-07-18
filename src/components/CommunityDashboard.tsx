@@ -82,7 +82,7 @@ const CommunityDashboard: React.FC<CommunityDashboardProps> = ({
         userSpacesResult,
         recentMembersResult
       ] = await Promise.all([
-        supabase.from('events').select('*').eq('status', 'active'),
+        supabase.from('events').select('*').eq('status', 'published'),
         supabase.from('spaces').select('*').eq('status', 'available'),
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('event_participants').select('*').eq('user_id', user.id),

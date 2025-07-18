@@ -12,6 +12,8 @@ const CreateEvent = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
+  console.log('CreateEvent component rendering, user:', user);
+  
   const [formData, setFormData] = useState({
     title: '',
     category: '',
@@ -51,36 +53,50 @@ const CreateEvent = () => {
   const [userSpaces, setUserSpaces] = useState<any[]>([]);
   const [userTimeOfferings, setUserTimeOfferings] = useState<any[]>([]);
 
-  // Load user's spaces and time offerings
+  // Check authentication and load user's spaces and time offerings
   useEffect(() => {
-    if (user) {
-      loadUserResources();
+    if (!user) {
+      console.log('No user found, redirecting to home');
+      navigate('/');
+      return;
     }
-  }, [user]);
+    
+    console.log('User found, loading resources');
+    loadUserResources();
+  }, [user, navigate]);
 
   const loadUserResources = async () => {
     if (!user) return;
 
-    // Load user's spaces
-    const { data: spaces } = await supabase
-      .from('spaces')
-      .select('id, name')
-      .eq('owner_id', user.id)
-      .eq('status', 'active');
+    try {
+      // Load user's spaces
+      const { data: spaces, error: spacesError } = await supabase
+        .from('spaces')
+        .select('id, name')
+        .eq('owner_id', user.id)
+        .eq('status', 'active');
 
-    if (spaces) {
-      setUserSpaces(spaces);
-    }
+      if (spacesError) {
+        console.error('Error loading spaces:', spacesError);
+      } else if (spaces) {
+        setUserSpaces(spaces);
+      }
 
-    // Load user's time offerings
-    const { data: offerings } = await supabase
-      .from('time_offerings')
-      .select('id, service_type, title')
-      .eq('user_id', user.id)
-      .eq('status', 'active');
+      // Load user's time offerings
+      const { data: offerings, error: offeringsError } = await supabase
+        .from('time_offerings')
+        .select('id, title, category')
+        .eq('holder_id', user.id)
+        .eq('status', 'active');
 
-    if (offerings) {
-      setUserTimeOfferings(offerings);
+      if (offeringsError) {
+        console.error('Error loading time offerings:', offeringsError);
+      } else if (offerings) {
+        setUserTimeOfferings(offerings);
+      }
+    } catch (err) {
+      console.error('Error in loadUserResources:', err);
+      // Don't prevent the page from loading if these optional resources fail
     }
   };
 
@@ -187,51 +203,56 @@ const CreateEvent = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Event submission started');
+    console.log('User:', user);
+    console.log('Form data:', formData);
+    
     if (!user) {
       setError('You must be signed in to create an event');
       return;
     }
 
-    if (!validateForm()) {
+    // Check if user session is valid
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log('Session check:', { session, sessionError });
+      
+      if (!session) {
+        setError('Your session has expired. Please sign in again.');
+        return;
+      }
+    } catch (err) {
+      console.error('Error checking session:', err);
+      setError('Failed to verify session. Please try again.');
       return;
     }
+
+    console.log('Validating form...');
+    if (!validateForm()) {
+      console.log('Form validation failed');
+      return;
+    }
+    console.log('Form validation passed');
 
     setLoading(true);
     setError(null);
     setSuccess(null);
 
     try {
-      // Prepare event data matching the new schema
+      // Prepare event data - start with minimal fields
       const eventData: any = {
         organizer_id: user.id,
         title: formData.title.trim(),
         description: formData.description.trim() || null,
         category: formData.category,
-        event_type: formData.eventType,
         date: formData.date,
         start_time: formData.startTime,
         end_time: formData.endTime,
-        timezone: formData.timezone,
-        location_name: formData.location.trim(),
-        address: formData.address.trim() || null,
-        capacity: parseInt(formData.capacity),
-        registration_required: formData.registrationRequired,
-        registration_deadline: formData.registrationDeadline || null,
-        waitlist_enabled: formData.waitlistEnabled,
-        skill_level: formData.skillLevel,
-        prerequisites: formData.prerequisites.trim() || null,
-        what_to_bring: formData.whatToBring.trim() || null,
-        is_free: formData.isFree,
-        suggested_donation: formData.donationAmount.trim() || null,
-        minimum_donation: formData.minimumDonation ? parseFloat(formData.minimumDonation) : null,
-        maximum_donation: formData.maximumDonation ? parseFloat(formData.maximumDonation) : null,
-        exchange_type: formData.exchangeType,
-        is_recurring: formData.recurring,
-        recurrence_rule: formData.recurring ? formData.recurrencePattern : null,
-        tags: formData.tags,
-        status: 'published',
-        visibility: 'public'
+        location_name: formData.location.trim()
       };
+      
+      // Log what we're about to send
+      console.log('Minimal event data:', eventData);
 
       // Add virtual event fields if applicable
       if (formData.eventType === 'virtual') {
@@ -247,50 +268,67 @@ const CreateEvent = () => {
         eventData.time_offering_id = formData.time_offering_id;
       }
 
-      const { data, error: insertError } = await supabase
+      console.log('Attempting to insert event data:', JSON.stringify(eventData, null, 2));
+      
+      // First, let's try a simple insert without the select
+      const { data: insertData, error: insertError } = await supabase
         .from('events')
-        .insert([eventData])
-        .select(`
-          *,
-          organizer:profiles(id, full_name, avatar_url, verified)
-        `)
+        .insert([eventData]);
+      
+      console.log('Initial insert response:', { insertData, insertError });
+      
+      if (insertError) {
+        console.error('Supabase insert error:', insertError);
+        throw insertError;
+      }
+      
+      // If insert succeeded, fetch the created event
+      const { data, error: fetchError } = await supabase
+        .from('events')
+        .select('*')
+        .eq('organizer_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
 
-      if (insertError) {
-        throw insertError;
+      console.log('Fetch response:', { data, error: fetchError });
+
+      if (fetchError) {
+        console.error('Supabase fetch error:', fetchError);
+        throw fetchError;
       }
       
       console.log("Event created successfully:", data);
 
-      // Add materials if any
-      if (formData.materials.length > 0) {
-        const materials = formData.materials.map(material => ({
-          event_id: data.id,
-          item: material,
-          is_required: true,
-          provider: 'participant'
-        }));
+      // Add materials if any (commented out - table doesn't exist)
+      // if (formData.materials.length > 0) {
+      //   const materials = formData.materials.map(material => ({
+      //     event_id: data.id,
+      //     item: material,
+      //     is_required: true,
+      //     provider: 'participant'
+      //   }));
 
-        await supabase
-          .from('event_materials')
-          .insert(materials);
-      }
+      //   await supabase
+      //     .from('event_materials')
+      //     .insert(materials);
+      // }
 
-      // Add the organizer as a participant automatically
-      try {
-        await supabase
-          .from('event_participants')
-          .insert([{
-            event_id: data.id,
-            user_id: user.id,
-            status: 'registered',
-            registered_at: new Date().toISOString()
-          }]);
+      // Add the organizer as a participant automatically (commented out - column mismatch)
+      // try {
+      //   await supabase
+      //     .from('event_participants')
+      //     .insert([{
+      //       event_id: data.id,
+      //       user_id: user.id,
+      //       status: 'registered',
+      //       registered_at: new Date().toISOString()
+      //     }]);
           
-        console.log("Added organizer as participant");
-      } catch (err) {
-        console.error("Error adding organizer as participant:", err);
-      }
+      //   console.log("Added organizer as participant");
+      // } catch (err) {
+      //   console.error("Error adding organizer as participant:", err);
+      // }
       
       setSuccess('Event created successfully!');
       
@@ -300,7 +338,32 @@ const CreateEvent = () => {
       }, 2000);
 
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create event';
+      console.error('Error creating event:', err);
+      
+      let errorMessage = 'Failed to create event';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+        
+        // Check for specific Supabase errors
+        if ('code' in err) {
+          console.error('Error code:', (err as any).code);
+          console.error('Error details:', (err as any).details);
+          console.error('Error hint:', (err as any).hint);
+          
+          // Common Supabase error codes
+          if ((err as any).code === '23505') {
+            errorMessage = 'An event with similar details already exists';
+          } else if ((err as any).code === '23503') {
+            errorMessage = 'Invalid reference to related data';
+          } else if ((err as any).code === '42501') {
+            errorMessage = 'You do not have permission to create events';
+          } else if ((err as any).code === 'PGRST301') {
+            errorMessage = 'Authentication error - please sign in again';
+          }
+        }
+      }
+      
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -881,7 +944,7 @@ const CreateEvent = () => {
                         <option value="">Not part of time offering</option>
                         {userTimeOfferings.map(offering => (
                           <option key={offering.id} value={offering.id}>
-                            {offering.title || offering.service_type}
+                            {offering.title} ({offering.category})
                           </option>
                         ))}
                       </select>

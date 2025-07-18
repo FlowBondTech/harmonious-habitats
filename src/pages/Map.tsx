@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Users, Clock, Navigation } from 'lucide-react';
-import { getEvents, getSpaces, Event, Space } from '../lib/supabase';
+import { getEvents, Event } from '../lib/supabase';
 import SearchSystem from '../components/SearchSystem';
 
 const Map = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [radius, setRadius] = useState(1);
+  const [radius, setRadius] = useState('nearby');
   const [mapEvents, setMapEvents] = useState<Event[]>([]);
-  const [mapSpaces, setMapSpaces] = useState<Space[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSpaces, setShowSpaces] = useState(false);
 
   const categories = [
     { id: 'all', name: 'All Events', icon: Filter, color: 'text-forest-600' },
@@ -27,34 +25,12 @@ const Map = () => {
       try {
         setLoading(true);
         
-        const [eventsResult, spacesResult] = await Promise.all([
-          getEvents({ status: 'active', limit: 20 }),
-          getSpaces({ status: 'available', limit: 20 })
-        ]);
+        const eventsResult = await getEvents({ status: 'published', limit: 50 });
 
         if (eventsResult.data) {
-          // Add mock positions for demo purposes
-          const eventsWithPositions = eventsResult.data.map((event, index) => ({
-            ...event,
-            position: {
-              top: `${20 + (index * 15) % 60}%`,
-              left: `${25 + (index * 20) % 50}%`
-            }
-          }));
-          setMapEvents(eventsWithPositions);
+          setMapEvents(eventsResult.data);
         }
 
-        if (spacesResult.data) {
-          // Add mock positions for demo purposes
-          const spacesWithPositions = spacesResult.data.map((space, index) => ({
-            ...space,
-            position: {
-              top: `${30 + (index * 18) % 50}%`,
-              left: `${35 + (index * 22) % 40}%`
-            }
-          }));
-          setMapSpaces(spacesWithPositions);
-        }
         
       } catch (err) {
         console.error('Error loading map data:', err);
@@ -70,9 +46,7 @@ const Map = () => {
     ? mapEvents 
     : mapEvents.filter(event => event.category.toLowerCase().includes(selectedCategory.toLowerCase()));
 
-  const filteredSpaces = mapSpaces; // For now, show all spaces
-
-  const filteredItems = showSpaces ? filteredSpaces : filteredEvents;
+  const filteredItems = filteredEvents;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
@@ -80,7 +54,7 @@ const Map = () => {
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-forest-800 mb-2">Neighborhood Discovery</h1>
-          <p className="text-forest-600">Find holistic events and spaces within walking distance</p>
+          <p className="text-forest-600">Find holistic events within walking distance</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
@@ -93,7 +67,7 @@ const Map = () => {
                 showFilters={false}
                 onResults={(results) => {
                   setMapEvents(results.events);
-                  setMapSpaces(results.spaces);
+                  // Only show events in discovery
                 }}
               />
             </div>
@@ -105,22 +79,23 @@ const Map = () => {
                 Discovery Radius
               </h3>
               <div className="space-y-2">
-                {[0.5, 1, 2, 3].map((r) => (
+                {[
+                  { id: 'nearby', name: 'Nearby', description: '5-15 min walk', miles: '0.5-1 mile' },
+                  { id: 'local', name: 'My Local Area', description: '20-30 min walk', miles: '2-3 miles' },
+                  { id: 'global', name: 'Global', description: 'Virtual & worldwide', miles: 'Anywhere' }
+                ].map((option) => (
                   <button
-                    key={r}
-                    onClick={() => setRadius(r)}
+                    key={option.id}
+                    onClick={() => setRadius(option.id)}
                     className={`w-full p-3 rounded-xl text-left transition-all duration-200 ${
-                      radius === r
+                      radius === option.id
                         ? 'bg-forest-100 text-forest-800 border-2 border-forest-300 shadow-sm'
                         : 'bg-forest-50 text-forest-600 hover:bg-forest-100 border-2 border-transparent'
                     }`}
                   >
-                    <div className="font-semibold">{r} mile{r !== 1 ? 's' : ''}</div>
-                    <div className="text-sm opacity-80">
-                      {r === 0.5 ? '5-8 min walk' : 
-                       r === 1 ? '12-15 min walk' : 
-                       r === 2 ? '25-30 min walk' : '5-8 min bike'}
-                    </div>
+                    <div className="font-semibold">{option.name}</div>
+                    <div className="text-sm opacity-80">{option.description}</div>
+                    <div className="text-xs opacity-60">{option.miles}</div>
                   </button>
                 ))}
               </div>
@@ -164,36 +139,7 @@ const Map = () => {
               <h3 className="font-semibold text-forest-800 mb-4">In Your Area</h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-forest-600">Show</span>
-                  <div className="flex bg-forest-100 rounded-lg p-1">
-                    <button
-                      onClick={() => setShowSpaces(false)}
-                      className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                        !showSpaces ? 'bg-white text-forest-700 shadow-sm' : 'text-forest-600'
-                      }`}
-                    >
-                      Events
-                    </button>
-                    <button
-                      onClick={() => setShowSpaces(true)}
-                      className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                        showSpaces ? 'bg-white text-forest-700 shadow-sm' : 'text-forest-600'
-                      }`}
-                    >
-                      Spaces
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-forest-600">Active neighbors</span>
-                  <span className="font-bold text-forest-800">127</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-forest-600">Available spaces</span>
-                  <span className="font-bold text-forest-800">34</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-forest-600">Available {showSpaces ? 'spaces' : 'events'}</span>
+                  <span className="text-forest-600">Available events</span>
                   <span className="font-bold text-forest-800">{filteredItems.length}</span>
                 </div>
               </div>
@@ -208,10 +154,10 @@ const Map = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between">
                   <div className="mb-4 sm:mb-0">
                     <h2 className="text-xl font-semibold">
-                      Your Neighborhood {showSpaces ? 'Spaces' : 'Events'}
+                      Your Neighborhood Events
                     </h2>
                     <p className="text-forest-100 text-sm sm:text-base">
-                      Showing {filteredItems.length} {showSpaces ? 'spaces' : 'events'} within {radius} mile{radius !== 1 ? 's' : ''}
+                      Showing {filteredItems.length} events {radius === 'global' ? 'worldwide' : radius === 'nearby' ? 'nearby' : 'in your local area'}
                     </p>
                   </div>
                   <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 self-start sm:self-center">
@@ -245,66 +191,62 @@ const Map = () => {
                       </div>
                     </div>
 
-                    {/* Event/Space Markers */}
-                    {filteredItems.map((item) => {
-                      const category = showSpaces 
-                        ? { icon: MapPin, color: 'text-earth-600' }
-                        : categories.find(c => c.id === (item as Event).category?.toLowerCase()) || { icon: MapPin, color: 'text-forest-600' };
-                      const Icon = category?.icon || MapPin;
-                      
-                      return (
-                        <div
-                          key={item.id}
-                          className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
-                          style={(item as Event & Space & { position: React.CSSProperties }).position}
-                        >
-                          <div className="bg-white rounded-full p-3 shadow-lg border-2 border-forest-200 hover:border-forest-400 transition-all duration-200 hover:scale-110">
-                            <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${category?.color || 'text-forest-600'}`} />
-                          </div>
+                    {/* Event List */}
+                    <div className="absolute inset-0 overflow-y-auto p-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {filteredItems.map((event) => {
+                          const category = categories.find(c => c.id === event.category?.toLowerCase()) || { icon: MapPin, color: 'text-forest-600' };
+                          const Icon = category?.icon || MapPin;
                           
-                          {/* Item Card on Hover */}
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 pointer-events-none">
-                            <div className="bg-white rounded-xl shadow-xl border border-forest-100 p-4 w-64">
-                              <h4 className="font-semibold text-forest-800 mb-2">
-                                {(item as Event).title || (item as Space).name}
-                              </h4>
-                              <div className="space-y-1 text-sm text-forest-600">
-                                {!showSpaces && (item as Event).start_time && (
-                                  <div className="flex items-center">
-                                    <Clock className="h-4 w-4 mr-2" />
-                                    <span>
-                                      {new Date((item as Event).date + 'T' + (item as Event).start_time).toLocaleTimeString('en-US', { 
-                                        hour: 'numeric', 
-                                        minute: '2-digit', 
-                                        hour12: true 
-                                      })}
-                                    </span>
-                                  </div>
-                                )}
-                                <div className="flex items-center">
-                                  <MapPin className="h-4 w-4 mr-2" />
-                                  <span>
-                                    {(item as Event).location_name || (item as Space).address}
-                                  </span>
+                          return (
+                            <div
+                              key={event.id}
+                              className="bg-white rounded-xl shadow-sm border border-forest-100 p-4 hover:shadow-md transition-shadow cursor-pointer"
+                            >
+                              <div className="flex items-start space-x-3">
+                                <div className="bg-forest-100 rounded-full p-2">
+                                  <Icon className={`h-5 w-5 ${category?.color || 'text-forest-600'}`} />
                                 </div>
-                                <div className="flex items-center">
-                                  <Users className="h-4 w-4 mr-2" />
-                                  <span>
-                                    {showSpaces 
-                                      ? `Up to ${item.capacity} people`
-                                      : `${(item as Event).participants?.length || 0}/${item.capacity} joined`
-                                    }
-                                  </span>
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-forest-800 mb-1">
+                                    {event.title}
+                                  </h4>
+                                  <div className="space-y-1 text-sm text-forest-600">
+                                    {event.start_time && (
+                                      <div className="flex items-center">
+                                        <Clock className="h-3 w-3 mr-1" />
+                                        <span>
+                                          {new Date(event.date + 'T' + event.start_time).toLocaleTimeString('en-US', { 
+                                            hour: 'numeric', 
+                                            minute: '2-digit', 
+                                            hour12: true 
+                                          })}
+                                        </span>
+                                      </div>
+                                    )}
+                                    <div className="flex items-center">
+                                      <MapPin className="h-3 w-3 mr-1" />
+                                      <span className="truncate">
+                                        {event.location_name}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <Users className="h-3 w-3 mr-1" />
+                                      <span>
+                                        {event.participants?.length || 0}/{event.capacity || '∞'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <button className="mt-2 bg-forest-600 hover:bg-forest-700 text-white py-1 px-3 rounded-lg text-sm font-medium transition-colors">
+                                    View Details
+                                  </button>
                                 </div>
                               </div>
-                              <button className="w-full mt-3 bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
-                                {showSpaces ? 'Book Space' : 'Join Event'}
-                              </button>
                             </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                          );
+                        })}
+                      </div>
+                    </div>
 
                     {/* No items message */}
                     {filteredItems.length === 0 && !loading && (
@@ -312,10 +254,10 @@ const Map = () => {
                         <div className="text-center">
                           <MapPin className="h-16 w-16 text-forest-300 mx-auto mb-4" />
                           <h3 className="text-xl font-semibold text-forest-800 mb-2">
-                            No {showSpaces ? 'spaces' : 'events'} found
+                            No events found
                           </h3>
                           <p className="text-forest-600">
-                            Try adjusting your search criteria or {showSpaces ? 'share a space' : 'create an event'}!
+                            Try adjusting your search criteria or create an event!
                           </p>
                         </div>
                       </div>
@@ -331,7 +273,7 @@ const Map = () => {
                         </div>
                         <div className="flex items-center">
                           <div className="w-3 h-3 bg-white border-2 border-forest-400 rounded-full mr-2"></div>
-                          <span>{showSpaces ? 'Spaces' : 'Events'}</span>
+                          <span>Events</span>
                         </div>
                         <div className="flex items-center">
                           <div className="w-3 h-3 border border-forest-300 rounded-full mr-2"></div>

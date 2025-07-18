@@ -117,9 +117,9 @@ const EventAnalyticsDashboard: React.FC<EventAnalyticsDashboardProps> = ({
             user_id,
             status
           ),
-          event_feedback(
-            overall_rating,
-            would_recommend,
+          event_reviews(
+            rating,
+            review_text,
             content_rating,
             facilitator_rating,
             venue_rating,
@@ -153,7 +153,7 @@ const EventAnalyticsDashboard: React.FC<EventAnalyticsDashboardProps> = ({
 
       // Average rating
       const allRatings = events?.flatMap(event => 
-        event.event_feedback.map((f: any) => f.overall_rating)
+        event.event_reviews.map((f: any) => f.overall_rating)
       ).filter(r => r) || [];
       
       const averageRating = allRatings.length > 0 
@@ -220,17 +220,14 @@ const EventAnalyticsDashboard: React.FC<EventAnalyticsDashboardProps> = ({
         .sort((a, b) => a.hour.localeCompare(b.hour));
 
       // Feedback summary
-      const allFeedback = events?.flatMap(event => event.event_feedback) || [];
-      const feedbackWithRecommend = allFeedback.filter((f: any) => 
-        f.would_recommend !== null
-      );
-      
-      const wouldRecommendCount = feedbackWithRecommend.filter((f: any) => 
-        f.would_recommend
+      const allFeedback = events?.flatMap(event => event.event_reviews) || [];
+      // Use 4+ star ratings as proxy for recommendation
+      const wouldRecommendCount = allFeedback.filter((f: any) => 
+        f.rating >= 4
       ).length;
       
-      const wouldRecommendRate = feedbackWithRecommend.length > 0
-        ? (wouldRecommendCount / feedbackWithRecommend.length) * 100
+      const wouldRecommendRate = allFeedback.length > 0
+        ? (wouldRecommendCount / allFeedback.length) * 100
         : 0;
 
       const calculateAverage = (ratings: (number | null)[]) => {
@@ -244,7 +241,7 @@ const EventAnalyticsDashboard: React.FC<EventAnalyticsDashboardProps> = ({
         totalFeedback: allFeedback.length,
         wouldRecommendRate,
         averageRatings: {
-          overall: calculateAverage(allFeedback.map((f: any) => f.overall_rating)),
+          overall: calculateAverage(allFeedback.map((f: any) => f.rating)),
           content: calculateAverage(allFeedback.map((f: any) => f.content_rating)),
           facilitator: calculateAverage(allFeedback.map((f: any) => f.facilitator_rating)),
           venue: calculateAverage(allFeedback.map((f: any) => f.venue_rating)),
@@ -269,9 +266,9 @@ const EventAnalyticsDashboard: React.FC<EventAnalyticsDashboardProps> = ({
 
       // Top performing events
       const eventsWithRatings = events
-        ?.filter(event => event.event_feedback.length > 0)
+        ?.filter(event => event.event_reviews.length > 0)
         .map(event => {
-          const ratings = event.event_feedback.map((f: any) => f.overall_rating).filter(r => r);
+          const ratings = event.event_reviews.map((f: any) => f.overall_rating).filter(r => r);
           const avgRating = ratings.length > 0
             ? ratings.reduce((a, b) => a + b, 0) / ratings.length
             : 0;
@@ -283,7 +280,7 @@ const EventAnalyticsDashboard: React.FC<EventAnalyticsDashboardProps> = ({
             attendees: event.event_participants.filter((p: any) => 
               p.status === 'attended'
             ).length,
-            feedback_count: event.event_feedback.length
+            feedback_count: event.event_reviews.length
           };
         })
         .sort((a, b) => b.rating - a.rating)

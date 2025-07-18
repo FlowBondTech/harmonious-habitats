@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Clock, Users, Badge, BookmarkPlus, Share2 } from 'lucide-react';
+import { MapPin, Clock, Users, Badge, BookmarkPlus, Share2, Heart } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase, Event } from '../lib/supabase';
 import { logger } from '../lib/logger';

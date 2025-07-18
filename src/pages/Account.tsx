@@ -7,8 +7,9 @@ import ProfileSkillsSection from '../components/ProfileSkillsSection';
 import ProfileOfferingsSection from '../components/ProfileOfferingsSection';
 import { ShareTab } from '../components/ShareTab';
 import EventAnalyticsDashboard from '../components/EventAnalyticsDashboard';
+import { DEFAULT_AVATAR } from '../utils/defaults';
 
-const Profile = () => {
+const Account = () => {
   const { user, profile, loadUserProfile } = useAuthContext();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('profile');
@@ -200,7 +201,7 @@ const Profile = () => {
       <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-forest-200 border-t-forest-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-forest-600">Loading profile...</p>
+          <p className="text-forest-600">Loading account...</p>
         </div>
       </div>
     );
@@ -236,7 +237,7 @@ const Profile = () => {
                 <div className="flex justify-center">
                   <div className="relative -mt-12">
                     <img
-                      src={profile.avatar_url || "https://images.pexels.com/photos/3772622/pexels-photo-3772622.jpeg?auto=compress&cs=tinysrgb&w=200"}
+                      src={profile.avatar_url || DEFAULT_AVATAR}
                       alt={profile.full_name || 'Profile'}
                       className="w-24 h-24 rounded-full border-4 border-white object-cover"
                     />
@@ -1067,4 +1068,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default Account;

@@ -200,9 +200,9 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
             {/* Profile or Admin */}
             {user ? (
               <Link 
-                to={isAdmin ? "/admin" : "/profile"} 
+                to={isAdmin ? "/admin" : "/account"} 
                 className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
-                  location.pathname === '/profile' || location.pathname === '/admin' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
+                  location.pathname === '/account' || location.pathname === '/admin' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
                 }`}
               >
                 {isAdmin ? (
@@ -211,10 +211,10 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
                   }`} />
                 ) : (
                   <User className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
-                    location.pathname === '/profile' ? 'text-forest-800' : ''
+                    location.pathname === '/account' ? 'text-forest-800' : ''
                   }`} />
                 )}
-                <span className="text-xs font-medium">{isAdmin ? 'Admin' : 'Profile'}</span>
+                <span className="text-xs font-medium">{isAdmin ? 'Admin' : 'Account'}</span>
               </Link>
             ) : (
               <Link 
@@ -424,7 +424,7 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
         }
       `}</style>
 
-      {/* Main Content */}
+      {/* Main Content with slide effect */}
       <div className={`${!isOnline ? 'pt-12' : ''} mobile-optimized`}>
         {children}
       </div>

@@ -156,7 +156,6 @@ const AppContent = () => {
               <div className="absolute bottom-1/4 left-1/4 w-48 h-48 bg-blue-100/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
             </div>
           </div>
-          </div>
           
           {/* Mobile Menu */}
           <MobileMenu 

@@ -18,8 +18,8 @@
 ### Base Configuration
 ```typescript
 // API Client Configuration
-const supabaseUrl = 'https://your-project.supabase.co';
-const supabaseKey = 'your-anon-key';
+const supabaseUrl = ''
+const supabaseKey = ''
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {

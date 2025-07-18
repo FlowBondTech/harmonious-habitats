@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Mail, Lock, User, MapPin, Eye, EyeOff, Sprout } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 
@@ -9,6 +10,7 @@ interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'signin' }) => {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -123,6 +125,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
           setError(error.message);
         } else {
           onClose();
+          navigate('/activities');
         }
       } else {
         const { error } = await signUp(formData.email, formData.password, {
@@ -135,9 +138,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
           setError(error.message);
         } else {
           setSuccess('Account created successfully! Welcome to Harmony Spaces!');
-          // Close modal after a short delay
+          // Close modal and navigate after a short delay
           setTimeout(() => {
             onClose();
+            navigate('/activities');
           }, 1500);
         }
       }

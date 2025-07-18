@@ -145,10 +145,15 @@ const Sidebar: React.FC = () => {
       try {
         // For now, just load the first 5 spaces as favorites
         // In a real app, you'd have a favorites system
-        const spaces = await getSpaces({ limit: 5 });
-        setFavoriteSpaces(spaces);
+        const result = await getSpaces({ limit: 5 });
+        if (result && result.data) {
+          setFavoriteSpaces(result.data);
+        } else {
+          setFavoriteSpaces([]);
+        }
       } catch (error) {
         console.error('Failed to load favorite spaces:', error);
+        setFavoriteSpaces([]);
       }
     };
 

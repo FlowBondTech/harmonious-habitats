@@ -21,6 +21,7 @@ import { getEvents, getSpaces, Event, Space } from '../lib/supabase';
 import EventCard from '../components/EventCard';
 import SpaceCard from '../components/SpaceCard';
 import RadiusSelector from '../components/RadiusSelector';
+import HomeMobile from './HomeMobile';
 
 
 interface HighlightCardProps {
@@ -52,6 +53,18 @@ const Home = () => {
   const [featuredSpaces, setFeaturedSpaces] = useState<Space[]>([]);
   const [loading, setLoading] = useState(true);
   const [, setError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const loadEvents = async () => {
@@ -63,7 +76,7 @@ const Home = () => {
         const oneMonthFromNow = oneMonthLater.toISOString().split('T')[0];
         
         const { data, error } = await getEvents({
-          status: 'active',
+          status: ['published'],
           limit: 10
         });
 
@@ -114,7 +127,7 @@ const Home = () => {
       const today = new Date().toISOString().split('T')[0];
       
       const { data: eventsData } = await getEvents({
-        status: 'active',
+        status: 'published',
         limit: 6
       });
 
@@ -160,6 +173,11 @@ const Home = () => {
     }
   ];
 
+  // Render mobile version if on small screen
+  if (isMobile) {
+    return <HomeMobile />;
+  }
+
   return (
     <div className="min-h-screen">
 
@@ -168,7 +186,6 @@ const Home = () => {
       <section className="relative bg-gradient-to-br from-forest-600 via-forest-500 to-earth-500 text-white overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0 bg-black/20"></div>
-        <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/8633077/pexels-photo-8633077.jpeg?auto=compress&cs=tinysrgb&w=1200')] bg-cover bg-center opacity-30"></div>
         
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
@@ -231,25 +248,25 @@ const Home = () => {
               {/* Community Stats */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
                 <HighlightCard
-                  icon={Users}
-                  title="Active Neighbors"
-                  description="In your 1-mile radius"
-                  color="bg-gradient-to-br from-forest-500 to-forest-600"
-                  value="127"
-                />
-                <HighlightCard
                   icon={Calendar}
-                  title="Events This Week"
-                  description="Happening in your area"
-                  color="bg-gradient-to-br from-earth-500 to-earth-600"
-                  value="23"
+                  title="Upcoming Events"
+                  description="Available to join"
+                  color="bg-gradient-to-br from-forest-500 to-forest-600"
+                  value={todayEvents.length}
                 />
                 <HighlightCard
-                  icon={Clock}
-                  title="8 min walk"
-                  description="Average distance to events"
+                  icon={Sparkles}
+                  title="Event Categories"
+                  description="Different types available"
+                  color="bg-gradient-to-br from-earth-500 to-earth-600"
+                  value={new Set(todayEvents.map(e => e.category)).size}
+                />
+                <HighlightCard
+                  icon={Globe}
+                  title="Global Events"
+                  description="Join from anywhere"
                   color="bg-gradient-to-br from-blue-500 to-purple-600"
-                  value="⏱️"
+                  value="∞"
                 />
               </div>
             </div>

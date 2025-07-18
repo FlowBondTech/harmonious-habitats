@@ -234,40 +234,7 @@ const MyActivities = () => {
     }
   ];
 
-  const recentActivity = [
-    { 
-      id: '1',
-      type: 'attended',
-      title: 'Fermentation Workshop',
-      date: '2 days ago',
-      participants: 15,
-      rating: 5,
-      image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg'
-    },
-    {
-      id: '2', 
-      type: 'hosted',
-      title: 'Meditation Circle',
-      date: '1 week ago',
-      participants: 8,
-      rating: 4.8,
-      image: 'https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg'
-    },
-    {
-      id: '3',
-      type: 'connected',
-      title: 'Connected with Emma Thompson',
-      date: '1 week ago',
-      mutualConnections: 3
-    },
-    {
-      id: '4',
-      type: 'shared',
-      title: 'Shared Garden Space',
-      date: '2 weeks ago',
-      bookings: 5
-    }
-  ];
+  const recentActivity: any[] = []; // Activity will be derived from joined/hosted events
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },

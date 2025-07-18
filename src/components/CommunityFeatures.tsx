@@ -70,7 +70,7 @@ const CommunityFeatures: React.FC<CommunityFeaturesProps> = ({ isOpen, onClose }
       // Load community stats
       const [profilesCount, eventsCount, spacesCount] = await Promise.all([
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('events').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('events').select('*', { count: 'exact', head: true }).eq('status', 'published'),
         supabase.from('spaces').select('*', { count: 'exact', head: true }).eq('status', 'available')
       ]);
 
@@ -78,7 +78,7 @@ const CommunityFeatures: React.FC<CommunityFeaturesProps> = ({ isOpen, onClose }
         totalMembers: profilesCount.count || 0,
         activeEvents: eventsCount.count || 0,
         sharedSpaces: spacesCount.count || 0,
-        connectionsThisWeek: 47 // Mock data
+        connectionsThisWeek: 0 // TODO: Implement connection tracking
       });
 
       // Load recent reports if admin
@@ -417,40 +417,6 @@ const CommunityFeatures: React.FC<CommunityFeaturesProps> = ({ isOpen, onClose }
                   )}
                 </div>
 
-                {/* Sample announcements for demo */}
-                <div className="space-y-4">
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="bg-green-100 p-2 rounded-lg">
-                        <Calendar className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-green-800 mb-1">Spring Community Festival</h4>
-                        <p className="text-green-700 mb-2">
-                          Join us for our first annual Spring Community Festival on April 15th! 
-                          We'll have workshops, food sharing, and live music in Riverside Park.
-                        </p>
-                        <p className="text-xs text-green-600">Posted 2 days ago</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="bg-purple-100 p-2 rounded-lg">
-                        <Award className="h-5 w-5 text-purple-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-purple-800 mb-1">New Verification System</h4>
-                        <p className="text-purple-700 mb-2">
-                          We've introduced a new verification system for event organizers and space hosts. 
-                          This helps ensure safety and trust in our community.
-                        </p>
-                        <p className="text-xs text-purple-600">Posted 1 week ago</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             )}
 
