@@ -124,11 +124,13 @@ export const useVibeSession = (): UseVibeSessionReturn => {
 
         const isValid = await validateSession(session);
         
-        // Redirect to login if no valid session
-        if (!isValid && window.location.pathname !== '/login') {
-          setTimeout(() => {
-            navigate('/login', { replace: true });
-          }, 100);
+        // Don't redirect - let the app handle authentication through modals
+        if (!isValid) {
+          updateState({ 
+            user: null, 
+            session: null, 
+            loading: false 
+          });
         }
       } catch (error) {
         if (!mounted) return;
@@ -154,9 +156,6 @@ export const useVibeSession = (): UseVibeSessionReturn => {
           
           case 'SIGNED_OUT':
             updateState({ user: null, session: null, loading: false });
-            setTimeout(() => {
-              navigate('/login', { replace: true });
-            }, 100);
             break;
           
           case 'TOKEN_REFRESHED':

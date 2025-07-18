@@ -5,35 +5,24 @@ import {
   Map, 
   Globe, 
   CalendarPlus, 
-  Home as HomePlus, 
   Calendar, 
   MessageCircle, 
   User, 
-  Menu, 
-  X, 
   LogOut, 
   LogIn, 
   Sprout, 
-  Shield,
-  Heart,
-  Share2
+  Shield
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import MessagingSystem from './MessagingSystem';
-import { ShareModal } from './ShareModal';
+import Avatar from './Avatar';
 
-const Navbar = () => {
-  const location = useLocation();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showMessages, setShowMessages] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const { user, profile, isAdmin, signOut, openAuthModalGlobal } = useAuthContext();
-
-  const publicNavItems = [
+// Navigation configuration
+const NAV_ITEMS = {
+  public: [
     { path: '/', icon: Home, label: 'Home' },
-  ];
-
-  const authenticatedNavItems = [
+  ],
+  authenticated: [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/map', icon: Map, label: 'Discover' },
     { path: '/global-feed', icon: Globe, label: 'Global Feed' },
@@ -41,271 +30,190 @@ const Navbar = () => {
     { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
     { path: '/activities', icon: Calendar, label: 'Activities' },
     { path: '/messages', icon: MessageCircle, label: 'Messages' },
-    { path: '/profile', icon: User, label: 'Profile' },
-  ];
+    { path: '/account', icon: User, label: 'Account' },
+  ],
+  admin: { path: '/admin', icon: Shield, label: 'Admin' }
+};
 
-  const navItems = user ? authenticatedNavItems : publicNavItems;
 
-  // Add admin link if user is admin
-  if (user && isAdmin) {
-    navItems.push({ path: '/admin', icon: Shield, label: 'Admin' });
-  }
+// NavLink Component
+interface NavLinkProps {
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  isActive: boolean;
+  isAdmin?: boolean;
+}
 
-  const closeMenu = () => setIsMenuOpen(false);
+const NavLink: React.FC<NavLinkProps> = ({ path, icon: Icon, label, isActive, isAdmin }) => {
+  const baseStyles = "group relative px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center space-x-2 hover:scale-105 focus-ring";
+  const activeStyles = "bg-gradient-to-r from-forest-100 to-earth-100 text-forest-800 shadow-sm border border-forest-200/50";
+  const inactiveStyles = "text-forest-600 hover:bg-white/50 hover:text-forest-700 hover:shadow-sm";
+  const adminStyles = isAdmin ? "border border-forest-300 bg-gradient-to-r from-purple-50 to-blue-50" : "";
+
+  return (
+    <Link
+      to={path}
+      className={`${baseStyles} ${isActive ? activeStyles : inactiveStyles} ${adminStyles}`}
+    >
+      <Icon className={`h-4 w-4 transition-all duration-300 ${isActive ? 'text-forest-700' : 'text-forest-500 group-hover:text-forest-600'}`} />
+      <span className="relative">
+        {label}
+        {isActive && (
+          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-forest-600 rounded-full animate-pulse-gentle"></div>
+        )}
+      </span>
+    </Link>
+  );
+};
+
+// UserProfile Component
+interface UserProfileProps {
+  user: any;
+  profile: any;
+  onSignOut: () => void;
+}
+
+const UserProfile: React.FC<UserProfileProps> = ({ user, profile, onSignOut }) => {
+  return (
+    <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-forest-50 to-earth-50 rounded-xl border border-forest-100">
+        <Avatar 
+          name={profile?.full_name || user.email?.split('@')[0]}
+          imageUrl={profile?.avatar_url}
+          size="sm"
+        />
+        <span className="text-sm font-medium text-forest-700 max-w-24 truncate">
+          {profile?.full_name || user.email?.split('@')[0]}
+        </span>
+      </div>
+      <button
+        onClick={onSignOut}
+        className="p-2.5 text-forest-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all duration-300 hover:scale-110 focus-ring group"
+        title="Sign Out"
+      >
+        <LogOut className="h-5 w-5" />
+      </button>
+    </div>
+  );
+};
+
+// AuthButtons Component
+interface AuthButtonsProps {
+  onSignIn: () => void;
+  onSignUp: () => void;
+}
+
+const AuthButtons: React.FC<AuthButtonsProps> = ({ onSignIn, onSignUp }) => {
+  return (
+    <div className="flex items-center space-x-2">
+      <button
+        onClick={onSignIn}
+        className="btn-ghost text-sm"
+      >
+        <LogIn className="h-4 w-4 mr-2" />
+        Sign In
+      </button>
+      <button
+        onClick={onSignUp}
+        className="btn-primary text-sm py-2.5"
+      >
+        <User className="h-4 w-4 mr-2" />
+        Join
+      </button>
+    </div>
+  );
+};
+
+// Main Navbar Component
+interface NavbarProps {
+  isMenuOpen: boolean;
+  setIsMenuOpen: (open: boolean) => void;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
+  const location = useLocation();
+  const [showMessages, setShowMessages] = useState(false);
+  const { user, profile, isAdmin, signOut, openAuthModalGlobal } = useAuthContext();
+  
+  // Get navigation items based on user state
+  const getNavItems = () => {
+    const items = user ? [...NAV_ITEMS.authenticated] : [...NAV_ITEMS.public];
+    if (user && isAdmin) {
+      items.push(NAV_ITEMS.admin);
+    }
+    return items;
+  };
+
+  const navItems = getNavItems();
 
   return (
     <>
+      {/* Main Navbar - Fixed position */}
       <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10 shadow-lg safe-area-top">
         <div className="container-responsive">
           <div className="flex justify-between items-center h-16 lg:h-18">
-            {/* Logo */}
-            <Link 
-              to="/" 
-              className="flex items-center space-x-2 text-forest-600 hover:text-forest-700 transition-all duration-300 group focus-ring rounded-lg p-2 -m-2"
-              onClick={closeMenu}
-            >
-              <div className="p-2 bg-gradient-to-br from-forest-100 to-earth-100 rounded-xl group-hover:from-forest-200 group-hover:to-earth-200 transition-all duration-300 shadow-sm group-hover:shadow-md transform group-hover:scale-105">
-                <Sprout className="h-6 w-6 lg:h-7 lg:w-7 text-forest-600 group-hover:text-forest-700 animate-float" />
-              </div>
-              <div className="hidden sm:block">
+            {/* Mobile Menu Trigger / Desktop Logo */}
+            <div className="flex items-center">
+              {/* Mobile: User Avatar as menu trigger */}
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="lg:hidden p-2 -m-2 rounded-xl hover:bg-forest-50 transition-all duration-300"
+              >
+                <Avatar 
+                  name={profile?.full_name || user?.email?.split('@')[0] || 'Guest'}
+                  imageUrl={profile?.avatar_url}
+                  size="md"
+                />
+              </button>
+              
+              {/* Desktop: Simple text logo */}
+              <div className="hidden lg:block">
                 <h1 className="font-bold text-xl lg:text-2xl text-gradient">
                   Harmony Spaces
                 </h1>
-                <p className="text-xs text-forest-500 -mt-1">Community Connection</p>
               </div>
-              <span className="font-bold text-lg sm:hidden text-gradient">Harmony</span>
-            </Link>
+            </div>
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-1">
-              {navItems.map(({ path, icon: Icon, label }) => (
-                <Link
+              {navItems.map(({ path, icon, label }) => (
+                <NavLink
                   key={path}
-                  to={path}
-                  className={`group relative px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center space-x-2 hover:scale-105 focus-ring ${
-                    location.pathname === path
-                      ? 'bg-gradient-to-r from-forest-100 to-earth-100 text-forest-800 shadow-sm border border-forest-200/50'
-                      : 'text-forest-600 hover:bg-white/50 hover:text-forest-700 hover:shadow-sm'
-                  } ${path === '/admin' ? 'border border-forest-300 bg-gradient-to-r from-purple-50 to-blue-50' : ''}`}
-                >
-                  <Icon className={`h-4 w-4 transition-all duration-300 ${
-                    location.pathname === path ? 'text-forest-700' : 'text-forest-500 group-hover:text-forest-600'
-                  }`} />
-                  <span className="relative">
-                    {label}
-                    {location.pathname === path && (
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-forest-600 rounded-full animate-pulse-gentle"></div>
-                    )}
-                  </span>
-                </Link>
+                  path={path}
+                  icon={icon}
+                  label={label}
+                  isActive={location.pathname === path}
+                  isAdmin={path === '/admin'}
+                />
               ))}
-              
-              {/* Share Button - Only show when authenticated */}
-              {user && (
-                <button
-                  onClick={() => setShowShareModal(true)}
-                  className="ml-2 px-4 py-2.5 bg-gradient-to-r from-forest-600 to-earth-600 text-white rounded-xl text-sm font-medium transition-all duration-300 flex items-center space-x-2 hover:scale-105 hover:shadow-lg focus-ring group"
-                >
-                  <Share2 className="h-4 w-4" />
-                  <span>Share</span>
-                </button>
-              )}
             </div>
 
 
 
-            {/* Auth Button & Mobile Menu Button */}
+            {/* Auth Section */}
             <div className="flex items-center space-x-3">
-              
               <div className="hidden lg:block">
                 {user ? (
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-forest-50 to-earth-50 rounded-xl border border-forest-100">
-                      <div className="w-8 h-8 bg-gradient-to-br from-forest-100 to-earth-100 rounded-full flex items-center justify-center overflow-hidden shadow-sm">
-                        {profile?.avatar_url ? (
-                          <img 
-                            src={profile.avatar_url} 
-                            alt={profile.full_name || 'User'} 
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                        ) : (
-                          <User className="h-4 w-4 text-forest-600" />
-                        )}
-                      </div>
-                      <span className="text-sm font-medium text-forest-700 max-w-24 truncate">
-                        {profile?.full_name || user.email?.split('@')[0]}
-                      </span>
-                    </div>
-                    <button
-                      onClick={signOut}
-                      className="p-2.5 text-forest-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all duration-300 hover:scale-110 focus-ring group"
-                      title="Sign Out"
-                    >
-                      <LogOut className="h-5 w-5" />
-                    </button>
-                  </div>
+                  <UserProfile user={user} profile={profile} onSignOut={signOut} />
                 ) : (
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => openAuthModalGlobal('signin')}
-                      className="btn-ghost text-sm"
-                    >
-                      <LogIn className="h-4 w-4 mr-2" />
-                      Sign In
-                    </button>
-                    <button
-                      onClick={() => openAuthModalGlobal('signup')}
-                      className="btn-primary text-sm py-2.5"
-                    >
-                      <User className="h-4 w-4 mr-2" />
-                      Join
-                    </button>
-                  </div>
+                  <AuthButtons 
+                    onSignIn={() => openAuthModalGlobal('signin')}
+                    onSignUp={() => openAuthModalGlobal('signup')}
+                  />
                 )}
               </div>
-              
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="lg:hidden p-2.5 rounded-xl text-forest-600 hover:bg-white/50 transition-all duration-300 hover:scale-110 focus-ring"
-              >
-                {isMenuOpen ? 
-                  <X className="h-6 w-6 animate-fade-in" /> : 
-                  <Menu className="h-6 w-6 animate-fade-in" />
-                }
-              </button>
             </div>
           </div>
-
-          {/* Mobile Menu */}
-          {isMenuOpen && (
-            <div className="lg:hidden absolute top-full left-0 right-0 glass border-b border-white/10 shadow-2xl animate-fade-in-down">
-              <div className="container-responsive py-6 space-y-4">
-                {/* Navigation Items */}
-                <div className="space-y-2">
-                  {navItems.map(({ path, icon: Icon, label }) => (
-                    <Link
-                      key={path}
-                      to={path}
-                      onClick={closeMenu}
-                      className={`flex items-center space-x-3 px-4 py-3.5 rounded-xl text-base font-medium transition-all duration-300 group hover:scale-[1.02] ${
-                        location.pathname === path
-                          ? 'bg-gradient-to-r from-forest-100 to-earth-100 text-forest-800 shadow-md border border-forest-200/50'
-                          : 'text-forest-600 hover:bg-white/50 hover:shadow-sm active:bg-forest-100'
-                      } ${path === '/admin' ? 'border border-forest-300 bg-gradient-to-r from-purple-50 to-blue-50' : ''}`}
-                    >
-                      <Icon className={`h-5 w-5 transition-colors ${
-                        location.pathname === path ? 'text-forest-700' : 'text-forest-500 group-hover:text-forest-600'
-                      }`} />
-                      <span className="flex-1">{label}</span>
-                      {location.pathname === path && (
-                        <div className="w-2 h-2 bg-forest-600 rounded-full animate-pulse-gentle"></div>
-                      )}
-                    </Link>
-                  ))}
-                </div>
-                
-                {/* Mobile Quick Actions */}
-                {user && (
-                  <div className="space-y-2 pt-4 border-t border-white/20">
-                    <button
-                      onClick={() => {
-                        setShowShareModal(true);
-                        closeMenu();
-                      }}
-                      className="w-full px-4 py-3.5 bg-gradient-to-r from-forest-600 to-earth-600 text-white rounded-xl text-base font-medium transition-all duration-300 flex items-center justify-center space-x-3 hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                      <Share2 className="h-5 w-5" />
-                      <span>Share</span>
-                    </button>
-                  </div>
-                )}
-                
-                {/* Mobile Auth Section */}
-                <div className="border-t border-white/20 pt-4 space-y-3">
-                  {user ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-forest-50 to-earth-50 rounded-xl border border-forest-100">
-                        <div className="w-10 h-10 bg-gradient-to-br from-forest-100 to-earth-100 rounded-full flex items-center justify-center overflow-hidden shadow-sm">
-                          {profile?.avatar_url ? (
-                            <img 
-                              src={profile.avatar_url} 
-                              alt={profile.full_name || 'User'} 
-                              className="w-10 h-10 rounded-full object-cover"
-                            />
-                          ) : (
-                            <User className="h-5 w-5 text-forest-600" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-base font-semibold text-forest-800 truncate">
-                            {profile?.full_name || 'Welcome'}
-                          </p>
-                          <p className="text-sm text-forest-600 truncate">
-                            {user.email}
-                          </p>
-                        </div>
-                        <Heart className="h-5 w-5 text-earth-500 animate-pulse-gentle" />
-                      </div>
-                      <button
-                        onClick={() => {
-                          signOut();
-                          closeMenu();
-                        }}
-                        className="w-full flex items-center space-x-3 px-4 py-3.5 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300 group font-medium"
-                      >
-                        <LogOut className="h-5 w-5" />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <button
-                        onClick={() => {
-                          openAuthModalGlobal('signin');
-                          closeMenu();
-                        }}
-                        className="w-full flex items-center space-x-3 px-4 py-3.5 text-forest-600 hover:bg-white/50 rounded-xl transition-all duration-300 group font-medium"
-                      >
-                        <LogIn className="h-5 w-5" />
-                        <span>Sign In</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          openAuthModalGlobal('signup');
-                          closeMenu();
-                        }}
-                        className="w-full btn-primary justify-center"
-                      >
-                        <User className="h-5 w-5 mr-2" />
-                        <span>Join Harmony Spaces</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </nav>
 
-      {/* Backdrop for mobile menu */}
-      {isMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden animate-fade-in"
-          onClick={closeMenu}
-        />
-      )}
+      {/* Mobile Menu Overlay - Removed, will be handled in App.tsx */}
 
       {/* Global Modals */}
       <MessagingSystem
         isOpen={showMessages}
         onClose={() => setShowMessages(false)}
-      />
-      
-      {/* Share Modal */}
-      <ShareModal
-        isOpen={showShareModal}
-        onClose={() => setShowShareModal(false)}
       />
     </>
   );
