@@ -182,18 +182,18 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
               <span className="text-xs font-medium">{user ? 'Feed' : 'Search'}</span>
             </Link>
 
-            {/* Activities or Messages */}
+            {/* Calendar */}
             {user && (
               <Link 
-                to="/activities" 
+                to="/calendar" 
                 className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
-                  location.pathname === '/activities' || location.pathname === '/my-activities' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
+                  location.pathname === '/calendar' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
                 }`}
               >
                 <Calendar className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
-                  location.pathname === '/activities' || location.pathname === '/my-activities' ? 'text-forest-800' : ''
+                  location.pathname === '/calendar' ? 'text-forest-800' : ''
                 }`} />
-                <span className="text-xs font-medium">Activities</span>
+                <span className="text-xs font-medium">Calendar</span>
               </Link>
             )}
 
@@ -217,17 +217,13 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
                 <span className="text-xs font-medium">{isAdmin ? 'Admin' : 'Account'}</span>
               </Link>
             ) : (
-              <Link 
-                to="/search" 
-                className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
-                  location.pathname === '/search' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
-                }`}
+              <button
+                onClick={() => openAuthModalGlobal('signup')}
+                className="flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group text-forest-600 hover:text-forest-800"
               >
-                <User className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
-                  location.pathname === '/search' ? 'text-forest-800' : ''
-                }`} />
+                <User className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-medium">Join</span>
-              </Link>
+              </button>
             )}
           </div>
         </div>
