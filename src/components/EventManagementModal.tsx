@@ -511,8 +511,8 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
                     <div className="bg-forest-50 rounded-xl p-4">
                       <h4 className="font-semibold text-forest-800 mb-2">Edit Event</h4>
                       <p className="text-sm text-forest-600 mb-3">Update event details, time, or location</p>
-                      <button className="flex items-center space-x-2 bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                        <Edit className="h-4 w-4" />
+                      <button className="btn-primary btn-sm flex items-center space-x-2 focus-ring">
+                        <Edit className="icon-sm" />
                         <span>Edit Event</span>
                       </button>
                     </div>

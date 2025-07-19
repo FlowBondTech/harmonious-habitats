@@ -430,10 +430,10 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                         <button
                           onClick={handleJoinEvent}
                           disabled={loading || participants.length >= event.capacity}
-                          className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-[1.02] shadow-sm hover:shadow-md ${
+                          className={`w-full btn-primary btn-lg focus-ring ${
                             participants.length >= event.capacity
-                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              : 'bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white'
+                              ? '!bg-gray-300 !text-gray-500 !cursor-not-allowed'
+                              : ''
                           }`}
                         >
                           {loading ? (
@@ -451,7 +451,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                         <button
                           onClick={handleLeaveEvent}
                           disabled={loading}
-                          className="w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 bg-red-600 hover:bg-red-700 text-white"
+                          className="w-full btn-primary btn-lg focus-ring !bg-red-600 hover:!bg-red-700"
                         >
                           {loading ? 'Leaving...' : 'Leave Event'}
                         </button>
@@ -460,31 +460,31 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                       <div className="flex space-x-2">
                         <button
                           onClick={toggleFavorite}
-                          className={`flex-1 py-2 px-4 rounded-xl font-medium transition-colors flex items-center justify-center space-x-2 ${
+                          className={`flex-1 btn-outline btn-sm focus-ring flex items-center justify-center space-x-2 ${
                             isFavorited
-                              ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                              : 'bg-forest-100 text-forest-700 hover:bg-forest-200'
+                              ? '!bg-red-100 !text-red-700 hover:!bg-red-200'
+                              : '!bg-forest-100 !text-forest-700 hover:!bg-forest-200'
                           }`}
                         >
-                          <Heart className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} />
+                          <Heart className={`icon-sm ${isFavorited ? 'fill-current' : ''}`} />
                           <span>{isFavorited ? 'Favorited' : 'Favorite'}</span>
                         </button>
                         
-                        <button className="flex-1 py-2 px-4 rounded-xl font-medium bg-forest-100 text-forest-700 hover:bg-forest-200 transition-colors flex items-center justify-center space-x-2">
-                          <Share2 className="h-4 w-4" />
+                        <button className="flex-1 btn-outline btn-sm focus-ring !bg-forest-100 !text-forest-700 hover:!bg-forest-200 flex items-center justify-center space-x-2">
+                          <Share2 className="icon-sm" />
                           <span>Share</span>
                         </button>
                       </div>
                       
-                      <button className="w-full py-2 px-4 rounded-xl font-medium bg-earth-100 text-earth-700 hover:bg-earth-200 transition-colors flex items-center justify-center space-x-2">
-                        <MessageCircle className="h-4 w-4" />
+                      <button className="w-full btn-outline btn-sm focus-ring !bg-earth-100 !text-earth-700 hover:!bg-earth-200 flex items-center justify-center space-x-2">
+                        <MessageCircle className="icon-sm" />
                         <span>Message Organizer</span>
                       </button>
                     </>
                   ) : (
                     <div className="text-center p-4 bg-forest-50 rounded-xl">
                       <p className="text-forest-600 mb-3">Sign in to join this event</p>
-                      <button className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                      <button className="btn-primary btn-md focus-ring">
                         Sign In
                       </button>
                     </div>

@@ -205,8 +205,8 @@ const Sidebar: React.FC = () => {
                     <Star className="h-4 w-4 text-yellow-500" />
                     <h2 className="text-sm font-semibold text-gray-700">Favorite Spaces</h2>
                   </div>
-                  <button className="text-forest-600 hover:bg-forest-50 p-1 rounded-lg transition-colors">
-                    <Plus className="h-4 w-4" />
+                  <button className="btn-ghost btn-sm p-1 focus-ring">
+                    <Plus className="icon-sm" />
                   </button>
                 </div>
                 

@@ -1,0 +1,407 @@
+/* Harmony Spaces Design System CSS */
+/* This file provides consistent utility classes across the application */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* =================================
+     BUTTONS
+     ================================= */
+  
+  /* Button Sizes */
+  .btn-sm {
+    @apply px-3 py-2 text-sm min-h-[36px];
+  }
+  
+  .btn-md {
+    @apply px-4 py-3 text-base min-h-[44px];
+  }
+  
+  .btn-lg {
+    @apply px-6 py-4 text-lg min-h-[52px];
+  }
+  
+  /* Button Variants - Updated for consistency */
+  .btn-primary {
+    @apply inline-flex items-center justify-center
+           bg-gradient-to-r from-forest-600 to-forest-700 
+           hover:from-forest-700 hover:to-forest-800 
+           text-white font-semibold rounded-lg
+           transition-all duration-200 transform hover:scale-[1.02]
+           active:scale-[0.98]
+           disabled:from-forest-300 disabled:to-forest-400 
+           disabled:cursor-not-allowed disabled:scale-100
+           shadow-sm hover:shadow-md
+           focus:outline-none focus:ring-2 focus:ring-forest-500 focus:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center justify-center
+           bg-gradient-to-r from-earth-500 to-earth-600 
+           hover:from-earth-600 hover:to-earth-700 
+           text-white font-semibold rounded-lg
+           transition-all duration-200 transform hover:scale-[1.02]
+           active:scale-[0.98]
+           shadow-sm hover:shadow-md
+           focus:outline-none focus:ring-2 focus:ring-earth-500 focus:ring-offset-2;
+  }
+  
+  .btn-outline {
+    @apply inline-flex items-center justify-center
+           border-2 border-forest-300 text-forest-700 
+           hover:bg-forest-50 hover:border-forest-400
+           font-medium rounded-lg 
+           transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-forest-500 focus:ring-offset-2;
+  }
+  
+  .btn-ghost {
+    @apply inline-flex items-center justify-center
+           text-forest-600 hover:bg-forest-50 hover:text-forest-700
+           font-medium rounded-lg 
+           transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-forest-500 focus:ring-offset-2;
+  }
+  
+  /* =================================
+     CARDS
+     ================================= */
+  
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100
+           overflow-hidden transition-all duration-300;
+  }
+  
+  .card-interactive {
+    @apply card hover:shadow-lg hover:-translate-y-1
+           transform transition-all duration-300 cursor-pointer;
+  }
+  
+  .card-header {
+    @apply p-5 sm:p-6 border-b border-gray-100;
+  }
+  
+  .card-body {
+    @apply p-5 sm:p-6;
+  }
+  
+  .card-footer {
+    @apply p-5 sm:p-6 border-t border-gray-100 bg-gray-50;
+  }
+  
+  /* =================================
+     FORM INPUTS
+     ================================= */
+  
+  .input-base {
+    @apply w-full px-4 py-3 min-h-[44px] 
+           border border-forest-200 rounded-lg
+           focus:outline-none focus:ring-2 focus:ring-forest-500 
+           focus:border-transparent text-base
+           placeholder:text-gray-400
+           disabled:bg-gray-50 disabled:cursor-not-allowed
+           transition-colors duration-200;
+  }
+  
+  .input-with-icon {
+    @apply input-base pl-10;
+  }
+  
+  .input-icon {
+    @apply absolute left-3 top-1/2 transform -translate-y-1/2 
+           h-4 w-4 text-forest-400 pointer-events-none;
+  }
+  
+  .input-error {
+    @apply border-red-300 focus:ring-red-500;
+  }
+  
+  .input-success {
+    @apply border-green-300 focus:ring-green-500;
+  }
+  
+  /* =================================
+     MODALS
+     ================================= */
+  
+  .modal-backdrop {
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm 
+           transition-opacity z-50;
+  }
+  
+  .modal-container {
+    @apply relative w-full max-w-md transform overflow-hidden 
+           rounded-2xl bg-white shadow-2xl transition-all;
+  }
+  
+  .modal-header {
+    @apply bg-gradient-to-r from-forest-600 to-earth-500 
+           px-6 py-6 sm:py-8 text-white;
+  }
+  
+  .modal-body {
+    @apply px-6 py-6 sm:py-8 max-h-[70vh] overflow-y-auto;
+  }
+  
+  /* =================================
+     TYPOGRAPHY
+     ================================= */
+  
+  .text-h1 {
+    @apply text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight;
+  }
+  
+  .text-h2 {
+    @apply text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight;
+  }
+  
+  .text-h3 {
+    @apply text-xl sm:text-2xl lg:text-3xl font-semibold;
+  }
+  
+  .text-h4 {
+    @apply text-lg sm:text-xl lg:text-2xl font-semibold;
+  }
+  
+  .text-h5 {
+    @apply text-base sm:text-lg lg:text-xl font-medium;
+  }
+  
+  .text-body {
+    @apply text-base leading-relaxed;
+  }
+  
+  .text-body-sm {
+    @apply text-sm leading-relaxed;
+  }
+  
+  .text-body-xs {
+    @apply text-xs leading-relaxed;
+  }
+  
+  /* Text Colors */
+  .text-primary {
+    @apply text-forest-800;
+  }
+  
+  .text-secondary {
+    @apply text-forest-600;
+  }
+  
+  .text-muted {
+    @apply text-gray-500;
+  }
+  
+  /* =================================
+     ANIMATIONS & TRANSITIONS
+     ================================= */
+  
+  .transition-base {
+    @apply transition-all duration-300;
+  }
+  
+  .transition-fast {
+    @apply transition-all duration-200;
+  }
+  
+  .transition-colors {
+    @apply transition-colors duration-200;
+  }
+  
+  .transition-transform {
+    @apply transition-transform duration-300;
+  }
+  
+  /* Hover Effects */
+  .hover-scale {
+    @apply hover:scale-[1.02];
+  }
+  
+  .hover-scale-sm {
+    @apply hover:scale-[1.01];
+  }
+  
+  .hover-scale-lg {
+    @apply hover:scale-110;
+  }
+  
+  .hover-lift {
+    @apply hover:-translate-y-1;
+  }
+  
+  .hover-lift-sm {
+    @apply hover:-translate-y-0.5;
+  }
+  
+  .hover-shadow {
+    @apply hover:shadow-lg;
+  }
+  
+  .hover-shadow-sm {
+    @apply hover:shadow-md;
+  }
+  
+  /* =================================
+     LOADING STATES
+     ================================= */
+  
+  .spinner {
+    @apply animate-spin h-5 w-5 text-forest-600;
+  }
+  
+  .skeleton {
+    @apply animate-pulse bg-gray-200 rounded;
+  }
+  
+  .skeleton-text {
+    @apply h-4 bg-gray-200 rounded animate-pulse;
+  }
+  
+  /* =================================
+     SPECIAL EFFECTS
+     ================================= */
+  
+  .glass {
+    @apply backdrop-blur-md bg-white/80 border border-white/20;
+  }
+  
+  .glass-dark {
+    @apply backdrop-blur-md bg-black/20 border border-white/10;
+  }
+  
+  /* Text Gradient */
+  .text-gradient {
+    @apply bg-gradient-to-r from-forest-600 to-earth-600 
+           bg-clip-text text-transparent;
+  }
+  
+  /* Background Gradients */
+  .bg-gradient-forest {
+    @apply bg-gradient-to-r from-forest-600 to-forest-700;
+  }
+  
+  .bg-gradient-earth {
+    @apply bg-gradient-to-r from-earth-500 to-earth-600;
+  }
+  
+  .bg-gradient-nature {
+    @apply bg-gradient-to-br from-forest-100 to-earth-100;
+  }
+  
+  /* =================================
+     LAYOUT UTILITIES
+     ================================= */
+  
+  .container-responsive {
+    @apply w-full px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl;
+  }
+  
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  
+  .card-padding {
+    @apply p-5 sm:p-6;
+  }
+  
+  .modal-padding {
+    @apply px-6 py-6 sm:py-8;
+  }
+  
+  /* =================================
+     FOCUS UTILITIES
+     ================================= */
+  
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-forest-500 focus:ring-offset-2;
+  }
+  
+  .focus-ring-earth {
+    @apply focus:outline-none focus:ring-2 focus:ring-earth-500 focus:ring-offset-2;
+  }
+  
+  /* =================================
+     CATEGORY COLORS
+     ================================= */
+  
+  .category-gardening {
+    @apply bg-gradient-to-r from-green-100 to-green-200 text-green-800 border-green-300;
+  }
+  
+  .category-yoga {
+    @apply bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border-purple-300;
+  }
+  
+  .category-cooking {
+    @apply bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 border-orange-300;
+  }
+  
+  .category-art {
+    @apply bg-gradient-to-r from-pink-100 to-pink-200 text-pink-800 border-pink-300;
+  }
+  
+  .category-healing {
+    @apply bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border-blue-300;
+  }
+  
+  .category-music {
+    @apply bg-gradient-to-r from-indigo-100 to-indigo-200 text-indigo-800 border-indigo-300;
+  }
+  
+  /* =================================
+     MOBILE SPECIFIC
+     ================================= */
+  
+  @media (max-width: 640px) {
+    /* Bottom sheet modal on mobile */
+    .modal-container {
+      @apply rounded-t-2xl rounded-b-none;
+    }
+    
+    /* Larger touch targets on mobile */
+    .touch-target {
+      @apply min-h-[44px] min-w-[44px];
+    }
+  }
+  
+  /* =================================
+     UTILITY OVERRIDES
+     ================================= */
+  
+  /* Ensure consistent icon sizes */
+  .icon-xs { @apply h-3 w-3; }
+  .icon-sm { @apply h-4 w-4; }
+  .icon-md { @apply h-5 w-5; }
+  .icon-lg { @apply h-6 w-6; }
+  .icon-xl { @apply h-8 w-8; }
+}
+
+/* =================================
+   CUSTOM ANIMATIONS
+   ================================= */
+
+@keyframes gentle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.animate-pulse-gentle {
+  animation: gentle-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* GPU Acceleration Helper */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Safe Area Support for iOS */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}

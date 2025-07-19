@@ -131,21 +131,21 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
           <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-y-0 translate-y-2">
             <button 
               onClick={handleBookmark}
-              className={`glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg ${isBookmarked ? 'bg-earth-500 text-white' : 'text-forest-600'}`}
+              className={`glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg focus-ring ${isBookmarked ? 'bg-earth-500 text-white' : 'text-forest-600'}`}
             >
-              <BookmarkPlus className="h-4 w-4" />
+              <BookmarkPlus className="icon-sm" />
             </button>
             <button 
               onClick={handleShare}
-              className="glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg text-forest-600"
+              className="glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg text-forest-600 focus-ring"
             >
-              <Share2 className="h-4 w-4" />
+              <Share2 className="icon-sm" />
             </button>
             <button 
               onClick={handleBookmark}
-              className={`glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg ${isBookmarked ? 'bg-red-500 text-white' : 'text-forest-600'}`}
+              className={`glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg focus-ring ${isBookmarked ? 'bg-red-500 text-white' : 'text-forest-600'}`}
             >
-              <Heart className="h-4 w-4" />
+              <Heart className="icon-sm" />
             </button>
           </div>
         </div>
@@ -271,14 +271,14 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
                   setShowApplicationModal(true);
                 }}
                 disabled={!user}
-                className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] shadow-sm hover:shadow-md ${
+                className={`w-full btn-primary btn-lg focus-ring !bg-gradient-to-r !from-purple-600 !to-purple-700 hover:!from-purple-700 hover:!to-purple-800 ${
                   !user
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white'
+                    ? '!bg-gray-300 !text-gray-500 !cursor-not-allowed'
+                    : ''
                 }`}
               >
                 <div className="flex items-center justify-center space-x-2">
-                  <Send className="h-4 w-4" />
+                  <Send className="icon-sm" />
                   <span>{!user ? 'Sign in to Apply' : 'Apply as Facilitator'}</span>
                 </div>
               </button>
@@ -289,10 +289,10 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
                   handleBookSpace();
                 }}
                 disabled={isBooking || !user}
-                className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] shadow-sm hover:shadow-md ${
+                className={`w-full btn-secondary btn-lg focus-ring ${
                   !user
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'btn-secondary'
+                    ? '!bg-gray-300 !text-gray-500 !cursor-not-allowed'
+                    : ''
                 }`}
               >
                 {isBooking ? (
@@ -317,10 +317,10 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
                     handleBookSpace();
                   }}
                   disabled={isBooking || !user}
-                  className={`py-2 px-3 rounded-lg font-medium text-sm transition-all duration-300 ${
+                  className={`btn-outline btn-sm focus-ring ${
                     !user
-                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                      : 'btn-outline'
+                      ? '!bg-gray-200 !text-gray-500 !cursor-not-allowed'
+                      : ''
                   }`}
                 >
                   {!user ? 'Sign in' : 'Book Space'}
@@ -331,9 +331,9 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
                   e.stopPropagation();
                   setShowDetailsModal(true);
                 }}
-                className={`py-2 px-3 rounded-lg font-medium text-sm btn-outline ${space.allow_facilitator_applications ? '' : 'col-span-2'}`}
+                className={`btn-outline btn-sm focus-ring ${space.allow_facilitator_applications ? '' : 'col-span-2'}`}
               >
-                <Eye className="h-4 w-4 mr-1" />
+                <Eye className="icon-sm mr-1" />
                 View Details
               </button>
             </div>

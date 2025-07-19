@@ -384,7 +384,7 @@ const CommunityFeatures: React.FC<CommunityFeaturesProps> = ({ isOpen, onClose }
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-semibold text-forest-800">Community Announcements</h3>
                   {isAdmin && (
-                    <button className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <button className="btn-primary btn-sm focus-ring">
                       New Announcement
                     </button>
                   )}

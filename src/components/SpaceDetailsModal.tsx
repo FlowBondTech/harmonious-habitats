@@ -439,7 +439,7 @@ const SpaceDetailsModal: React.FC<SpaceDetailsModalProps> = ({
                 ) : (
                   <div className="text-center p-6 bg-earth-50 rounded-xl">
                     <p className="text-forest-600 mb-4">Sign in to book this space</p>
-                    <button className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                    <button className="btn-primary btn-md focus-ring">
                       Sign In
                     </button>
                   </div>
@@ -447,19 +447,19 @@ const SpaceDetailsModal: React.FC<SpaceDetailsModalProps> = ({
 
                 {/* Action Buttons */}
                 <div className="flex space-x-2">
-                  <button className="flex-1 py-2 px-4 rounded-xl font-medium bg-forest-100 text-forest-700 hover:bg-forest-200 transition-colors flex items-center justify-center space-x-2">
-                    <Heart className="h-4 w-4" />
+                  <button className="flex-1 btn-outline btn-sm focus-ring !bg-forest-100 !text-forest-700 hover:!bg-forest-200 flex items-center justify-center space-x-2">
+                    <Heart className="icon-sm" />
                     <span>Save</span>
                   </button>
                   
-                  <button className="flex-1 py-2 px-4 rounded-xl font-medium bg-forest-100 text-forest-700 hover:bg-forest-200 transition-colors flex items-center justify-center space-x-2">
-                    <Share2 className="h-4 w-4" />
+                  <button className="flex-1 btn-outline btn-sm focus-ring !bg-forest-100 !text-forest-700 hover:!bg-forest-200 flex items-center justify-center space-x-2">
+                    <Share2 className="icon-sm" />
                     <span>Share</span>
                   </button>
                 </div>
                 
-                <button className="w-full py-2 px-4 rounded-xl font-medium bg-earth-100 text-earth-700 hover:bg-earth-200 transition-colors flex items-center justify-center space-x-2">
-                  <MessageCircle className="h-4 w-4" />
+                <button className="w-full btn-outline btn-sm focus-ring !bg-earth-100 !text-earth-700 hover:!bg-earth-200 flex items-center justify-center space-x-2">
+                  <MessageCircle className="icon-sm" />
                   <span>Message Owner</span>
                 </button>
 

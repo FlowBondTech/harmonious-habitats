@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Map, 
@@ -11,7 +11,12 @@ import {
   LogOut, 
   LogIn, 
   Sprout, 
-  Shield
+  Shield,
+  Search,
+  Bell,
+  Menu,
+  X,
+  Plus
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import MessagingSystem from './MessagingSystem';
@@ -155,17 +160,36 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
           <div className="flex justify-between items-center h-16 lg:h-18">
             {/* Mobile Menu Trigger / Desktop Logo */}
             <div className="flex items-center">
-              {/* Mobile: User Avatar as menu trigger */}
-              <button 
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="lg:hidden p-2 -m-2 rounded-xl hover:bg-forest-50 transition-all duration-300"
-              >
-                <Avatar 
-                  name={profile?.full_name || user?.email?.split('@')[0] || 'Guest'}
-                  imageUrl={profile?.avatar_url}
-                  size="md"
-                />
-              </button>
+              {/* Mobile: Different triggers based on auth state */}
+              {user ? (
+                <button 
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="lg:hidden p-2 -m-2 rounded-xl hover:bg-forest-50 transition-all duration-300"
+                >
+                  <Avatar 
+                    name={profile?.full_name || user?.email?.split('@')[0] || 'Guest'}
+                    imageUrl={profile?.avatar_url}
+                    size="md"
+                  />
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="lg:hidden p-2 -m-2 rounded-xl hover:bg-forest-50 transition-all duration-300 flex items-center space-x-2"
+                >
+                  <Menu className="h-6 w-6 text-forest-600" />
+                </button>
+              )}
+              
+              {/* Mobile: Show logo for logged out users */}
+              {!user && (
+                <div className="lg:hidden ml-3">
+                  <h1 className="font-bold text-lg text-gradient flex items-center space-x-2">
+                    <Sprout className="h-5 w-5 text-forest-600" />
+                    <span>Harmony</span>
+                  </h1>
+                </div>
+              )}
               
               {/* Desktop: Simple text logo */}
               <div className="hidden lg:block">
@@ -184,7 +208,24 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
 
             {/* Auth Section - Only show on mobile since desktop has sidebar */}
             <div className="lg:hidden flex items-center space-x-3">
-              {/* Mobile auth handled by avatar menu trigger */}
+              {!user && (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => openAuthModalGlobal('signin')}
+                    className="btn-ghost text-sm px-3 py-2"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    <span className="hidden xs:inline ml-2">Sign In</span>
+                  </button>
+                  <button
+                    onClick={() => openAuthModalGlobal('signup')}
+                    className="btn-primary text-sm py-2 px-3"
+                  >
+                    <User className="h-4 w-4" />
+                    <span className="hidden xs:inline ml-2">Join</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

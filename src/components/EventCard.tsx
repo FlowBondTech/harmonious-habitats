@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Clock, Users, Badge, BookmarkPlus, Share2, Heart } from 'lucide-react';
+import { MapPin, Clock, Users, Badge, BookmarkPlus, Share2, Heart, Star } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase, Event } from '../lib/supabase';
 import { logger } from '../lib/logger';
@@ -207,21 +207,21 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
           <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-y-0 translate-y-2">
             <button 
               onClick={handleBookmark}
-              className={`glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg ${isBookmarked ? 'bg-earth-500 text-white' : 'text-forest-600'}`}
+              className={`glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg focus-ring ${isBookmarked ? 'bg-earth-500 text-white' : 'text-forest-600'}`}
             >
-              <BookmarkPlus className="h-4 w-4" />
+              <BookmarkPlus className="icon-sm" />
             </button>
             <button 
               onClick={handleShare}
-              className="glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg text-forest-600"
+              className="glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg text-forest-600 focus-ring"
             >
-              <Share2 className="h-4 w-4" />
+              <Share2 className="icon-sm" />
             </button>
             <button 
               onClick={handleBookmark}
-              className={`glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg ${isBookmarked ? 'bg-red-500 text-white' : 'text-forest-600'}`}
+              className={`glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg focus-ring ${isBookmarked ? 'bg-red-500 text-white' : 'text-forest-600'}`}
             >
-              <Heart className="h-4 w-4" />
+              <Heart className="icon-sm" />
             </button>
           </div>
         </div>
@@ -296,10 +296,10 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
               <button 
                 onClick={handleJoinEvent}
                 disabled={isJoining || !user}
-                className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] shadow-sm hover:shadow-md ${
+                className={`w-full btn-primary btn-lg focus-ring ${
                   !user
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'btn-primary'
+                    ? '!bg-gray-300 !text-gray-500 !cursor-not-allowed'
+                    : ''
                 }`}
               >
                 {isJoining ? (
@@ -317,7 +317,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
               <button 
                 onClick={handleLeaveEvent}
                 disabled={isJoining}
-                className="w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white transform hover:scale-[1.02] shadow-sm hover:shadow-md"
+                className="w-full btn-primary btn-lg focus-ring !bg-gradient-to-r !from-green-600 !to-green-700 hover:!from-green-700 hover:!to-green-800"
               >
                 {isJoining ? (
                   <div className="flex items-center justify-center space-x-2">
@@ -336,7 +336,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
                   e.stopPropagation();
                   setShowManagementModal(true);
                 }}
-                className="w-full btn-secondary py-3"
+                className="w-full btn-secondary btn-lg focus-ring"
               >
                 Manage Event
               </button>

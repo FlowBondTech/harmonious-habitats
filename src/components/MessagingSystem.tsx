@@ -301,9 +301,9 @@ const MessagingSystem: React.FC<MessagingSystemProps> = ({
               <h2 className="text-xl font-bold text-forest-800">Messages</h2>
               <button
                 onClick={onClose}
-                className="lg:hidden p-2 text-forest-600 hover:bg-forest-100 rounded-lg transition-colors"
+                className="lg:hidden btn-ghost btn-sm p-2 focus-ring"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="icon-sm" />
               </button>
             </div>
             
@@ -399,9 +399,9 @@ const MessagingSystem: React.FC<MessagingSystemProps> = ({
                   <div className="flex items-center space-x-3">
                     <button
                       onClick={() => setShowMobileChat(false)}
-                      className="lg:hidden p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors"
+                      className="lg:hidden btn-ghost btn-sm p-2 focus-ring"
                     >
-                      <ArrowLeft className="h-5 w-5" />
+                      <ArrowLeft className="icon-sm" />
                     </button>
                     
                     <img
@@ -426,16 +426,16 @@ const MessagingSystem: React.FC<MessagingSystemProps> = ({
                   <div className="flex items-center space-x-2">
                     {selectedConv.type === 'direct' && (
                       <>
-                        <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
-                          <Phone className="h-4 w-4" />
+                        <button className="btn-ghost btn-sm p-2 focus-ring">
+                          <Phone className="icon-sm" />
                         </button>
-                        <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
-                          <Video className="h-4 w-4" />
+                        <button className="btn-ghost btn-sm p-2 focus-ring">
+                          <Video className="icon-sm" />
                         </button>
                       </>
                     )}
-                    <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
-                      <MoreVertical className="h-4 w-4" />
+                    <button className="btn-ghost btn-sm p-2 focus-ring">
+                      <MoreVertical className="icon-sm" />
                     </button>
                   </div>
                 </div>
@@ -486,11 +486,11 @@ const MessagingSystem: React.FC<MessagingSystemProps> = ({
               <div className="p-4 border-t border-forest-100 bg-gradient-to-r from-forest-50 to-earth-50">
                 <div className="flex items-end space-x-3">
                   <div className="flex space-x-2">
-                    <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
-                      <Paperclip className="h-5 w-5" />
+                    <button className="btn-ghost btn-sm p-2 focus-ring">
+                      <Paperclip className="icon-sm" />
                     </button>
-                    <button className="p-2 text-forest-600 hover:bg-white/60 rounded-lg transition-colors">
-                      <Image className="h-5 w-5" />
+                    <button className="btn-ghost btn-sm p-2 focus-ring">
+                      <Image className="icon-sm" />
                     </button>
                   </div>
                   
@@ -509,21 +509,21 @@ const MessagingSystem: React.FC<MessagingSystemProps> = ({
                       placeholder="Type your message..."
                       className="w-full px-4 py-3 pr-12 border border-forest-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-forest-500 bg-white/80 backdrop-blur-sm"
                     />
-                    <button className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-forest-600 hover:bg-forest-100 rounded-lg transition-colors">
-                      <Smile className="h-4 w-4" />
+                    <button className="absolute right-3 top-1/2 transform -translate-y-1/2 btn-ghost btn-sm p-1 focus-ring">
+                      <Smile className="icon-sm" />
                     </button>
                   </div>
                   
                   <button
                     onClick={sendMessage}
                     disabled={!newMessage.trim() || loading}
-                    className={`p-3 rounded-2xl transition-all duration-200 transform hover:scale-105 ${
+                    className={`btn-primary btn-md p-3 focus-ring ${
                       newMessage.trim() && !loading
-                        ? 'bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white shadow-sm hover:shadow-md'
-                        : 'bg-forest-200 text-forest-400 cursor-not-allowed'
+                        ? ''
+                        : '!bg-forest-200 !text-forest-400 !cursor-not-allowed'
                     }`}
                   >
-                    <Send className="h-5 w-5" />
+                    <Send className="icon-sm" />
                   </button>
                 </div>
               </div>

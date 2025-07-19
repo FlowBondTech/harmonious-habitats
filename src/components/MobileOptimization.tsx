@@ -105,14 +105,14 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
                 <div className="flex space-x-2">
                   <button
                     onClick={handleInstallClick}
-                    className="btn-primary text-sm px-4 py-2.5 flex items-center space-x-2 hover-lift"
+                    className="btn-primary btn-sm flex items-center space-x-2 hover-lift focus-ring"
                   >
-                    <Download className="h-4 w-4" />
+                    <Download className="icon-sm" />
                     <span>Install</span>
                   </button>
                   <button
                     onClick={() => setShowInstallPrompt(false)}
-                    className="btn-outline text-sm px-4 py-2.5"
+                    className="btn-outline btn-sm focus-ring"
                   >
                     Later
                   </button>
@@ -120,9 +120,9 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
               </div>
               <button
                 onClick={() => setShowInstallPrompt(false)}
-                className="flex-shrink-0 p-1.5 text-forest-400 hover:text-forest-600 rounded-lg hover:bg-forest-50 transition-all duration-200"
+                className="flex-shrink-0 p-1.5 text-forest-400 hover:text-forest-600 rounded-lg hover:bg-forest-50 transition-all duration-200 focus-ring"
               >
-                <X className="h-4 w-4" />
+                <X className="icon-sm" />
               </button>
             </div>
           </div>

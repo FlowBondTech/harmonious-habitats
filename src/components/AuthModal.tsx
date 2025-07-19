@@ -170,8 +170,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-      <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <div className="flex min-h-screen items-end sm:items-center justify-center sm:p-4">
         {/* Backdrop */}
         <div 
           className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
@@ -181,22 +181,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
         {/* Modal */}
         <div 
           ref={modalRef}
-          className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all"
+          className="relative w-full sm:max-w-md transform overflow-hidden rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl transition-all animate-slide-up sm:animate-fade-in safe-area-bottom"
         >
+          {/* Mobile drag handle */}
+          <div className="flex sm:hidden justify-center pt-2 pb-1">
+            <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+          </div>
+          
           {/* Header */}
-          <div className="bg-gradient-to-r from-forest-600 to-earth-500 px-6 py-8 text-white">
+          <div className="bg-gradient-to-r from-forest-600 to-earth-500 px-6 py-6 sm:py-8 text-white">
             <button
               ref={initialFocusRef}
               onClick={onClose}
-              className="absolute right-4 top-4 p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              className="absolute right-4 top-4 p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus-ring"
               aria-label="Close"
             >
-              <X className="h-5 w-5" />
+              <X className="icon-sm" />
             </button>
             
             <div className="flex items-center space-x-3 mb-4">
               <div className="bg-white/20 p-2 rounded-xl">
-                <Sprout className="h-6 w-6" />
+                <Sprout className="icon-md" />
               </div>
               <h2 id="auth-title" className="text-2xl font-bold">Harmony Spaces</h2>
             </div>
@@ -210,7 +215,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
           </div>
 
           {/* Form */}
-          <div className="px-6 py-8">
+          <div className="px-6 py-6 sm:py-8 max-h-[70vh] overflow-y-auto">
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-sm text-red-600">{error}</p>
@@ -231,12 +236,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                       Full Name *
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-forest-400" />
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
                       <input
                         type="text"
                         value={formData.full_name}
                         onChange={(e) => handleInputChange('full_name', e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
                         placeholder="Your full name"
                         required
                       />
@@ -248,12 +253,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                       Username (optional)
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-forest-400" />
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
                       <input
                         type="text"
                         value={formData.username}
                         onChange={(e) => handleInputChange('username', e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
                         placeholder="Choose a username"
                       />
                     </div>
@@ -264,12 +269,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                       Neighborhood (optional)
                     </label>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-forest-400" />
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
                       <input
                         type="text"
                         value={formData.neighborhood}
                         onChange={(e) => handleInputChange('neighborhood', e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
                         placeholder="e.g., Downtown, Riverside, etc."
                       />
                     </div>
@@ -282,7 +287,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                   Email Address *
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-forest-400" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
                   <input
                     type="email"
                     value={formData.email}
@@ -299,21 +304,21 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                   Password *
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-forest-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    className="w-full pl-10 pr-12 py-3 border border-forest-200 rounded-lg"
+                    className="w-full pl-10 pr-12 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
                     placeholder={mode === 'signup' ? 'At least 6 characters' : 'Your password'}
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-forest-400 hover:text-forest-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-forest-400 hover:text-forest-600 focus-ring rounded"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
                   </button>
                 </div>
               </div>
@@ -324,12 +329,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                     Confirm Password *
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-forest-400" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={formData.confirmPassword}
                       onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-forest-200 rounded-lg"
+                      className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
                       placeholder="Confirm your password"
                       required
                     />
@@ -340,7 +345,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 disabled:from-forest-300 disabled:to-forest-400 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 shadow-sm hover:shadow-md disabled:cursor-not-allowed"
+                className="w-full btn-primary btn-lg focus-ring"
               >
                 {loading ? (
                   <div className="flex items-center justify-center space-x-2">
@@ -359,7 +364,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                 {mode === 'signin' ? "Don't have an account?" : "Already have an account?"}
                 <button
                   onClick={switchMode}
-                  className="ml-2 text-forest-700 font-semibold hover:text-forest-800 transition-colors focus:underline"
+                  className="ml-2 text-forest-700 font-semibold hover:text-forest-800 transition-colors focus:underline focus-ring rounded"
                 >
                   {mode === 'signin' ? 'Sign up' : 'Sign in'}
                 </button>
