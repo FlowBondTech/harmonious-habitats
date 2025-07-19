@@ -206,13 +206,9 @@
     @apply transition-all duration-200;
   }
   
-  .transition-colors {
-    @apply transition-colors duration-200;
-  }
+  /* Removed .transition-colors to avoid circular dependency - use Tailwind's transition-colors directly */
   
-  .transition-transform {
-    @apply transition-transform duration-300;
-  }
+  /* Removed .transition-transform to avoid circular dependency - use Tailwind's transition-transform directly */
   
   /* Hover Effects */
   .hover-scale {

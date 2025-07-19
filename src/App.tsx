@@ -6,6 +6,7 @@ import AuthModal from './components/AuthModal';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import DesktopHeader from './components/DesktopHeader';
 import NotificationCenter from './components/NotificationCenter';
 import MobileOptimization from './components/MobileOptimization';
 import ScrollToTop from './components/ScrollToTop';
@@ -33,6 +34,7 @@ const AppContent = () => {
   const { showAuthModalGlobal, globalAuthMode, closeAuthModalGlobal } = useAuthContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <>
@@ -40,14 +42,15 @@ const AppContent = () => {
       <Router>
         <MobileOptimization>
           <ScrollToTop />
-          <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-earth-50/30 relative flex">
-            {/* Desktop Sidebar */}
-            <div className="hidden lg:block">
-              <Sidebar />
-            </div>
+          <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-earth-50/30 relative">
+            {/* Desktop Header - Only show on desktop */}
+            <DesktopHeader onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
             
-            {/* Main Content Area */}
-            <div className={`flex-1 min-h-screen relative overflow-x-hidden transition-transform duration-300 ease-in-out lg:ml-20 xl:ml-72 ${
+            {/* Desktop Sidebar - Now as overlay */}
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+            
+            {/* Main Content Area - No permanent margin, add top padding for desktop header */}
+            <div className={`min-h-screen relative overflow-x-hidden transition-transform duration-300 ease-in-out ${
               isMenuOpen ? 'transform translate-x-80 lg:translate-x-0' : 'transform translate-x-0'
             }`}>
               {/* Background Pattern */}
@@ -71,7 +74,7 @@ const AppContent = () => {
               </div>
               
               {/* Main Content with responsive padding */}
-              <main id="main" className="pt-16 lg:pt-8 pb-20 md:pb-8 min-h-screen relative z-10">
+              <main id="main" className="pt-16 lg:pt-20 pb-8 min-h-screen relative z-10">
               <Suspense fallback={
                 <div className="flex items-center justify-center min-h-screen">
                   <LoadingSpinner size="lg" text="Loading..." />

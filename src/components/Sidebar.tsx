@@ -36,12 +36,15 @@ const NavItem: React.FC<NavItemProps> = ({ path, icon: Icon, label, isActive, ba
     <Link
       to={path}
       className={`
-        relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
+        relative flex items-center gap-3 transition-all duration-200 group
         ${isActive 
-          ? 'bg-gradient-to-r from-forest-100 to-earth-50 text-forest-700 shadow-sm' 
-          : 'hover:bg-gray-50 text-gray-700 hover:text-forest-600'
+          ? 'bg-gradient-to-r from-forest-100 to-earth-50 text-forest-700 shadow-sm rounded-r-xl' 
+          : 'hover:bg-gray-50 text-gray-700 hover:text-forest-600 rounded-xl'
         }
-        ${isCollapsed ? 'justify-center px-3' : ''}
+        ${isCollapsed 
+          ? `justify-center ${isActive ? '-mx-2 px-2 py-3' : 'px-3 py-3'}` 
+          : `${isActive ? '-mx-4 px-8 py-3' : 'px-4 py-3'}`
+        }
       `}
       title={isCollapsed ? label : ''}
     >
@@ -101,7 +104,12 @@ const FavoriteSpace: React.FC<{ space: Space; isActive?: boolean; isCollapsed: b
   );
 };
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const location = useLocation();
   const { user, profile, isAdmin, signOut } = useAuthContext();
   const [favoriteSpaces, setFavoriteSpaces] = useState<Space[]>([]);
@@ -161,26 +169,45 @@ const Sidebar: React.FC = () => {
   }, [user]);
 
   const displayedFavorites = showAllFavorites ? favoriteSpaces : favoriteSpaces.slice(0, 3);
-  const showSidebar = !isCollapsed || isHovered;
+  const showSidebar = !isCollapsed || isHovered || isOpen;
+
+  // Only show on mobile or when explicitly opened on desktop
+  const shouldShow = window.innerWidth < 1024 || isOpen;
+  
+  // On desktop, when sidebar is open, disable collapse functionality
+  const canCollapse = window.innerWidth >= 1024 && isOpen ? false : true;
 
   return (
-    <aside 
-      className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 flex flex-col overflow-hidden transition-all duration-300 z-40 ${
-        isCollapsed ? 'w-20' : 'w-72'
-      }`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Toggle Button */}
-      <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-6 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors z-50"
+    <>
+      {/* Backdrop for desktop when sidebar is open */}
+      {isOpen && window.innerWidth >= 1024 && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-40 lg:block hidden"
+          onClick={onClose}
+        />
+      )}
+      
+      <aside 
+        className={`fixed left-0 h-full bg-white border-r border-gray-200 flex flex-col overflow-hidden transition-all duration-300 z-50 ${
+          (isCollapsed && !isOpen) ? 'w-20' : 'w-72'
+        } ${
+          shouldShow ? 'translate-x-0' : '-translate-x-full'
+        } top-0 lg:top-16 lg:h-[calc(100vh-4rem)]`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
-      </button>
+      {/* Toggle Button - Hide when sidebar is forced open on desktop */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="absolute -right-3 top-6 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors z-50"
+        >
+          {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+        </button>
+      )}
       
       {/* Logo/Brand */}
-      <div className={`p-6 border-b border-gray-100 transition-all duration-300 ${isCollapsed && !showSidebar ? 'px-4' : ''}`}>
+      <div className={`p-6 border-b border-gray-100 transition-all duration-300 ${!showSidebar ? 'px-4' : ''}`}>
         {showSidebar ? (
           <>
             <h1 className="text-2xl font-bold text-gradient">Harmony Spaces</h1>
@@ -197,7 +224,7 @@ const Sidebar: React.FC = () => {
       <div className="flex-1 overflow-y-auto">
         {/* Favorites Section */}
         {user && favoriteSpaces.length > 0 && (
-          <div className={`p-4 border-b border-gray-100 transition-all duration-300 ${isCollapsed && !showSidebar ? 'px-2' : ''}`}>
+          <div className={`p-4 border-b border-gray-100 transition-all duration-300 ${!showSidebar ? 'px-2' : ''}`}>
             {showSidebar ? (
               <>
                 <div className="flex items-center justify-between mb-3">
@@ -252,13 +279,13 @@ const Sidebar: React.FC = () => {
         )}
 
         {/* Main Navigation */}
-        <nav className={`p-4 space-y-1 transition-all duration-300 ${isCollapsed && !showSidebar ? 'px-2' : ''}`}>
+        <nav className={`p-4 space-y-1 transition-all duration-300 ${!showSidebar ? 'px-2' : ''}`}>
           {navItems.map((item) => (
             <NavItem
               key={item.path}
               {...item}
               isActive={location.pathname === item.path}
-              isCollapsed={isCollapsed && !showSidebar}
+              isCollapsed={!showSidebar}
             />
           ))}
         </nav>
@@ -266,7 +293,7 @@ const Sidebar: React.FC = () => {
 
       {/* User Profile Section */}
       {user && (
-        <div className={`border-t border-gray-100 p-4 transition-all duration-300 ${isCollapsed && !showSidebar ? 'px-2' : ''}`}>
+        <div className={`border-t border-gray-100 p-4 transition-all duration-300 ${!showSidebar ? 'px-2' : ''}`}>
           {showSidebar ? (
             <>
               <div className="flex items-center gap-3 mb-3">
@@ -333,7 +360,8 @@ const Sidebar: React.FC = () => {
           )}
         </div>
       )}
-    </aside>
+      </aside>
+    </>
   );
 };
 

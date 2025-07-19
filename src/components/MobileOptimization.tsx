@@ -1,23 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
 import { useAuthContext } from './AuthProvider';
 import { 
   Smartphone, 
   Wifi, 
   Download, 
-  Home, 
-  Search, 
-  Calendar, 
-  MessageCircle, 
-  User,
-  X,
-  MapPin,
-  Heart,
-  Settings,
-  Plus,
-  Zap,
-  Globe,
-  Shield
+  X
 } from 'lucide-react';
 
 interface MobileOptimizationProps {
@@ -25,8 +12,6 @@ interface MobileOptimizationProps {
 }
 
 const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => {
-  const location = useLocation();
-  const { user, isAdmin } = useAuthContext();
   const [isInstallable, setIsInstallable] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -74,8 +59,6 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
     
     setDeferredPrompt(null);
   };
-
-
 
   return (
     <div className="relative">
@@ -129,105 +112,7 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
         </div>
       )}
 
-
-
-      {/* Enhanced Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-20">
-        <div className="glass border-t border-white/20 shadow-2xl">
-          <div className="flex items-center justify-around py-2 px-2" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
-            {/* Home */}
-            <Link 
-              to="/" 
-              className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
-                location.pathname === '/' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
-              }`}
-            >
-              <Home className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
-                location.pathname === '/' ? 'text-forest-800' : ''
-              }`} />
-              <span className="text-xs font-medium">Home</span>
-            </Link>
-
-            {/* Discover/Map */}
-            {user && (
-              <Link 
-                to="/map" 
-                className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
-                  location.pathname === '/map' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
-                }`}
-              >
-                <MapPin className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
-                  location.pathname === '/map' ? 'text-forest-800' : ''
-                }`} />
-                <span className="text-xs font-medium">Discover</span>
-              </Link>
-            )}
-
-            {/* Global Feed or Search */}
-            <Link 
-              to={user ? "/global-feed" : "/search"} 
-              className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
-                location.pathname === '/global-feed' || location.pathname === '/search' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
-              }`}
-            >
-              {user ? (
-                <Globe className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
-                  location.pathname === '/global-feed' ? 'text-forest-800' : ''
-                }`} />
-              ) : (
-                <Search className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
-                  location.pathname === '/search' ? 'text-forest-800' : ''
-                }`} />
-              )}
-              <span className="text-xs font-medium">{user ? 'Feed' : 'Search'}</span>
-            </Link>
-
-            {/* Calendar */}
-            {user && (
-              <Link 
-                to="/calendar" 
-                className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
-                  location.pathname === '/calendar' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
-                }`}
-              >
-                <Calendar className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
-                  location.pathname === '/calendar' ? 'text-forest-800' : ''
-                }`} />
-                <span className="text-xs font-medium">Calendar</span>
-              </Link>
-            )}
-
-            {/* Profile or Admin */}
-            {user ? (
-              <Link 
-                to={isAdmin ? "/admin" : "/account"} 
-                className={`flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group ${
-                  location.pathname === '/account' || location.pathname === '/admin' ? 'text-forest-800' : 'text-forest-600 hover:text-forest-800'
-                }`}
-              >
-                {isAdmin ? (
-                  <Shield className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
-                    location.pathname === '/admin' ? 'text-forest-800' : ''
-                  }`} />
-                ) : (
-                  <User className={`h-5 w-5 mb-1 group-hover:scale-110 transition-transform ${
-                    location.pathname === '/account' ? 'text-forest-800' : ''
-                  }`} />
-                )}
-                <span className="text-xs font-medium">{isAdmin ? 'Admin' : 'Account'}</span>
-              </Link>
-            ) : (
-              <button
-                onClick={() => openAuthModalGlobal('signup')}
-                className="flex flex-col items-center p-2 transition-all duration-200 hover:scale-110 active:scale-95 touch-target group text-forest-600 hover:text-forest-800"
-              >
-                <User className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-medium">Join</span>
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* Bottom Navigation Removed - Using sidebar menu instead */}
 
       {/* Enhanced Mobile Styles with design system */}
       <style>{`
@@ -287,143 +172,121 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
           .mobile-optimized {
             padding-left: max(16px, env(safe-area-inset-left));
             padding-right: max(16px, env(safe-area-inset-right));
-            padding-bottom: max(80px, calc(env(safe-area-inset-bottom) + 80px));
+            padding-bottom: max(16px, env(safe-area-inset-bottom));
           }
           
           /* Enhanced pull-to-refresh */
           .pull-to-refresh {
-            transform: translateY(-100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
           }
           
-          .pull-to-refresh.active {
-            transform: translateY(0);
+          /* Mobile card optimization */
+          .card {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.95);
           }
           
-          /* Improved loading states */
-          .loading-skeleton {
-            background: linear-gradient(
-              90deg,
-              rgba(240, 247, 237, 0.8) 25%,
-              rgba(224, 235, 207, 0.8) 50%,
-              rgba(240, 247, 237, 0.8) 75%
-            );
-            background-size: 200% 100%;
-            animation: loading-shimmer 1.5s infinite;
+          /* Enhanced shadow for mobile */
+          .mobile-shadow {
+            box-shadow: 
+              0 1px 3px rgba(0, 0, 0, 0.12),
+              0 1px 2px rgba(0, 0, 0, 0.24);
           }
           
-          @keyframes loading-shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-          }
-          
-          /* Enhanced swipe gestures */
-          .swipeable {
-            touch-action: pan-x;
+          /* Improved mobile navigation gestures */
+          .swipe-container {
             overflow-x: auto;
-            scrollbar-width: none;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
             -ms-overflow-style: none;
+            scrollbar-width: none;
           }
           
-          .swipeable::-webkit-scrollbar {
+          .swipe-container::-webkit-scrollbar {
             display: none;
           }
           
-          /* iOS safe area support */
-          .safe-area-inset {
-            padding-top: env(safe-area-inset-top);
-            padding-right: env(safe-area-inset-right);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
+          .swipe-item {
+            scroll-snap-align: center;
+            flex-shrink: 0;
           }
           
-          /* Enhanced haptic feedback simulation */
-          .haptic-light {
-            transition: transform 0.1s ease-out;
+          /* PWA-specific styles */
+          @media (display-mode: standalone) {
+            body {
+              padding-top: max(20px, env(safe-area-inset-top));
+            }
           }
           
-          .haptic-light:active {
-            transform: scale(0.98);
+          /* Prevent iOS bounce effect on main content */
+          .main-content {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
           }
           
-          /* Better contrast for mobile screens */
-          .mobile-high-contrast {
-            color: #1c3310;
-            font-weight: 500;
-          }
-          
-          /* Optimized image loading */
-          img {
-            will-change: transform;
-            backface-visibility: hidden;
-          }
-          
-          /* Enhanced focus indicators for accessibility */
-          .focus-visible {
-            outline: 3px solid #4d7c2a;
-            outline-offset: 2px;
-            border-radius: 8px;
-          }
-        }
-        
-        /* Enhanced Dark mode support */
-        @media (prefers-color-scheme: dark) {
-          .auto-dark {
-            background-color: #1a1a1a;
-            color: #ffffff;
-          }
-          
-          .auto-dark .glass {
-            background-color: rgba(26, 26, 26, 0.8);
-            border-color: rgba(255, 255, 255, 0.1);
-          }
-        }
-        
-        /* Reduced motion preferences */
-        @media (prefers-reduced-motion: reduce) {
-          *, *::before, *::after {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-            scroll-behavior: auto !important;
-          }
-          
-          .respect-motion-preference {
-            transform: none !important;
-          }
-        }
-        
-        /* High contrast support */
-        @media (prefers-contrast: high) {
-          .high-contrast {
-            border: 2px solid currentColor;
+          /* Enhanced form experience */
+          input[type="date"],
+          input[type="time"],
+          input[type="datetime-local"] {
+            appearance: none;
+            -webkit-appearance: none;
             background-color: white;
-            color: black;
           }
           
-          button {
-            border: 2px solid currentColor;
+          /* Better mobile modals */
+          .mobile-modal {
+            max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+          }
+          
+          /* Mobile-optimized images */
+          img {
+            max-width: 100%;
+            height: auto;
+            -webkit-touch-callout: none;
+          }
+          
+          /* Improved mobile performance */
+          .hardware-accelerated {
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            perspective: 1000px;
+            -webkit-perspective: 1000px;
           }
         }
         
-        /* Print optimizations */
-        @media print {
-          .no-print, .mobile-only {
-            display: none !important;
+        /* Safe area adjustments for different devices */
+        @supports (padding: max(0px)) {
+          .safe-area-top {
+            padding-top: max(16px, env(safe-area-inset-top));
           }
           
-          .print-friendly {
-            background: white !important;
-            color: black !important;
-            box-shadow: none !important;
+          .safe-area-bottom {
+            padding-bottom: max(16px, env(safe-area-inset-bottom));
+          }
+          
+          .safe-area-left {
+            padding-left: max(16px, env(safe-area-inset-left));
+          }
+          
+          .safe-area-right {
+            padding-right: max(16px, env(safe-area-inset-right));
           }
         }
       `}</style>
 
-      {/* Main Content with slide effect */}
-      <div className={`${!isOnline ? 'pt-12' : ''} mobile-optimized`}>
-        {children}
-      </div>
+      {children}
     </div>
   );
 };

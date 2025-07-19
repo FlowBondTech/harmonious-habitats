@@ -2,12 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Bell, X, Check, AlertCircle, Calendar, Users, MessageSquare, 
   Star, UserCheck, CheckCircle, XCircle, Clock, Send, 
-  ChevronLeft, Filter
+  ChevronLeft, Filter, Shield
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase } from '../lib/supabase';
 import { formatDistanceToNow } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 interface Notification {
   id: string;
@@ -25,7 +25,7 @@ interface Notification {
 }
 
 const NotificationCenter: React.FC = () => {
-  const { user } = useAuthContext();
+  const { user, isAdmin } = useAuthContext();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
@@ -431,6 +431,20 @@ const NotificationCenter: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Admin Link for Admin Users */}
+            {isAdmin && (
+              <div className="p-3 border-t border-forest-100 bg-gradient-to-r from-purple-50 to-blue-50">
+                <Link
+                  to="/admin"
+                  onClick={() => setShowDropdown(false)}
+                  className="flex items-center justify-center space-x-2 w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium text-sm hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-[1.02]"
+                >
+                  <Shield className="h-4 w-4" />
+                  <span>Admin Dashboard</span>
+                </Link>
+              </div>
+            )}
 
             {notifications.length > 0 && (
               <div className="p-3 border-t border-forest-100 bg-forest-25">
