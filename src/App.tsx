@@ -32,6 +32,10 @@ const EventCalendarPage = lazy(() => import('./pages/EventCalendar'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Spaces = lazy(() => import('./pages/Spaces'));
 const SpaceDetail = lazy(() => import('./pages/SpaceDetail'));
+const Neighborhoods = lazy(() => import('./pages/Neighborhoods'));
+const NeighborhoodDetail = lazy(() => import('./pages/NeighborhoodDetail'));
+const SpaceHolderDashboard = lazy(() => import('./pages/SpaceHolderDashboard'));
+const FacilitatorDirectory = lazy(() => import('./pages/FacilitatorDirectory'));
 
 const AppContent = () => {
   const { showAuthModalGlobal, globalAuthMode, closeAuthModalGlobal } = useAuthContext();
@@ -47,10 +51,14 @@ const AppContent = () => {
           <ScrollToTop />
           <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-earth-50/30 relative">
             {/* Desktop Header - Only show on desktop */}
-            <DesktopHeader onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+            <div className="hidden lg:block">
+              <DesktopHeader onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+            </div>
             
-            {/* Desktop Sidebar - Now as overlay */}
-            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+            {/* Desktop Sidebar - Now as overlay, only on desktop */}
+            <div className="hidden lg:block">
+              <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+            </div>
             
             {/* Main Content Area - No permanent margin, add top padding for desktop header */}
             <div className={`min-h-screen relative overflow-x-hidden transition-transform duration-300 ease-in-out ${
@@ -77,7 +85,7 @@ const AppContent = () => {
               </div>
               
               {/* Main Content with responsive padding */}
-              <main id="main" className="pt-16 lg:pt-20 pb-8 min-h-screen relative z-10">
+              <main id="main" className="pt-16 lg:pt-16 pb-8 relative z-10">
               <Suspense fallback={
                 <div className="flex items-center justify-center min-h-screen">
                   <LoadingSpinner size="lg" text="Loading..." />
@@ -147,8 +155,22 @@ const AppContent = () => {
                   <Route path="/spaces" element={
                     <Spaces />
                   } />
-                  <Route path="/spaces/:id" element={
+                  <Route path="/spaces/:slug" element={
                     <SpaceDetail />
+                  } />
+                  <Route path="/neighborhoods" element={
+                    <Neighborhoods />
+                  } />
+                  <Route path="/neighborhoods/:slug" element={
+                    <NeighborhoodDetail />
+                  } />
+                  <Route path="/space-holder-dashboard" element={
+                    <ProtectedRoute>
+                      <SpaceHolderDashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/facilitators" element={
+                    <FacilitatorDirectory />
                   } />
                   
                   {/* Fallback Routes */}

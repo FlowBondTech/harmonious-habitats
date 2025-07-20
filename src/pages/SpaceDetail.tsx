@@ -34,7 +34,7 @@ import { LoadingSpinner } from '../components/LoadingStates';
 import Avatar from '../components/Avatar';
 
 const SpaceDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user } = useAuthContext();
   const [space, setSpace] = useState<Space | null>(null);
@@ -60,24 +60,24 @@ const SpaceDetail = () => {
   };
 
   useEffect(() => {
-    if (id) {
+    if (slug) {
       loadSpace();
       checkFavorite();
     }
-  }, [id]);
+  }, [slug]);
 
   const loadSpace = async () => {
     try {
       setLoading(true);
       
-      // First try to load by slug (if id doesn't look like a UUID)
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id!);
+      // First try to load by slug (if slug doesn't look like a UUID)
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug!);
       
       let data, error;
       if (isUUID) {
-        ({ data, error } = await getSpaceById(id!));
+        ({ data, error } = await getSpaceById(slug!));
       } else {
-        ({ data, error } = await getSpaceBySlug(id!));
+        ({ data, error } = await getSpaceBySlug(slug!));
       }
       
       if (error) throw error;

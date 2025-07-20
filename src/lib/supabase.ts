@@ -42,6 +42,19 @@ export interface Profile {
   total_reviews: number
   verified: boolean
   discovery_radius: number
+  // Neighborhood features
+  primary_neighborhood_id?: string
+  verified_address?: string
+  address_verified_at?: string
+  neighborhood_premium: boolean
+  primary_neighborhood?: Neighborhood
+  // Facilitator features
+  is_available_facilitator: boolean
+  facilitator_bio?: string
+  facilitator_experience_years?: number
+  facilitator_certifications?: string[]
+  facilitator_rating?: number
+  facilitator_total_sessions?: number
   holistic_interests: string[]
   notification_preferences: {
     newEvents: boolean
@@ -204,6 +217,11 @@ export interface Event {
   latitude?: number
   longitude?: number
   location_details?: string
+  
+  // Neighborhood
+  neighborhood_id?: string
+  neighborhood_only: boolean
+  neighborhood?: Neighborhood
   
   // Virtual
   virtual_meeting_url?: string
@@ -508,6 +526,10 @@ export interface Space {
   max_radius?: number
   list_publicly: boolean
   guidelines?: string
+  // Neighborhood
+  neighborhood_id?: string
+  neighborhood_only: boolean
+  neighborhood?: Neighborhood
   donation_suggested?: string
   image_urls: string[]
   verified: boolean
@@ -560,6 +582,135 @@ export interface SpaceHolisticCategory {
 export interface SpaceAnimalType {
   space_id: string
   animal_type: string
+}
+
+// Neighborhood interfaces
+export interface Neighborhood {
+  id: string
+  created_at: string
+  updated_at: string
+  name: string
+  slug: string
+  description?: string
+  center_point?: {
+    type: 'Point'
+    coordinates: [number, number] // [longitude, latitude]
+  }
+  radius_miles?: number
+  created_by?: string
+  member_count: number
+  is_active: boolean
+  is_premium: boolean
+  settings: {
+    require_verification: boolean
+    allow_invites: boolean
+    max_invites_per_member: number
+    show_in_directory: boolean
+  }
+  creator?: Profile
+}
+
+export interface NeighborhoodMember {
+  id: string
+  created_at: string
+  updated_at: string
+  neighborhood_id: string
+  user_id: string
+  status: 'pending' | 'verified' | 'invited' | 'rejected'
+  verified_at?: string
+  verified_address?: string
+  verification_method?: string
+  invited_by?: string
+  invited_at?: string
+  invite_message?: string
+  is_gate_holder: boolean
+  last_active_at: string
+  neighborhood?: Neighborhood
+  user?: Profile
+  inviter?: Profile
+}
+
+export interface NeighborhoodBoundary {
+  id: string
+  neighborhood_id: string
+  boundary: {
+    type: 'Polygon'
+    coordinates: number[][][] // [[[lng, lat], [lng, lat], ...]]
+  }
+  created_at: string
+}
+
+// Facilitator Availability interfaces
+export interface FacilitatorAvailability {
+  id: string
+  created_at: string
+  updated_at: string
+  facilitator_id: string
+  is_active: boolean
+  timezone: string
+  weekly_schedule: {
+    [key: string]: Array<{
+      start: string
+      end: string
+    }>
+  }
+  min_advance_notice_hours: number
+  max_advance_booking_days: number
+  buffer_time_minutes: number
+  preferred_session_lengths: number[]
+  max_sessions_per_day: number
+  available_for_online: boolean
+  available_for_in_person: boolean
+  travel_radius_miles: number
+  suggested_donation?: string
+  availability_notes?: string
+  facilitator?: Profile
+}
+
+export interface FacilitatorAvailabilityOverride {
+  id: string
+  created_at: string
+  facilitator_id: string
+  override_date: string
+  override_type: 'unavailable' | 'available' | 'modified'
+  time_slots: Array<{
+    start: string
+    end: string
+  }>
+  reason?: string
+}
+
+export interface FacilitatorBookingRequest {
+  id: string
+  created_at: string
+  updated_at: string
+  facilitator_id: string
+  space_holder_id: string
+  space_id: string
+  requested_date: string
+  requested_start_time: string
+  requested_end_time: string
+  event_type: string
+  event_description?: string
+  expected_attendance?: number
+  status: 'pending' | 'accepted' | 'declined' | 'cancelled' | 'completed'
+  initial_message?: string
+  facilitator_response?: string
+  confirmed_at?: string
+  cancelled_at?: string
+  cancellation_reason?: string
+  completed_at?: string
+  facilitator?: Profile
+  space_holder?: Profile
+  space?: Space
+}
+
+export interface FacilitatorSpecialty {
+  id: string
+  facilitator_id: string
+  specialty: string
+  category: string
+  experience_years: number
 }
 
 export interface UserRole {
@@ -885,6 +1036,140 @@ export const getSpaceBySlug = async (slug: string) => {
       holistic_categories:space_holistic_categories(category)
     `)
     .eq('slug', slug)
+    .single()
+  
+  return { data, error }
+}
+
+// Neighborhood functions
+export const getNeighborhoods = async (filters?: {
+  is_active?: boolean
+  limit?: number
+}) => {
+  let query = supabase
+    .from('neighborhoods')
+    .select(`
+      *,
+      creator:profiles!neighborhoods_created_by_fkey(id, full_name, avatar_url, verified)
+    `)
+  
+  if (filters?.is_active !== undefined) {
+    query = query.eq('is_active', filters.is_active)
+  }
+  
+  if (filters?.limit) {
+    query = query.limit(filters.limit)
+  }
+  
+  query = query.order('member_count', { ascending: false })
+  
+  return await query
+}
+
+export const getNeighborhoodBySlug = async (slug: string) => {
+  const { data, error } = await supabase
+    .from('neighborhoods')
+    .select(`
+      *,
+      creator:profiles!neighborhoods_created_by_fkey(id, full_name, avatar_url, verified)
+    `)
+    .eq('slug', slug)
+    .single()
+  
+  return { data, error }
+}
+
+export const getNeighborhoodMembers = async (neighborhoodId: string) => {
+  const { data, error } = await supabase
+    .from('neighborhood_members')
+    .select(`
+      *,
+      user:profiles!neighborhood_members_user_id_fkey(id, full_name, avatar_url, verified, bio),
+      inviter:profiles!neighborhood_members_invited_by_fkey(id, full_name, avatar_url)
+    `)
+    .eq('neighborhood_id', neighborhoodId)
+    .in('status', ['verified', 'invited'])
+    .order('is_gate_holder', { ascending: false })
+    .order('created_at', { ascending: true })
+  
+  return { data, error }
+}
+
+export const getUserNeighborhoods = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('neighborhood_members')
+    .select(`
+      *,
+      neighborhood:neighborhoods(*)
+    `)
+    .eq('user_id', userId)
+    .in('status', ['verified', 'invited'])
+  
+  return { data, error }
+}
+
+export const requestNeighborhoodMembership = async (
+  neighborhoodId: string,
+  userId: string,
+  verifiedAddress?: string
+) => {
+  const { data, error } = await supabase
+    .from('neighborhood_members')
+    .insert({
+      neighborhood_id: neighborhoodId,
+      user_id: userId,
+      status: 'pending',
+      verified_address: verifiedAddress
+    })
+    .select()
+    .single()
+  
+  return { data, error }
+}
+
+export const inviteToNeighborhood = async (
+  neighborhoodId: string,
+  invitedUserId: string,
+  inviterId: string,
+  message?: string
+) => {
+  const { data, error } = await supabase
+    .from('neighborhood_members')
+    .insert({
+      neighborhood_id: neighborhoodId,
+      user_id: invitedUserId,
+      status: 'invited',
+      invited_by: inviterId,
+      invited_at: new Date().toISOString(),
+      invite_message: message,
+      verification_method: 'invited'
+    })
+    .select()
+    .single()
+  
+  return { data, error }
+}
+
+export const updateNeighborhoodMemberStatus = async (
+  memberId: string,
+  status: 'verified' | 'rejected',
+  verificationMethod?: string
+) => {
+  const updates: any = {
+    status,
+    updated_at: new Date().toISOString()
+  }
+  
+  if (status === 'verified') {
+    updates.verified_at = new Date().toISOString()
+    updates.verification_method = verificationMethod || 'manual'
+  }
+  
+  const { data, error } = await supabase
+    .from('neighborhood_members')
+    .update(updates)
+    .eq('id', memberId)
+    .select()
     .single()
   
   return { data, error }
@@ -2012,4 +2297,261 @@ export const getUnreadMessageCount = async (userId: string) => {
     .is('read_at', null)
 
   return { count: count || 0, error }
+}
+
+// Additional neighborhood functions
+export const getNeighborhoodEvents = async (neighborhoodId: string) => {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('neighborhood_id', neighborhoodId)
+    .eq('status', 'published')
+    .gte('date', new Date().toISOString())
+    .order('date', { ascending: true })
+
+  return { data, error }
+}
+
+export const getNeighborhoodSpaces = async (neighborhoodId: string) => {
+  const { data, error } = await supabase
+    .from('spaces')
+    .select('*')
+    .eq('neighborhood_id', neighborhoodId)
+    .eq('status', 'available')
+    .eq('list_publicly', true)
+    .order('created_at', { ascending: false })
+
+  return { data, error }
+}
+
+export const requestToJoinNeighborhood = async (neighborhoodId: string, userId: string) => {
+  const { data, error } = await supabase
+    .from('neighborhood_members')
+    .insert({
+      neighborhood_id: neighborhoodId,
+      user_id: userId,
+      status: 'pending',
+      verification_method: 'manual'
+    })
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const respondToInvite = async (membershipId: string, response: 'accept' | 'decline') => {
+  if (response === 'accept') {
+    const { data, error } = await supabase
+      .from('neighborhood_members')
+      .update({
+        status: 'verified',
+        verified_at: new Date().toISOString()
+      })
+      .eq('id', membershipId)
+      .eq('status', 'invited')
+      .select()
+      .single()
+
+    return { data, error }
+  } else {
+    const { error } = await supabase
+      .from('neighborhood_members')
+      .delete()
+      .eq('id', membershipId)
+      .eq('status', 'invited')
+
+    return { data: null, error }
+  }
+}
+
+// Facilitator Availability functions
+export const getFacilitatorAvailability = async (facilitatorId: string) => {
+  const { data, error } = await supabase
+    .from('facilitator_availability')
+    .select('*')
+    .eq('facilitator_id', facilitatorId)
+    .single()
+
+  return { data, error }
+}
+
+export const updateFacilitatorAvailability = async (
+  facilitatorId: string,
+  availability: Partial<FacilitatorAvailability>
+) => {
+  const { data, error } = await supabase
+    .from('facilitator_availability')
+    .upsert({
+      facilitator_id: facilitatorId,
+      ...availability,
+      updated_at: new Date().toISOString()
+    })
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const searchAvailableFacilitators = async (filters: {
+  date?: string
+  specialties?: string[]
+  online?: boolean
+  inPerson?: boolean
+  radius?: number
+  userLocation?: { lat: number; lng: number }
+}) => {
+  let query = supabase
+    .from('profiles')
+    .select(`
+      *,
+      facilitator_availability!inner(
+        *
+      ),
+      facilitator_specialties(
+        *
+      )
+    `)
+    .eq('is_available_facilitator', true)
+    .eq('facilitator_availability.is_active', true)
+
+  if (filters.specialties && filters.specialties.length > 0) {
+    query = query.in('facilitator_specialties.specialty', filters.specialties)
+  }
+
+  if (filters.online !== undefined) {
+    query = query.eq('facilitator_availability.available_for_online', filters.online)
+  }
+
+  if (filters.inPerson !== undefined) {
+    query = query.eq('facilitator_availability.available_for_in_person', filters.inPerson)
+  }
+
+  const { data, error } = await query
+
+  return { data, error }
+}
+
+export const createBookingRequest = async (booking: {
+  facilitator_id: string
+  space_holder_id: string
+  space_id: string
+  requested_date: string
+  requested_start_time: string
+  requested_end_time: string
+  event_type: string
+  event_description?: string
+  expected_attendance?: number
+  initial_message?: string
+}) => {
+  const { data, error } = await supabase
+    .from('facilitator_booking_requests')
+    .insert(booking)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const getBookingRequests = async (userId: string, role: 'facilitator' | 'space_holder') => {
+  const column = role === 'facilitator' ? 'facilitator_id' : 'space_holder_id'
+  
+  const { data, error } = await supabase
+    .from('facilitator_booking_requests')
+    .select(`
+      *,
+      facilitator:profiles!facilitator_booking_requests_facilitator_id_fkey(
+        id,
+        full_name,
+        avatar_url,
+        facilitator_bio,
+        facilitator_rating
+      ),
+      space_holder:profiles!facilitator_booking_requests_space_holder_id_fkey(
+        id,
+        full_name,
+        avatar_url
+      ),
+      space:spaces(
+        id,
+        name,
+        address
+      )
+    `)
+    .eq(column, userId)
+    .order('created_at', { ascending: false })
+
+  return { data, error }
+}
+
+export const updateBookingRequest = async (
+  bookingId: string,
+  updates: {
+    status?: 'accepted' | 'declined' | 'cancelled' | 'completed'
+    facilitator_response?: string
+    cancellation_reason?: string
+  }
+) => {
+  const updateData: any = {
+    ...updates,
+    updated_at: new Date().toISOString()
+  }
+
+  if (updates.status === 'accepted') {
+    updateData.confirmed_at = new Date().toISOString()
+  } else if (updates.status === 'cancelled') {
+    updateData.cancelled_at = new Date().toISOString()
+  } else if (updates.status === 'completed') {
+    updateData.completed_at = new Date().toISOString()
+  }
+
+  const { data, error } = await supabase
+    .from('facilitator_booking_requests')
+    .update(updateData)
+    .eq('id', bookingId)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const getFacilitatorSpecialties = async (facilitatorId: string) => {
+  const { data, error } = await supabase
+    .from('facilitator_specialties')
+    .select('*')
+    .eq('facilitator_id', facilitatorId)
+    .order('category', { ascending: true })
+
+  return { data, error }
+}
+
+export const updateFacilitatorSpecialties = async (
+  facilitatorId: string,
+  specialties: Array<{
+    specialty: string
+    category: string
+    experience_years: number
+  }>
+) => {
+  // First delete existing specialties
+  await supabase
+    .from('facilitator_specialties')
+    .delete()
+    .eq('facilitator_id', facilitatorId)
+
+  // Then insert new ones
+  if (specialties.length > 0) {
+    const { data, error } = await supabase
+      .from('facilitator_specialties')
+      .insert(
+        specialties.map(s => ({
+          facilitator_id: facilitatorId,
+          ...s
+        }))
+      )
+      .select()
+
+    return { data, error }
+  }
+
+  return { data: [], error: null }
 }

@@ -32,11 +32,13 @@ import {
   Stethoscope,
   Music,
   Activity,
-  CheckCircle
+  CheckCircle,
+  Users as UsersIcon
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../components/AuthProvider';
 import { updateProfile } from '../lib/supabase';
+import { FacilitatorAvailability } from '../components/FacilitatorAvailability';
 
 interface SettingSection {
   id: string;
@@ -175,6 +177,14 @@ const Settings = () => {
       description: 'Select topics and categories you\'re interested in',
       icon: Heart,
       color: 'text-earth-600',
+      category: 'preferences'
+    },
+    {
+      id: 'facilitator-settings',
+      title: 'Facilitator Settings',
+      description: 'Manage your availability and preferences as a facilitator',
+      icon: UsersIcon,
+      color: 'text-purple-600',
       category: 'preferences'
     },
     {
@@ -508,6 +518,16 @@ const Settings = () => {
         return <SocialMediaSection />;
       case 'interests':
         return <InterestsSection />;
+      case 'facilitator-settings':
+        return (
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-2xl font-bold text-forest-800 mb-6">Facilitator Settings</h2>
+            <p className="text-gray-600 mb-6">
+              Manage your availability, specialties, and preferences for hosting events and workshops.
+            </p>
+            <FacilitatorAvailability />
+          </div>
+        );
       case 'mobile-notifications':
         return <MobileNotificationsSection />;
       case 'payment-methods':

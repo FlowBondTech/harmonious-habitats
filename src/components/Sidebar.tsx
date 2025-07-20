@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   Settings,
   Heart,
-  Menu
+  Menu,
+  MapPin
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import Avatar from './Avatar';
@@ -116,11 +117,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const [showAllFavorites, setShowAllFavorites] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isSpaceHolder, setIsSpaceHolder] = useState(false);
 
   // Navigation items
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/map', icon: Map, label: 'Discover' },
+    { path: '/neighborhoods', icon: MapPin, label: 'Neighborhoods' },
+    { path: '/facilitators', icon: User, label: 'Facilitators' },
     { path: '/global-feed', icon: Globe, label: 'Global Feed' },
     { path: '/calendar', icon: Calendar, label: 'Calendar' },
     { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
@@ -134,14 +138,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
     navItems.push({ path: '/admin', icon: Shield, label: 'Admin', badge: 0 });
   }
 
-  // Load favorite spaces
+  if (isSpaceHolder) {
+    navItems.splice(7, 0, { path: '/space-holder-dashboard', icon: Home, label: 'Space Dashboard', badge: 0 });
+  }
+
+  // Load favorite spaces and check if user is space holder
   useEffect(() => {
-    const loadFavorites = async () => {
+    const loadData = async () => {
       if (!user) return;
       
       try {
-        // For now, just load the first 5 spaces as favorites
-        // In a real app, you'd have a favorites system
+        // Load user's spaces to check if they are a space holder
+        const userSpacesResult = await getSpaces({ owner_id: user.id });
+        if (userSpacesResult && userSpacesResult.data && userSpacesResult.data.length > 0) {
+          setIsSpaceHolder(true);
+        }
+
+        // Load favorite spaces
         const result = await getSpaces({ limit: 5 });
         if (result && result.data) {
           setFavoriteSpaces(result.data);
@@ -149,12 +162,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
           setFavoriteSpaces([]);
         }
       } catch (error) {
-        console.error('Failed to load favorite spaces:', error);
+        console.error('Failed to load data:', error);
         setFavoriteSpaces([]);
       }
     };
 
-    loadFavorites();
+    loadData();
   }, [user]);
 
   const displayedFavorites = showAllFavorites ? favoriteSpaces : favoriteSpaces.slice(0, 3);
