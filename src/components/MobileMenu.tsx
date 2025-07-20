@@ -13,7 +13,8 @@ import {
   LogIn, 
   Sprout, 
   Shield,
-  Share2
+  Share2,
+  Settings
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 
@@ -40,6 +41,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onShareClick }
     { path: '/activities', icon: Calendar, label: 'Activities' },
     { path: '/messages', icon: MessageCircle, label: 'Messages' },
     { path: '/account', icon: User, label: 'Account' },
+    { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
   const navItems = user ? authenticatedNavItems : publicNavItems;
@@ -134,7 +136,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onShareClick }
                 className="w-full px-4 py-3.5 bg-gradient-to-r from-forest-600 to-earth-600 text-white rounded-xl text-base font-medium transition-all duration-300 flex items-center justify-center space-x-3 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Share2 className="h-5 w-5" />
-                <span>Share</span>
+                <span>Share Space</span>
               </button>
             </div>
           )}

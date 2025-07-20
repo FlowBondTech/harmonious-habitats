@@ -29,6 +29,7 @@ const GlobalFeed = lazy(() => import('./pages/GlobalFeed'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const EventFeedbackForm = lazy(() => import('./components/EventFeedbackForm'));
 const EventCalendarPage = lazy(() => import('./pages/EventCalendar'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 const AppContent = () => {
   const { showAuthModalGlobal, globalAuthMode, closeAuthModalGlobal } = useAuthContext();
@@ -121,6 +122,11 @@ const AppContent = () => {
                   <Route path="/account" element={
                     <ProtectedRoute>
                       <Account />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings" element={
+                    <ProtectedRoute>
+                      <Settings />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin" element={

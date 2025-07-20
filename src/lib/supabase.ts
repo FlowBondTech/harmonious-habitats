@@ -1732,3 +1732,118 @@ export const getBookingsForUser = async (userId: string, status?: string) => {
 
   return await query
 }
+
+// Update personal information
+export const updatePersonalInfo = async (userId: string, personalInfo: {
+  date_of_birth?: string
+  gender?: string
+  phone_number?: string
+  address?: string
+  city?: string
+  zip_code?: string
+}) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      ...personalInfo,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', userId)
+    .select()
+    .single()
+  return { data, error }
+}
+
+// Update email preferences
+export const updateEmailPreferences = async (userId: string, preferences: {
+  weekly_digest: boolean
+  event_reminders: boolean
+  new_member_spotlights: boolean
+  space_availability: boolean
+  tips_resources: boolean
+  email_frequency: 'realtime' | 'daily' | 'weekly' | 'monthly'
+}) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      email_preferences: preferences,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', userId)
+    .select()
+    .single()
+  return { data, error }
+}
+
+// Update social media connections
+export const updateSocialMedia = async (userId: string, socialMedia: {
+  instagram?: string
+  facebook?: string
+  linkedin?: string
+  twitter?: string
+  sharing_preferences: {
+    auto_share_events: boolean
+    share_achievements: boolean
+    allow_friend_discovery: boolean
+  }
+}) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      social_media: socialMedia,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', userId)
+    .select()
+    .single()
+  return { data, error }
+}
+
+// Update interests
+export const updateInterests = async (userId: string, interests: {
+  holistic_interests: string[]
+  additional_interests: string[]
+  involvement_level: 'curious' | 'active' | 'dedicated'
+  other_interests?: string
+}) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      holistic_interests: interests.holistic_interests,
+      additional_interests: interests.additional_interests,
+      involvement_level: interests.involvement_level,
+      other_interests: interests.other_interests,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', userId)
+    .select()
+    .single()
+  return { data, error }
+}
+
+// Update mobile notification settings
+export const updateMobileNotifications = async (userId: string, settings: {
+  push_notifications: {
+    event_reminders: boolean
+    new_messages: boolean
+    event_updates: boolean
+    community_announcements: boolean
+  }
+  quiet_hours: {
+    enabled: boolean
+    start_time: string
+    end_time: string
+  }
+  notification_sound: string
+}) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      mobile_notifications: settings,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', userId)
+    .select()
+    .single()
+  return { data, error }
+}

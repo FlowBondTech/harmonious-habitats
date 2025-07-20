@@ -26,6 +26,8 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -48,6 +50,44 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
     }
   }, [showSearch]);
 
+  // Handle scroll to show/hide navbar
+  useEffect(() => {
+    const controlNavbar = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Show navbar when scrolling up or at the top of the page
+      if (currentScrollY < lastScrollY || currentScrollY < 10) {
+        setIsVisible(true);
+      } 
+      // Hide navbar when scrolling down
+      else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false);
+        setShowProfileDropdown(false); // Close dropdown when hiding
+        setShowSearch(false); // Close search when hiding
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    const throttledControlNavbar = () => {
+      let ticking = false;
+      return () => {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            controlNavbar();
+            ticking = false;
+          });
+          ticking = true;
+        }
+      };
+    };
+
+    const scrollHandler = throttledControlNavbar();
+    window.addEventListener('scroll', scrollHandler);
+    
+    return () => window.removeEventListener('scroll', scrollHandler);
+  }, [lastScrollY]);
+
   const handleSignOut = async () => {
     await signOut();
     setShowProfileDropdown(false);
@@ -64,7 +104,9 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
   };
 
   return (
-    <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200">
+    <header className={`lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 transition-transform duration-300 ${
+      isVisible ? 'translate-y-0' : '-translate-y-full'
+    }`}>
       <div className="h-16 px-4 flex items-center justify-between">
         {/* Left Section - Menu & Logo */}
         <div className="flex items-center space-x-3">

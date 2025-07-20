@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Clock, Award, CheckCircle, MessageCircle, Share2, Image, Home as HomeIcon, Globe, Map, GraduationCap, Package, Briefcase, Languages, Accessibility, X, BarChart3 } from 'lucide-react';
+import { User, MapPin, Settings, Badge, Star, Calendar, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Clock, Award, CheckCircle, MessageCircle, Share2, Image, Home as HomeIcon, Globe, Map, GraduationCap, Package, Briefcase, Languages, Accessibility, X, BarChart3, Mail, Lock, CreditCard, DollarSign, UserCircle, Activity, Smartphone, UserPlus, Crown } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { updateProfile, supabase } from '../lib/supabase';
 import { Link, useLocation } from 'react-router-dom';
@@ -12,7 +12,7 @@ import { DEFAULT_AVATAR } from '../utils/defaults';
 const Account = () => {
   const { user, profile, loadUserProfile } = useAuthContext();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('settings');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -349,14 +349,20 @@ const Account = () => {
             <div className="bg-white rounded-xl shadow-sm p-2">
               <nav className="space-y-1">
                 {[
-                  { id: 'profile', label: 'Profile', icon: User },
-                  { id: 'skills', label: 'Skills', icon: GraduationCap },
-                  { id: 'offerings', label: 'Offerings', icon: Package },
-                  { id: 'capabilities', label: 'Capabilities', icon: Briefcase },
-                  ...(hasEvents ? [{ id: 'analytics', label: 'Event Analytics', icon: BarChart3 }] : []),
-                  { id: 'share', label: 'My Shares', icon: Share2 },
                   { id: 'settings', label: 'Settings', icon: Settings },
+                  { id: 'edit-profile', label: 'Edit Profile', icon: Edit },
+                  { id: 'personal-info', label: 'Personal Info', icon: UserCircle },
+                  { id: 'account-management', label: 'Account Management', icon: User },
+                  { id: 'email-updates', label: 'Email Updates', icon: Mail },
                   { id: 'privacy', label: 'Privacy', icon: Shield },
+                  { id: 'social-media', label: 'Social Media', icon: Share2 },
+                  { id: 'interests', label: 'Interests', icon: Heart },
+                  { id: 'mobile-notifications', label: 'Mobile Notifications', icon: Smartphone },
+                  { id: 'organizer-subscription', label: 'Organizer Subscription', icon: UserPlus },
+                  { id: 'harmonic-subscription', label: 'Harmonic Subscription', icon: Crown },
+                  { id: 'payment-methods', label: 'Payment Methods', icon: CreditCard },
+                  { id: 'payments-made', label: 'Payments Made', icon: DollarSign },
+                  { id: 'payments-received', label: 'Payments Received', icon: Activity },
                 ].map((item) => {
                   const Icon = item.icon;
                   return (
@@ -380,8 +386,59 @@ const Account = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            {/* Profile Tab */}
-            {activeTab === 'profile' && (
+            {/* Settings Tab */}
+            {activeTab === 'settings' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="text-xl font-semibold text-forest-800 mb-6">Account Settings</h3>
+                  <p className="text-forest-600 mb-6">
+                    Manage your account settings and preferences. Select a category from the left to get started.
+                  </p>
+                  
+                  {/* Quick Actions */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button
+                      onClick={() => setActiveTab('edit-profile')}
+                      className="p-4 border border-forest-200 rounded-lg hover:bg-forest-50 transition-colors text-left"
+                    >
+                      <Edit className="h-5 w-5 text-forest-600 mb-2" />
+                      <h4 className="font-medium text-forest-800">Edit Profile</h4>
+                      <p className="text-sm text-forest-600">Update your profile information</p>
+                    </button>
+                    
+                    <button
+                      onClick={() => setActiveTab('privacy')}
+                      className="p-4 border border-forest-200 rounded-lg hover:bg-forest-50 transition-colors text-left"
+                    >
+                      <Shield className="h-5 w-5 text-forest-600 mb-2" />
+                      <h4 className="font-medium text-forest-800">Privacy Settings</h4>
+                      <p className="text-sm text-forest-600">Control your privacy preferences</p>
+                    </button>
+                    
+                    <button
+                      onClick={() => setActiveTab('email-updates')}
+                      className="p-4 border border-forest-200 rounded-lg hover:bg-forest-50 transition-colors text-left"
+                    >
+                      <Mail className="h-5 w-5 text-forest-600 mb-2" />
+                      <h4 className="font-medium text-forest-800">Email Preferences</h4>
+                      <p className="text-sm text-forest-600">Manage email notifications</p>
+                    </button>
+                    
+                    <button
+                      onClick={() => setActiveTab('payment-methods')}
+                      className="p-4 border border-forest-200 rounded-lg hover:bg-forest-50 transition-colors text-left"
+                    >
+                      <CreditCard className="h-5 w-5 text-forest-600 mb-2" />
+                      <h4 className="font-medium text-forest-800">Payment Methods</h4>
+                      <p className="text-sm text-forest-600">Manage payment options</p>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Edit Profile Tab */}
+            {activeTab === 'edit-profile' && (
               <div className="space-y-6">
                 {/* Success/Error Messages */}
                 {error && (
@@ -625,207 +682,719 @@ const Account = () => {
               </div>
             )}
 
-            {/* Skills Tab */}
-            {activeTab === 'skills' && (
+            {/* Personal Info Tab */}
+            {activeTab === 'personal-info' && (
               <div className="space-y-6">
-                <ProfileSkillsSection
-                  skills={formData.skills}
-                  onSkillsUpdate={(skills) => handleInputChange('skills', skills)}
-                  isEditing={isEditing}
-                />
-              </div>
-            )}
-
-            {/* Offerings Tab */}
-            {activeTab === 'offerings' && (
-              <div className="space-y-6">
-                <ProfileOfferingsSection
-                  offerings={formData.offerings}
-                  onOfferingsUpdate={(offerings) => handleInputChange('offerings', offerings)}
-                  isEditing={isEditing}
-                />
-              </div>
-            )}
-
-            {/* Capabilities Tab */}
-            {activeTab === 'capabilities' && (
-              <div className="space-y-6">
-                {/* Languages */}
                 <div className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-2">
-                      <Languages className="h-5 w-5 text-forest-600" />
-                      <h3 className="text-xl font-semibold text-forest-800">Languages</h3>
+                  <h3 className="text-xl font-semibold text-forest-800 mb-6">Personal Information</h3>
+                  
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-forest-700 mb-2">Date of Birth</label>
+                        <input
+                          type="date"
+                          className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-forest-700 mb-2">Gender</label>
+                        <select className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500">
+                          <option>Prefer not to say</option>
+                          <option>Female</option>
+                          <option>Male</option>
+                          <option>Non-binary</option>
+                          <option>Other</option>
+                        </select>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {['English', 'Spanish', 'French', 'Portuguese', 'German', 'Italian', 'Mandarin', 'Japanese', 'Arabic', 'Hindi', 'Russian', 'Other'].map((language) => {
-                      const isSelected = formData.languages.includes(language);
-                      return (
-                        <button
-                          key={language}
-                          type="button"
-                          onClick={() => {
-                            if (!isEditing) return;
-                            const updated = isSelected 
-                              ? formData.languages.filter(l => l !== language)
-                              : [...formData.languages, language];
-                            handleInputChange('languages', updated);
-                          }}
-                          disabled={!isEditing}
-                          className={`p-3 rounded-lg border-2 text-center transition-colors ${
-                            isSelected
-                              ? 'border-forest-300 bg-forest-50 text-forest-700'
-                              : 'border-forest-100 bg-gray-50 text-forest-600 hover:bg-forest-50'
-                          } ${isEditing ? 'cursor-pointer' : 'cursor-default'}`}
-                        >
-                          <span className="font-medium">{language}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Experience & Teaching */}
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex items-center space-x-2 mb-6">
-                    <GraduationCap className="h-5 w-5 text-forest-600" />
-                    <h3 className="text-xl font-semibold text-forest-800">Experience & Teaching</h3>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
                     <div>
-                      <label className="block text-sm font-medium text-forest-700 mb-2">
-                        Started holistic journey in
-                      </label>
+                      <label className="block text-sm font-medium text-forest-700 mb-2">Phone Number</label>
                       <input
-                        type="text"
-                        value={formData.experience_since}
-                        onChange={(e) => handleInputChange('experience_since', e.target.value)}
-                        placeholder="e.g., 2018, Early 2020s"
+                        type="tel"
+                        placeholder="+1 (555) 123-4567"
                         className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
-                        readOnly={!isEditing}
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-forest-700 mb-2">
-                        Years of teaching experience
-                      </label>
+                      <label className="block text-sm font-medium text-forest-700 mb-2">Address</label>
                       <input
-                        type="number"
-                        min="0"
-                        max="50"
-                        value={formData.teaching_experience}
-                        onChange={(e) => handleInputChange('teaching_experience', parseInt(e.target.value) || 0)}
-                        className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
-                        readOnly={!isEditing}
+                        type="text"
+                        placeholder="Street Address"
+                        className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 mb-3"
                       />
+                      <div className="grid grid-cols-2 gap-3">
+                        <input
+                          type="text"
+                          placeholder="City"
+                          className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                        />
+                        <input
+                          type="text"
+                          placeholder="ZIP Code"
+                          className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="pt-4">
+                      <button className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        Save Personal Information
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Account Management Tab */}
+            {activeTab === 'account-management' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="text-xl font-semibold text-forest-800 mb-6">Account Management</h3>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-medium text-forest-800 mb-3">Change Password</h4>
+                      <div className="space-y-3">
+                        <input
+                          type="password"
+                          placeholder="Current Password"
+                          className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                        />
+                        <input
+                          type="password"
+                          placeholder="New Password"
+                          className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                        />
+                        <input
+                          type="password"
+                          placeholder="Confirm New Password"
+                          className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                        />
+                        <button className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                          Update Password
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t border-gray-200 pt-6">
+                      <h4 className="font-medium text-forest-800 mb-3">Two-Factor Authentication</h4>
+                      <p className="text-sm text-forest-600 mb-4">Add an extra layer of security to your account</p>
+                      <button className="bg-forest-100 hover:bg-forest-200 text-forest-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                        Enable 2FA
+                      </button>
+                    </div>
+                    
+                    <div className="border-t border-gray-200 pt-6">
+                      <h4 className="font-medium text-forest-800 mb-3">Account Status</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-forest-50 rounded-lg">
+                          <span className="text-forest-700">Account Created</span>
+                          <span className="font-medium text-forest-800">January 15, 2023</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-forest-50 rounded-lg">
+                          <span className="text-forest-700">Last Login</span>
+                          <span className="font-medium text-forest-800">Today at 3:45 PM</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-forest-50 rounded-lg">
+                          <span className="text-forest-700">Account Type</span>
+                          <span className="font-medium text-forest-800">Community Member</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t border-gray-200 pt-6">
+                      <h4 className="font-medium text-red-800 mb-3">Danger Zone</h4>
+                      <div className="space-y-3">
+                        <button className="bg-white border border-red-300 text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg font-medium transition-colors">
+                          Deactivate Account
+                        </button>
+                        <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                          Delete Account Permanently
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Email Updates Tab */}
+            {activeTab === 'email-updates' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="text-xl font-semibold text-forest-800 mb-6">Email Update Preferences</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="p-4 bg-forest-50 rounded-lg">
+                      <label className="flex items-start space-x-3">
+                        <input type="checkbox" defaultChecked className="mt-1 w-4 h-4 text-forest-600" />
+                        <div>
+                          <div className="font-medium text-forest-800">Weekly Community Digest</div>
+                          <div className="text-sm text-forest-600">Summary of events and activities in your area</div>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    <div className="p-4 bg-forest-50 rounded-lg">
+                      <label className="flex items-start space-x-3">
+                        <input type="checkbox" defaultChecked className="mt-1 w-4 h-4 text-forest-600" />
+                        <div>
+                          <div className="font-medium text-forest-800">Event Reminders</div>
+                          <div className="text-sm text-forest-600">Notifications about upcoming events you're attending</div>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    <div className="p-4 bg-forest-50 rounded-lg">
+                      <label className="flex items-start space-x-3">
+                        <input type="checkbox" className="mt-1 w-4 h-4 text-forest-600" />
+                        <div>
+                          <div className="font-medium text-forest-800">New Member Spotlights</div>
+                          <div className="text-sm text-forest-600">Meet new members in your community</div>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    <div className="p-4 bg-forest-50 rounded-lg">
+                      <label className="flex items-start space-x-3">
+                        <input type="checkbox" defaultChecked className="mt-1 w-4 h-4 text-forest-600" />
+                        <div>
+                          <div className="font-medium text-forest-800">Space Availability</div>
+                          <div className="text-sm text-forest-600">Updates when new spaces become available</div>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    <div className="p-4 bg-forest-50 rounded-lg">
+                      <label className="flex items-start space-x-3">
+                        <input type="checkbox" className="mt-1 w-4 h-4 text-forest-600" />
+                        <div>
+                          <div className="font-medium text-forest-800">Tips & Resources</div>
+                          <div className="text-sm text-forest-600">Holistic wellness tips and community resources</div>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    <div className="border-t border-gray-200 pt-6">
+                      <h4 className="font-medium text-forest-800 mb-3">Email Frequency</h4>
+                      <select className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500">
+                        <option>Real-time (as events happen)</option>
+                        <option>Daily digest</option>
+                        <option>Weekly digest</option>
+                        <option>Monthly summary</option>
+                      </select>
+                    </div>
+                    
+                    <div className="pt-4">
+                      <button className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        Save Email Preferences
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Social Media Tab */}
+            {activeTab === 'social-media' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="text-xl font-semibold text-forest-800 mb-6">Social Media Connections</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="p-4 border border-forest-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-forest-800">Instagram</h4>
+                          <p className="text-sm text-forest-600">Share your events and activities</p>
+                        </div>
+                        <button className="bg-forest-100 hover:bg-forest-200 text-forest-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                          Connect
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 border border-forest-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-forest-800">Facebook</h4>
+                          <p className="text-sm text-forest-600">Find friends in the community</p>
+                        </div>
+                        <button className="bg-forest-100 hover:bg-forest-200 text-forest-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                          Connect
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 border border-forest-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-forest-800">LinkedIn</h4>
+                          <p className="text-sm text-forest-600">Professional wellness connections</p>
+                        </div>
+                        <button className="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                          Disconnect
+                        </button>
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="mt-6">
-                    <label className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.mentorship_available}
-                        onChange={(e) => handleInputChange('mentorship_available', e.target.checked)}
-                        disabled={!isEditing}
-                        className="w-4 h-4 text-forest-600 rounded focus:ring-forest-500"
-                      />
-                      <div>
-                        <div className="font-medium text-forest-800">Available for mentorship</div>
-                        <div className="text-sm text-gray-600">I'm willing to mentor newcomers to holistic practices</div>
-                      </div>
-                    </label>
+                  <div className="mt-6 p-4 bg-earth-50 rounded-lg">
+                    <h4 className="font-medium text-earth-800 mb-2">Sharing Preferences</h4>
+                    <div className="space-y-3">
+                      <label className="flex items-center space-x-3">
+                        <input type="checkbox" defaultChecked className="w-4 h-4 text-forest-600" />
+                        <span className="text-sm text-earth-700">Auto-share events I'm attending</span>
+                      </label>
+                      <label className="flex items-center space-x-3">
+                        <input type="checkbox" className="w-4 h-4 text-forest-600" />
+                        <span className="text-sm text-earth-700">Share my achievements and milestones</span>
+                      </label>
+                      <label className="flex items-center space-x-3">
+                        <input type="checkbox" defaultChecked className="w-4 h-4 text-forest-600" />
+                        <span className="text-sm text-earth-700">Allow friends to find me on Harmony Spaces</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
+              </div>
+            )}
 
-                {/* Accessibility */}
+            {/* Interests Tab */}
+            {activeTab === 'interests' && (
+              <div className="space-y-6">
                 <div className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex items-center space-x-2 mb-6">
-                    <Accessibility className="h-5 w-5 text-forest-600" />
-                    <h3 className="text-xl font-semibold text-forest-800">Accessibility</h3>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-semibold text-forest-800">My Interests</h3>
+                    <button className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                      Save Interests
+                    </button>
+                  </div>
+                  
+                  {/* Holistic Interests */}
+                  <div className="mb-6">
+                    <h4 className="font-medium text-forest-800 mb-4">Holistic Practices</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {holisticInterests.map((interest) => {
+                        const Icon = interest.icon;
+                        const isSelected = formData.holistic_interests.includes(interest.id);
+                        return (
+                          <button
+                            key={interest.id}
+                            type="button"
+                            onClick={() => toggleInterest(interest.id)}
+                            className={`p-4 rounded-lg border-2 transition-colors ${
+                              isSelected
+                                ? 'border-forest-300 bg-forest-50'
+                                : 'border-forest-100 bg-gray-50'
+                            } hover:bg-forest-25 cursor-pointer`}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <Icon className={`h-6 w-6 ${
+                                isSelected ? 'text-forest-600' : 'text-gray-400'
+                              }`} />
+                              <span className={`font-medium ${
+                                isSelected ? 'text-forest-800' : 'text-gray-500'
+                              }`}>
+                                {interest.name}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  {/* Additional Interests */}
+                  <div className="mb-6">
+                    <h4 className="font-medium text-forest-800 mb-4">Additional Interests</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {['Permaculture', 'Herbalism', 'Energy Healing', 'Sound Therapy', 'Breathwork', 'Dance Movement', 'Nutrition', 'Sustainability', 'Community Building', 'Aromatherapy', 'Mindfulness', 'Sacred Geometry'].map((interest) => {
+                        return (
+                          <label key={interest} className="flex items-center space-x-2 p-2">
+                            <input type="checkbox" className="w-4 h-4 text-forest-600" />
+                            <span className="text-sm text-forest-700">{interest}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  {/* Interest Intensity */}
+                  <div className="mb-6">
+                    <h4 className="font-medium text-forest-800 mb-4">How involved are you?</h4>
+                    <div className="space-y-3">
+                      <label className="flex items-center space-x-3">
+                        <input type="radio" name="involvement" className="w-4 h-4 text-forest-600" />
+                        <div>
+                          <div className="font-medium text-forest-800">Curious Explorer</div>
+                          <div className="text-sm text-forest-600">Just starting my holistic journey</div>
+                        </div>
+                      </label>
+                      <label className="flex items-center space-x-3">
+                        <input type="radio" name="involvement" defaultChecked className="w-4 h-4 text-forest-600" />
+                        <div>
+                          <div className="font-medium text-forest-800">Active Participant</div>
+                          <div className="text-sm text-forest-600">Regular practice and community involvement</div>
+                        </div>
+                      </label>
+                      <label className="flex items-center space-x-3">
+                        <input type="radio" name="involvement" className="w-4 h-4 text-forest-600" />
+                        <div>
+                          <div className="font-medium text-forest-800">Dedicated Practitioner</div>
+                          <div className="text-sm text-forest-600">Deep commitment to holistic lifestyle</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                  
+                  {/* Custom Interests */}
+                  <div>
+                    <h4 className="font-medium text-forest-800 mb-2">Other Interests</h4>
+                    <textarea
+                      placeholder="Tell us about any other interests or practices you'd like to explore..."
+                      rows={3}
+                      className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Mobile Notifications Tab */}
+            {activeTab === 'mobile-notifications' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="text-xl font-semibold text-forest-800 mb-6">Mobile Notification Settings</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="p-4 bg-forest-50 rounded-lg">
+                      <h4 className="font-medium text-forest-800 mb-3">Push Notifications</h4>
+                      <div className="space-y-3">
+                        <label className="flex items-center justify-between">
+                          <span className="text-forest-700">Event Reminders</span>
+                          <input type="checkbox" defaultChecked className="w-4 h-4 text-forest-600" />
+                        </label>
+                        <label className="flex items-center justify-between">
+                          <span className="text-forest-700">New Messages</span>
+                          <input type="checkbox" defaultChecked className="w-4 h-4 text-forest-600" />
+                        </label>
+                        <label className="flex items-center justify-between">
+                          <span className="text-forest-700">Event Updates</span>
+                          <input type="checkbox" defaultChecked className="w-4 h-4 text-forest-600" />
+                        </label>
+                        <label className="flex items-center justify-between">
+                          <span className="text-forest-700">Community Announcements</span>
+                          <input type="checkbox" className="w-4 h-4 text-forest-600" />
+                        </label>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 bg-forest-50 rounded-lg">
+                      <h4 className="font-medium text-forest-800 mb-3">Quiet Hours</h4>
+                      <p className="text-sm text-forest-600 mb-3">Pause notifications during these hours</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm text-forest-700 mb-1">From</label>
+                          <input type="time" defaultValue="22:00" className="w-full px-3 py-2 border border-forest-200 rounded-lg" />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-forest-700 mb-1">To</label>
+                          <input type="time" defaultValue="08:00" className="w-full px-3 py-2 border border-forest-200 rounded-lg" />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 bg-forest-50 rounded-lg">
+                      <h4 className="font-medium text-forest-800 mb-3">Notification Sound</h4>
+                      <select className="w-full px-3 py-2 border border-forest-200 rounded-lg">
+                        <option>Default</option>
+                        <option>Gentle Chime</option>
+                        <option>Nature Sound</option>
+                        <option>Vibrate Only</option>
+                        <option>Silent</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Organizer Subscription Tab */}
+            {activeTab === 'organizer-subscription' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="text-xl font-semibold text-forest-800 mb-6">Organizer Subscription</h3>
+                  
+                  <div className="bg-gradient-to-br from-forest-50 to-earth-50 p-6 rounded-lg mb-6">
+                    <h4 className="text-2xl font-bold text-forest-800 mb-2">Become an Event Organizer</h4>
+                    <p className="text-forest-600 mb-4">Host events and share your expertise with the community</p>
+                    
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <span className="text-forest-700">Create unlimited events</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <span className="text-forest-700">Advanced event management tools</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <span className="text-forest-700">Priority listing in search results</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <span className="text-forest-700">Analytics and insights</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <span className="text-forest-700">Verified organizer badge</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="text-3xl font-bold text-forest-800">$15<span className="text-lg font-normal">/month</span></p>
+                        <p className="text-sm text-forest-600">or $150/year (save 17%)</p>
+                      </div>
+                      <button className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        Subscribe Now
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t border-gray-200 pt-6">
+                    <h4 className="font-medium text-forest-800 mb-3">Current Status</h4>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-gray-600">You are not currently subscribed as an organizer</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Harmonic Subscription Tab */}
+            {activeTab === 'harmonic-subscription' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="text-xl font-semibold text-forest-800 mb-6">Harmonic Membership</h3>
+                  
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-lg mb-6">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <Crown className="h-8 w-8 text-purple-600" />
+                      <h4 className="text-2xl font-bold text-purple-800">Harmonic Premium</h4>
+                    </div>
+                    <p className="text-purple-600 mb-4">Unlock the full potential of holistic community connection</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-5 w-5 text-purple-500" />
+                          <span className="text-purple-700">Unlimited event bookings</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-5 w-5 text-purple-500" />
+                          <span className="text-purple-700">Priority access to spaces</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-5 w-5 text-purple-500" />
+                          <span className="text-purple-700">Advanced search filters</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-5 w-5 text-purple-500" />
+                          <span className="text-purple-700">Exclusive community events</span>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-5 w-5 text-purple-500" />
+                          <span className="text-purple-700">Direct messaging</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-5 w-5 text-purple-500" />
+                          <span className="text-purple-700">Profile customization</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-5 w-5 text-purple-500" />
+                          <span className="text-purple-700">Ad-free experience</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-5 w-5 text-purple-500" />
+                          <span className="text-purple-700">Early feature access</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="text-3xl font-bold text-purple-800">$9<span className="text-lg font-normal">/month</span></p>
+                        <p className="text-sm text-purple-600">or $90/year (save 17%)</p>
+                      </div>
+                      <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        Upgrade to Harmonic
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t border-gray-200 pt-6">
+                    <h4 className="font-medium text-forest-800 mb-3">Current Plan</h4>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-gray-600">Free Community Member</p>
+                      <p className="text-sm text-gray-500 mt-1">Basic access to events and spaces</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Payment Methods Tab */}
+            {activeTab === 'payment-methods' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-semibold text-forest-800">Payment Methods</h3>
+                    <button className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                      Add Payment Method
+                    </button>
                   </div>
                   
                   <div className="space-y-4">
-                    <div>
-                      <h4 className="font-medium text-forest-800 mb-3">I need accommodation for:</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {['Wheelchair access', 'Visual impairment support', 'Hearing impairment support', 'Cognitive support', 'Mobility assistance', 'Dietary restrictions', 'Chemical sensitivities', 'Other needs'].map((need) => {
-                          const accessibilityNeeds = formData.accessibility_needs || [];
-                          const isSelected = accessibilityNeeds.includes(need);
-                          return (
-                            <button
-                              key={need}
-                              type="button"
-                              onClick={() => {
-                                if (!isEditing) return;
-                                const updated = isSelected 
-                                  ? accessibilityNeeds.filter(n => n !== need)
-                                  : [...accessibilityNeeds, need];
-                                handleInputChange('accessibility_needs', updated);
-                              }}
-                              disabled={!isEditing}
-                              className={`p-3 rounded-lg border-2 text-left transition-colors ${
-                                isSelected
-                                  ? 'border-forest-300 bg-forest-50 text-forest-700'
-                                  : 'border-forest-100 bg-gray-50 text-forest-600 hover:bg-forest-50'
-                              } ${isEditing ? 'cursor-pointer' : 'cursor-default'}`}
-                            >
-                              <span className="text-sm">{need}</span>
-                            </button>
-                          );
-                        })}
+                    <div className="p-4 border border-forest-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <CreditCard className="h-8 w-8 text-forest-600" />
+                          <div>
+                            <p className="font-medium text-forest-800">•••• •••• •••• 4242</p>
+                            <p className="text-sm text-forest-600">Expires 12/25</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="bg-forest-100 text-forest-700 px-3 py-1 rounded-full text-sm">Default</span>
+                          <button className="text-forest-600 hover:text-forest-800">
+                            <Edit className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                     
-                    <div>
-                      <h4 className="font-medium text-forest-800 mb-3">I can provide accommodation for:</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {['Wheelchair accessible space', 'Visual aids available', 'Sign language interpretation', 'Quiet/sensory-friendly environment', 'Mobility assistance', 'Dietary accommodations', 'Scent-free environment', 'Flexible pacing'].map((accommodation) => {
-                          const accessibilityProvided = formData.accessibility_provided || [];
-                          const isSelected = accessibilityProvided.includes(accommodation);
-                          return (
-                            <button
-                              key={accommodation}
-                              type="button"
-                              onClick={() => {
-                                if (!isEditing) return;
-                                const updated = isSelected 
-                                  ? accessibilityProvided.filter(a => a !== accommodation)
-                                  : [...accessibilityProvided, accommodation];
-                                handleInputChange('accessibility_provided', updated);
-                              }}
-                              disabled={!isEditing}
-                              className={`p-3 rounded-lg border-2 text-left transition-colors ${
-                                isSelected
-                                  ? 'border-forest-300 bg-forest-50 text-forest-700'
-                                  : 'border-forest-100 bg-gray-50 text-forest-600 hover:bg-forest-50'
-                              } ${isEditing ? 'cursor-pointer' : 'cursor-default'}`}
-                            >
-                              <span className="text-sm">{accommodation}</span>
-                            </button>
-                          );
-                        })}
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <CreditCard className="h-8 w-8 text-gray-400" />
+                          <div>
+                            <p className="font-medium text-gray-800">•••• •••• •••• 5555</p>
+                            <p className="text-sm text-gray-600">Expires 03/24</p>
+                          </div>
+                        </div>
+                        <button className="text-red-600 hover:text-red-800">
+                          <X className="h-4 w-4" />
+                        </button>
                       </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 p-4 bg-earth-50 rounded-lg">
+                    <h4 className="font-medium text-earth-800 mb-2">Accepted Payment Methods</h4>
+                    <p className="text-sm text-earth-600">We accept all major credit cards, debit cards, and digital wallets including Apple Pay and Google Pay.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Payments Made Tab */}
+            {activeTab === 'payments-made' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="text-xl font-semibold text-forest-800 mb-6">Payment History</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="p-4 border border-forest-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <p className="font-medium text-forest-800">Yoga Workshop - Sarah Chen</p>
+                          <p className="text-sm text-forest-600">January 15, 2025</p>
+                        </div>
+                        <p className="font-semibold text-forest-800">$15.00</p>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-forest-600">Donation</span>
+                        <span className="text-green-600">Completed</span>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 border border-forest-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <p className="font-medium text-forest-800">Community Garden Space</p>
+                          <p className="text-sm text-forest-600">January 10, 2025</p>
+                        </div>
+                        <p className="font-semibold text-forest-800">$10.00</p>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-forest-600">Space Rental</span>
+                        <span className="text-green-600">Completed</span>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 border border-forest-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <p className="font-medium text-forest-800">Harmonic Subscription - January</p>
+                          <p className="text-sm text-forest-600">January 1, 2025</p>
+                        </div>
+                        <p className="font-semibold text-forest-800">$9.00</p>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-forest-600">Subscription</span>
+                        <span className="text-green-600">Completed</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 flex items-center justify-between p-4 bg-forest-50 rounded-lg">
+                    <span className="font-medium text-forest-800">Total This Month</span>
+                    <span className="text-xl font-bold text-forest-800">$34.00</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Payments Received Tab */}
+            {activeTab === 'payments-received' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="text-xl font-semibold text-forest-800 mb-6">Payments Received</h3>
+                  
+                  <div className="text-center py-12">
+                    <Activity className="h-16 w-16 text-forest-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-semibold text-forest-800 mb-2">No payments received yet</h4>
+                    <p className="text-forest-600 mb-6">Start hosting events or sharing spaces to receive payments</p>
+                    <div className="flex justify-center space-x-4">
+                      <Link
+                        to="/events/create"
+                        className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                      >
+                        Create Event
+                      </Link>
+                      <Link
+                        to="/spaces/share"
+                        className="bg-earth-500 hover:bg-earth-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                      >
+                        Share Space
+                      </Link>
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Analytics Tab */}
-            {activeTab === 'analytics' && hasEvents && (
-              <EventAnalyticsDashboard organizerId={user?.id} />
-            )}
-
-            {/* Share Tab - Dashboard for existing holders */}
-            {activeTab === 'share' && <ShareTab />}
-
-            {/* Settings Tab */}
-            {activeTab === 'settings' && (
+            {/* Privacy Tab - Keep existing */}
+            {activeTab === 'privacy' && (
               <div className="space-y-6">
                 {/* Discovery Settings */}
                 <div className="bg-white rounded-xl shadow-sm p-6">

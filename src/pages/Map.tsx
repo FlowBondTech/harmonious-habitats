@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Users, Clock, Navigation } from 'lucide-react';
+import { MapPin, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Users, Clock, Navigation, X, Search } from 'lucide-react';
 import { getEvents, Event } from '../lib/supabase';
 import SearchSystem from '../components/SearchSystem';
 
 const Map = () => {
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['all']);
   const [radius, setRadius] = useState('nearby');
   const [mapEvents, setMapEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const categories = [
     { id: 'all', name: 'All Events', icon: Filter, color: 'text-forest-600' },
@@ -42,132 +44,23 @@ const Map = () => {
     loadMapData();
   }, []);
 
-  const filteredEvents = selectedCategory === 'all' 
-    ? mapEvents 
-    : mapEvents.filter(event => event.category.toLowerCase().includes(selectedCategory.toLowerCase()));
+  const filteredEvents = selectedCategories.length === 0
+    ? [] // No categories selected, show no events
+    : selectedCategories.includes('all') || selectedCategories.length === categories.length
+    ? mapEvents // All categories selected, show all events
+    : mapEvents.filter(event => 
+        selectedCategories.some(cat => 
+          cat !== 'all' && event.category.toLowerCase().includes(cat.toLowerCase())
+        )
+      );
 
   const filteredItems = filteredEvents;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-forest-800 mb-2">Neighborhood Discovery</h1>
-          <p className="text-forest-600">Find holistic events within walking distance</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Enhanced Search */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-forest-50">
-              <SearchSystem 
-                placeholder="Search events and spaces..."
-                showFilters={false}
-                onResults={(results) => {
-                  setMapEvents(results.events);
-                  // Only show events in discovery
-                }}
-              />
-            </div>
-
-            {/* Radius Selector */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-forest-50">
-              <h3 className="font-semibold text-forest-800 mb-4 flex items-center">
-                <Navigation className="h-5 w-5 mr-2" />
-                Discovery Radius
-              </h3>
-              <div className="space-y-2">
-                {[
-                  { id: 'nearby', name: 'Nearby', description: '5-15 min walk', miles: '0.5-1 mile' },
-                  { id: 'local', name: 'My Local Area', description: '20-30 min walk', miles: '2-3 miles' },
-                  { id: 'global', name: 'Global', description: 'Virtual & worldwide', miles: 'Anywhere' }
-                ].map((option) => (
-                  <button
-                    key={option.id}
-                    onClick={() => setRadius(option.id)}
-                    className={`w-full p-3 rounded-xl text-left transition-all duration-200 ${
-                      radius === option.id
-                        ? 'bg-forest-100 text-forest-800 border-2 border-forest-300 shadow-sm'
-                        : 'bg-forest-50 text-forest-600 hover:bg-forest-100 border-2 border-transparent'
-                    }`}
-                  >
-                    <div className="font-semibold">{option.name}</div>
-                    <div className="text-sm opacity-80">{option.description}</div>
-                    <div className="text-xs opacity-60">{option.miles}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Category Filter */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-forest-50">
-              <h3 className="font-semibold text-forest-800 mb-4">Event Categories</h3>
-              <div className="space-y-2">
-                {categories.map((category) => {
-                  const Icon = category.icon;
-                  const eventCount = category.id === 'all' 
-                    ? mapEvents.length 
-                    : mapEvents.filter(e => e.category.toLowerCase().includes(category.id.toLowerCase())).length;
-                  
-                  return (
-                    <button
-                      key={category.id}
-                      onClick={() => setSelectedCategory(category.id)}
-                      className={`w-full p-3 rounded-xl text-left transition-all duration-200 flex items-center justify-between ${
-                        selectedCategory === category.id
-                          ? 'bg-forest-100 text-forest-800 border-2 border-forest-300 shadow-sm'
-                          : 'bg-forest-50 text-forest-600 hover:bg-forest-100 border-2 border-transparent'
-                      }`}
-                    >
-                      <div className="flex items-center">
-                        <Icon className={`h-5 w-5 mr-3 ${category.color}`} />
-                        <span className="font-medium">{category.name}</span>
-                      </div>
-                      <span className="text-sm bg-forest-200 text-forest-700 px-2 py-1 rounded-full font-medium">
-                        {eventCount}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-forest-50">
-              <h3 className="font-semibold text-forest-800 mb-4">In Your Area</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-forest-600">Available events</span>
-                  <span className="font-bold text-forest-800">{filteredItems.length}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Map Area */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-forest-50">
-              {/* Map Header */}
-              <div className="bg-gradient-to-r from-forest-600 to-earth-500 text-white p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-                  <div className="mb-4 sm:mb-0">
-                    <h2 className="text-xl font-semibold">
-                      Your Neighborhood Events
-                    </h2>
-                    <p className="text-forest-100 text-sm sm:text-base">
-                      Showing {filteredItems.length} events {radius === 'global' ? 'worldwide' : radius === 'nearby' ? 'nearby' : 'in your local area'}
-                    </p>
-                  </div>
-                  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 self-start sm:self-center">
-                    <MapPin className="h-6 w-6" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Interactive Map */}
-              <div className="relative h-80 sm:h-96 lg:h-[600px] bg-gradient-to-br from-green-100 via-forest-50 to-earth-50">
+    <div className="min-h-screen relative">
+      {/* Full-screen Map */}
+      <div className="absolute inset-0">
+        <div className="relative w-full h-full bg-gradient-to-br from-green-100 via-forest-50 to-earth-50">
                 {loading ? (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
@@ -177,69 +70,50 @@ const Map = () => {
                   </div>
                 ) : (
                   <>
-                    {/* Radius Circles */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="absolute w-24 h-24 sm:w-32 sm:h-32 border-2 border-forest-300 rounded-full opacity-40"></div>
-                      <div className="absolute w-36 h-36 sm:w-48 sm:h-48 border-2 border-forest-200 rounded-full opacity-30"></div>
-                      <div className="absolute w-48 h-48 sm:w-64 sm:h-64 border-2 border-forest-100 rounded-full opacity-20"></div>
-                      
-                      {/* Your Location */}
-                      <div className="absolute bg-earth-500 w-4 h-4 rounded-full border-2 border-white shadow-lg z-10">
-                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-forest-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
-                          Your Location
+                    {/* Map Container - Full screen */}
+                    <div className="absolute inset-0">
+                      {/* Placeholder map background with circles */}
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        <div className="absolute w-48 h-48 sm:w-64 sm:h-64 lg:w-96 lg:h-96 border-2 border-forest-300 rounded-full opacity-40"></div>
+                        <div className="absolute w-64 h-64 sm:w-96 sm:h-96 lg:w-[32rem] lg:h-[32rem] border-2 border-forest-200 rounded-full opacity-30"></div>
+                        <div className="absolute w-96 h-96 sm:w-[32rem] sm:h-[32rem] lg:w-[48rem] lg:h-[48rem] border-2 border-forest-100 rounded-full opacity-20"></div>
+                        
+                        {/* Your Location */}
+                        <div className="absolute bg-earth-500 w-6 h-6 rounded-full border-3 border-white shadow-lg z-20">
+                          <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-forest-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap shadow-lg">
+                            Your Location
+                          </div>
                         </div>
-                      </div>
-                    </div>
 
-                    {/* Event List */}
-                    <div className="absolute inset-0 overflow-y-auto p-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {filteredItems.map((event) => {
+                        {/* Event Markers */}
+                        {filteredItems.slice(0, 20).map((event, index) => {
                           const category = categories.find(c => c.id === event.category?.toLowerCase()) || { icon: MapPin, color: 'text-forest-600' };
                           const Icon = category?.icon || MapPin;
+                          // Random positioning for demo
+                          const angle = (index * 137.5) % 360;
+                          const distance = 100 + (index * 30) % 200;
+                          const x = Math.cos(angle * Math.PI / 180) * distance;
+                          const y = Math.sin(angle * Math.PI / 180) * distance;
                           
                           return (
                             <div
                               key={event.id}
-                              className="bg-white rounded-xl shadow-sm border border-forest-100 p-4 hover:shadow-md transition-shadow cursor-pointer"
+                              className="absolute group cursor-pointer"
+                              style={{ 
+                                transform: `translate(${x}px, ${y}px)`,
+                                zIndex: 10
+                              }}
                             >
-                              <div className="flex items-start space-x-3">
-                                <div className="bg-forest-100 rounded-full p-2">
+                              <div className="relative">
+                                <div className="bg-white rounded-full p-2 shadow-lg border-2 border-forest-200 hover:scale-110 transition-transform">
                                   <Icon className={`h-5 w-5 ${category?.color || 'text-forest-600'}`} />
                                 </div>
-                                <div className="flex-1">
-                                  <h4 className="font-semibold text-forest-800 mb-1">
-                                    {event.title}
-                                  </h4>
-                                  <div className="space-y-1 text-sm text-forest-600">
-                                    {event.start_time && (
-                                      <div className="flex items-center">
-                                        <Clock className="h-3 w-3 mr-1" />
-                                        <span>
-                                          {new Date(event.date + 'T' + event.start_time).toLocaleTimeString('en-US', { 
-                                            hour: 'numeric', 
-                                            minute: '2-digit', 
-                                            hour12: true 
-                                          })}
-                                        </span>
-                                      </div>
-                                    )}
-                                    <div className="flex items-center">
-                                      <MapPin className="h-3 w-3 mr-1" />
-                                      <span className="truncate">
-                                        {event.location_name}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center">
-                                      <Users className="h-3 w-3 mr-1" />
-                                      <span>
-                                        {event.participants?.length || 0}/{event.capacity || '∞'}
-                                      </span>
-                                    </div>
+                                {/* Tooltip */}
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+                                  <div className="bg-forest-800 text-white px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+                                    <p className="font-medium text-sm">{event.title}</p>
+                                    <p className="text-xs text-forest-200">{event.location_name}</p>
                                   </div>
-                                  <button className="mt-2 bg-forest-600 hover:bg-forest-700 text-white py-1 px-3 rounded-lg text-sm font-medium transition-colors">
-                                    View Details
-                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -285,9 +159,199 @@ const Map = () => {
                 )}
               </div>
             </div>
+
+      {/* Floating UI Elements */}
+      <div className="absolute inset-x-0 top-0 z-30 pointer-events-none">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          {/* Search Bar */}
+          <div className="pointer-events-auto">
+            <div className="bg-white rounded-xl shadow-lg p-2 flex items-center space-x-2">
+              <Search className="h-5 w-5 text-forest-600 ml-2" />
+              <input
+                type="text"
+                placeholder="Search events and spaces..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 px-2 py-2 outline-none text-forest-800 placeholder-forest-400"
+              />
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`p-2.5 rounded-lg transition-colors ${
+                  showFilters ? 'bg-forest-600 text-white' : 'bg-forest-100 text-forest-700 hover:bg-forest-200'
+                }`}
+              >
+                <Filter className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Event Counter */}
+          <div className="pointer-events-auto mt-3 flex justify-center">
+            <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-md">
+              <p className="text-sm font-medium text-forest-800">
+                {filteredItems.length} events {radius === 'global' ? 'worldwide' : radius === 'nearby' ? 'nearby' : 'in your area'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Filter Panel (Slide-out) */}
+      <div className={`fixed inset-y-0 right-0 z-40 w-80 bg-white shadow-2xl transform transition-transform duration-300 ${
+        showFilters ? 'translate-x-0' : 'translate-x-full'
+      }`}>
+        <div className="h-full flex flex-col">
+          {/* Filter Header */}
+          <div className="bg-forest-600 text-white p-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Filters</h3>
+            <button
+              onClick={() => setShowFilters(false)}
+              className="p-1 hover:bg-forest-700 rounded-lg transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Filter Content */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-6">
+            {/* Radius Selector */}
+            <div>
+              <h4 className="font-semibold text-forest-800 mb-3 flex items-center">
+                <Navigation className="h-4 w-4 mr-2" />
+                Discovery Radius
+              </h4>
+              <div className="space-y-2">
+                {[
+                  { id: 'nearby', name: 'Nearby', description: '5-15 min walk', miles: '0.5-1 mile' },
+                  { id: 'local', name: 'My Local Area', description: '20-30 min walk', miles: '2-3 miles' },
+                  { id: 'global', name: 'Global', description: 'Virtual & worldwide', miles: 'Anywhere' }
+                ].map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => setRadius(option.id)}
+                    className={`w-full p-3 rounded-lg text-left transition-all duration-200 ${
+                      radius === option.id
+                        ? 'bg-forest-100 text-forest-800 border-2 border-forest-300'
+                        : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+                    }`}
+                  >
+                    <div className="font-medium">{option.name}</div>
+                    <div className="text-sm text-forest-600">{option.description}</div>
+                    <div className="text-xs text-forest-500">{option.miles}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Category Filter */}
+            <div>
+              <h4 className="font-semibold text-forest-800 mb-3">Event Categories</h4>
+              <div className="space-y-2">
+                {categories.map((category) => {
+                  const Icon = category.icon;
+                  const eventCount = category.id === 'all' 
+                    ? mapEvents.length 
+                    : mapEvents.filter(e => e.category.toLowerCase().includes(category.id.toLowerCase())).length;
+                  
+                  const isSelected = selectedCategories.includes(category.id);
+                  const isAllSelected = category.id === 'all';
+                  
+                  const handleCategoryToggle = () => {
+                    if (category.id === 'all') {
+                      // If "All" is clicked, select all categories or deselect all
+                      if (isSelected) {
+                        setSelectedCategories([]);
+                      } else {
+                        // Select all categories including 'all'
+                        setSelectedCategories(categories.map(cat => cat.id));
+                      }
+                    } else {
+                      // For individual categories
+                      if (isSelected) {
+                        // Remove the category and also remove 'all' since not all are selected anymore
+                        setSelectedCategories(prev => prev.filter(cat => cat !== category.id && cat !== 'all'));
+                      } else {
+                        // Add the category
+                        setSelectedCategories(prev => {
+                        const newCategories = [...prev, category.id];
+                          // Check if all other categories (except 'all') are now selected
+                          const allOtherCategories = categories.filter(cat => cat.id !== 'all').map(cat => cat.id);
+                          const allSelected = allOtherCategories.every(catId => newCategories.includes(catId));
+                          
+                          // If all categories are selected, also add 'all'
+                          if (allSelected && !newCategories.includes('all')) {
+                            return [...newCategories, 'all'];
+                          }
+                          return newCategories;
+                        });
+                      }
+                    }
+                  };
+                  
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={handleCategoryToggle}
+                      className={`w-full p-3 rounded-lg text-left transition-all duration-200 flex items-center justify-between ${
+                        isSelected
+                          ? 'bg-forest-100 text-forest-800 border-2 border-forest-300'
+                          : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <div className={`w-5 h-5 mr-3 rounded border-2 flex items-center justify-center transition-colors ${
+                          isSelected 
+                            ? 'bg-forest-600 border-forest-600' 
+                            : 'bg-white border-gray-300'
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white" viewBox="0 0 16 16" fill="currentColor">
+                              <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                            </svg>
+                          )}
+                        </div>
+                        <Icon className={`h-4 w-4 mr-2 ${category.color}`} />
+                        <span className="font-medium text-sm">{category.name}</span>
+                      </div>
+                      <span className="text-xs bg-forest-200 text-forest-700 px-2 py-1 rounded-full font-medium">
+                        {eventCount}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Apply/Clear Buttons */}
+            <div className="pt-4 space-y-2">
+              <button
+                onClick={() => setShowFilters(false)}
+                className="w-full bg-forest-600 hover:bg-forest-700 text-white py-3 rounded-lg font-medium transition-colors"
+              >
+                Apply Filters
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedCategories(categories.map(cat => cat.id)); // Select all categories
+                  setRadius('nearby');
+                  setSearchQuery('');
+                }}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-forest-700 py-3 rounded-lg font-medium transition-colors"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Backdrop for filter panel */}
+      {showFilters && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-30"
+          onClick={() => setShowFilters(false)}
+        />
+      )}
     </div>
   );
 };

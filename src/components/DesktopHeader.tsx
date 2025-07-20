@@ -17,6 +17,8 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -31,6 +33,43 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Handle scroll to show/hide header
+  useEffect(() => {
+    const controlHeader = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Show header when scrolling up or at the top of the page
+      if (currentScrollY < lastScrollY || currentScrollY < 10) {
+        setIsVisible(true);
+      } 
+      // Hide header when scrolling down
+      else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false);
+        setShowProfileDropdown(false); // Close dropdown when hiding
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    const throttledControlHeader = () => {
+      let ticking = false;
+      return () => {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            controlHeader();
+            ticking = false;
+          });
+          ticking = true;
+        }
+      };
+    };
+
+    const scrollHandler = throttledControlHeader();
+    window.addEventListener('scroll', scrollHandler);
+    
+    return () => window.removeEventListener('scroll', scrollHandler);
+  }, [lastScrollY]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -47,7 +86,9 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="hidden lg:block fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200">
+    <header className={`hidden lg:block fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 transition-transform duration-300 ${
+      isVisible ? 'translate-y-0' : '-translate-y-full'
+    }`}>
       <div className="h-16 px-6 flex items-center justify-between">
         {/* Left Section - Menu & Logo */}
         <div className="flex items-center space-x-4">

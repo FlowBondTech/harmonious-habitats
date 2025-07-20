@@ -116,19 +116,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const [showAllFavorites, setShowAllFavorites] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  
-  // Auto-collapse on smaller screens
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1280) { // xl breakpoint
-        setIsCollapsed(true);
-      }
-    };
-    
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Navigation items
   const navItems = [
@@ -139,6 +126,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
     { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
     { path: '/activities', icon: Calendar, label: 'My Activities' },
     { path: '/messages', icon: MessageCircle, label: 'Messages', badge: 3 },
+    { path: '/account', icon: User, label: 'Account' },
+    { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
   if (isAdmin) {
@@ -171,18 +160,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const displayedFavorites = showAllFavorites ? favoriteSpaces : favoriteSpaces.slice(0, 3);
   const showSidebar = !isCollapsed || isHovered || isOpen;
 
-  // Only show on mobile or when explicitly opened on desktop
-  const shouldShow = window.innerWidth < 1024 || isOpen;
+  // Only show when explicitly opened (via menu trigger)
+  const shouldShow = isOpen;
   
   // On desktop, when sidebar is open, disable collapse functionality
   const canCollapse = window.innerWidth >= 1024 && isOpen ? false : true;
 
   return (
     <>
-      {/* Backdrop for desktop when sidebar is open */}
-      {isOpen && window.innerWidth >= 1024 && (
+      {/* Backdrop when sidebar is open */}
+      {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/20 z-40 lg:block hidden"
+          className="fixed inset-0 bg-black/20 z-40"
           onClick={onClose}
         />
       )}
@@ -206,19 +195,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
         </button>
       )}
       
-      {/* Logo/Brand */}
-      <div className={`p-6 border-b border-gray-100 transition-all duration-300 ${!showSidebar ? 'px-4' : ''}`}>
-        {showSidebar ? (
-          <>
-            <h1 className="text-2xl font-bold text-gradient">Harmony Spaces</h1>
-            <p className="text-xs text-gray-500 mt-1">Community Connection Platform</p>
-          </>
-        ) : (
-          <div className="w-12 h-12 mx-auto bg-gradient-to-br from-forest-100 to-earth-100 rounded-xl flex items-center justify-center">
-            <Heart className="h-6 w-6 text-forest-600" />
-          </div>
-        )}
-      </div>
+      {/* Logo/Brand - Removed since it's in the header */}
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
