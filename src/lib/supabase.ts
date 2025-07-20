@@ -663,6 +663,31 @@ export interface PlatformSetting {
   updated_by?: string
 }
 
+export interface Message {
+  id: string
+  created_at: string
+  updated_at: string
+  sender_id: string
+  recipient_id: string
+  content: string
+  read_at?: string
+  context_type?: 'space' | 'event' | 'general'
+  context_id?: string
+  // Extended properties from joins
+  sender?: Profile
+  recipient?: Profile
+  sender_name?: string
+  sender_avatar?: string
+  recipient_name?: string
+  recipient_avatar?: string
+}
+
+export interface ConversationThread extends Message {
+  other_user_id: string
+  other_user_name: string
+  other_user_avatar?: string
+}
+
 // Helper functions
 export const isAdmin = async (userId: string): Promise<boolean> => {
   const { data, error } = await supabase
@@ -1846,4 +1871,112 @@ export const updateMobileNotifications = async (userId: string, settings: {
     .select()
     .single()
   return { data, error }
+}
+
+// Messaging functions
+export const sendMessage = async (
+  senderId: string,
+  recipientId: string,
+  content: string,
+  contextType?: 'space' | 'event' | 'general',
+  contextId?: string
+) => {
+  const { data, error } = await supabase
+    .from('messages')
+    .insert({
+      sender_id: senderId,
+      recipient_id: recipientId,
+      content: content.trim(),
+      context_type: contextType,
+      context_id: contextId
+    })
+    .select(`
+      *,
+      sender:profiles!messages_sender_id_fkey(
+        id,
+        full_name,
+        avatar_url
+      ),
+      recipient:profiles!messages_recipient_id_fkey(
+        id,
+        full_name,
+        avatar_url
+      )
+    `)
+    .single()
+
+  // Create a notification for the recipient
+  if (data && !error) {
+    await supabase
+      .from('notifications')
+      .insert({
+        user_id: recipientId,
+        type: 'message',
+        title: 'New Message',
+        message: `You have a new message from ${data.sender?.full_name || 'Someone'}`,
+        link: '/messages',
+        metadata: {
+          message_id: data.id,
+          sender_id: senderId,
+          sender_name: data.sender?.full_name,
+          preview: content.substring(0, 100)
+        }
+      })
+  }
+
+  return { data, error }
+}
+
+export const getConversations = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('conversation_threads')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  return { data, error }
+}
+
+export const getMessages = async (userId: string, otherUserId: string) => {
+  const { data, error } = await supabase
+    .from('messages')
+    .select(`
+      *,
+      sender:profiles!messages_sender_id_fkey(
+        id,
+        full_name,
+        avatar_url
+      ),
+      recipient:profiles!messages_recipient_id_fkey(
+        id,
+        full_name,
+        avatar_url
+      )
+    `)
+    .or(`and(sender_id.eq.${userId},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${userId})`)
+    .order('created_at', { ascending: true })
+
+  return { data, error }
+}
+
+export const markMessageAsRead = async (messageId: string) => {
+  const { data, error } = await supabase
+    .from('messages')
+    .update({
+      read_at: new Date().toISOString()
+    })
+    .eq('id', messageId)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const getUnreadMessageCount = async (userId: string) => {
+  const { count, error } = await supabase
+    .from('messages')
+    .select('*', { count: 'exact', head: true })
+    .eq('recipient_id', userId)
+    .is('read_at', null)
+
+  return { count: count || 0, error }
 }

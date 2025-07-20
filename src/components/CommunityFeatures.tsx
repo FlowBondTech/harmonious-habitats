@@ -74,11 +74,48 @@ const CommunityFeatures: React.FC<CommunityFeaturesProps> = ({ isOpen, onClose }
         supabase.from('spaces').select('*', { count: 'exact', head: true }).eq('status', 'available')
       ]);
 
+      // Calculate connections this week (unique interactions)
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const weekAgoISO = oneWeekAgo.toISOString();
+
+      // Count unique connections from different sources
+      const connectionPromises = [
+        // Messages sent this week (if messages table exists)
+        supabase
+          .from('messages')
+          .select('sender_id, recipient_id', { count: 'exact' })
+          .gte('created_at', weekAgoISO)
+          .then(res => res.data?.length || 0)
+          .catch(() => 0),
+        
+        // Event participations this week
+        supabase
+          .from('event_participants')
+          .select('participant_id, event_id', { count: 'exact' })
+          .gte('created_at', weekAgoISO)
+          .eq('status', 'confirmed')
+          .then(res => res.data?.length || 0)
+          .catch(() => 0),
+        
+        // Space bookings this week
+        supabase
+          .from('space_bookings')
+          .select('guest_id, space:spaces(owner_id)', { count: 'exact' })
+          .gte('created_at', weekAgoISO)
+          .in('status', ['confirmed', 'completed'])
+          .then(res => res.data?.length || 0)
+          .catch(() => 0)
+      ];
+
+      const connectionCounts = await Promise.all(connectionPromises);
+      const totalConnections = connectionCounts.reduce((sum, count) => sum + count, 0);
+
       setCommunityStats({
         totalMembers: profilesCount.count || 0,
         activeEvents: eventsCount.count || 0,
         sharedSpaces: spacesCount.count || 0,
-        connectionsThisWeek: 0 // TODO: Implement connection tracking
+        connectionsThisWeek: totalConnections
       });
 
       // Load recent reports if admin
