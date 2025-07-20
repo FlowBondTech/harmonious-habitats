@@ -54,12 +54,30 @@ const Settings = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<string | null>('edit-profile');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(window.innerWidth >= 1024);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  
+  // Handle responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      const desktop = window.innerWidth >= 1024;
+      setIsDesktop(desktop);
+      
+      // Auto-collapse sidebar on mobile/tablet
+      if (!desktop && isSidebarExpanded) {
+        setIsSidebarExpanded(false);
+      }
+    };
+
+    handleResize(); // Call on mount
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Click outside handler for mobile and tablet
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       // Only apply on mobile and tablet (< 1024px)
-      if (window.innerWidth < 1024 && isSidebarExpanded) {
+      if (!isDesktop && isSidebarExpanded) {
         const sidebar = document.getElementById('settings-sidebar');
         const expandButton = document.getElementById('sidebar-expand-button');
         
@@ -72,7 +90,7 @@ const Settings = () => {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isSidebarExpanded]);
+  }, [isSidebarExpanded, isDesktop]);
   
   // Profile editing state
   const [isEditing, setIsEditing] = useState(false);
@@ -518,36 +536,44 @@ const Settings = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
       <div className="flex h-screen">
+        {/* Backdrop for mobile */}
+        {!isDesktop && isSidebarExpanded && (
+          <div 
+            className="fixed inset-0 bg-black/20 z-40 lg:hidden"
+            onClick={() => setIsSidebarExpanded(false)}
+          />
+        )}
+        
         {/* Sidebar */}
         <div 
           id="settings-sidebar"
           className={`${
             isSidebarExpanded ? 'w-64' : 'w-16'
-          } bg-white shadow-lg transition-all duration-300 flex flex-col`}
+          } bg-white shadow-lg transition-all duration-300 flex flex-col ${
+            !isDesktop ? 'fixed left-0 top-0 h-full z-50' : 'relative'
+          }`}
         >
           
           {/* Sidebar Header */}
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              {isSidebarExpanded ? (
-                <>
-                  <h2 className="text-xl font-bold text-forest-800">Settings</h2>
-                  <button
-                    onClick={() => setIsSidebarExpanded(false)}
-                    className="p-1 hover:bg-gray-100 rounded-lg transition-colors lg:hidden"
-                  >
-                    <ChevronLeft className="h-5 w-5 text-gray-600" />
-                  </button>
-                </>
-              ) : (
-                <button
-                  id="sidebar-expand-button"
-                  onClick={() => setIsSidebarExpanded(true)}
-                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors mx-auto"
-                >
-                  <Menu className="h-5 w-5 text-gray-600" />
-                </button>
+              {isSidebarExpanded && (
+                <h2 className="text-xl font-bold text-forest-800">Settings</h2>
               )}
+              <button
+                id="sidebar-expand-button"
+                onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+                className={`p-2 hover:bg-gray-100 rounded-lg transition-colors ${
+                  !isSidebarExpanded ? 'mx-auto' : 'ml-auto'
+                }`}
+                title={isSidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+              >
+                {isSidebarExpanded ? (
+                  <ChevronLeft className="h-5 w-5 text-gray-600" />
+                ) : (
+                  <ChevronRight className="h-5 w-5 text-gray-600" />
+                )}
+              </button>
             </div>
           </div>
 
@@ -616,23 +642,12 @@ const Settings = () => {
             })}
           </div>
 
-          {/* Expand/Collapse Button for Desktop */}
-          <div className="p-4 border-t border-gray-200 hidden lg:block">
-            <button
-              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-              className="w-full p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center justify-center"
-            >
-              {isSidebarExpanded ? (
-                <ChevronLeft className="h-5 w-5 text-gray-600" />
-              ) : (
-                <ChevronRight className="h-5 w-5 text-gray-600" />
-              )}
-            </button>
-          </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className={`flex-1 overflow-y-auto ${
+          !isDesktop && !isSidebarExpanded ? 'ml-16' : ''
+        }`}>
           <div className="p-6 md:p-8">
             {/* Content */}
             {renderSectionContent()}
