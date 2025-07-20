@@ -9,7 +9,8 @@ import {
   LayoutDashboard,
   Search,
   ChevronDown,
-  LogIn
+  LogIn,
+  X
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import Avatar from './Avatar';
@@ -236,21 +237,78 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
         </div>
       </div>
 
-      {/* Search Bar - Slides down when active */}
-      {showSearch && (
-        <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 p-4 animate-slide-down">
-          <form onSubmit={handleSearch} className="relative">
-            <input
-              ref={searchRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search events, spaces, users..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 transition-all"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+      {/* Search Bar - Slides out from left on mobile */}
+      <div className={`lg:hidden fixed top-16 left-0 w-full bg-white border-b border-gray-200 shadow-lg transition-all duration-500 ease-out transform ${
+        showSearch ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
+      }`} style={{ zIndex: 35 }}>
+        <div className="relative overflow-hidden">
+          {/* Animated background gradient */}
+          <div className={`absolute inset-0 bg-gradient-to-r from-forest-50 to-earth-50 transition-transform duration-700 ${
+            showSearch ? 'translate-x-0' : '-translate-x-full'
+          }`} />
+          
+          <form onSubmit={handleSearch} className="relative flex items-center">
+            <div className="flex-1 relative">
+              <input
+                ref={searchRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search events, spaces, users..."
+                className="w-full pl-14 pr-4 py-5 text-base bg-transparent focus:outline-none placeholder-forest-600/60"
+              />
+              <div className={`absolute left-4 top-1/2 transform -translate-y-1/2 transition-all duration-300 ${
+                showSearch ? 'rotate-0 scale-100' : '-rotate-90 scale-0'
+              }`}>
+                <Search className="h-6 w-6 text-forest-600" />
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSearch(false)}
+              className="p-4 text-forest-600 hover:text-forest-800 transition-all duration-200 hover:rotate-90"
+            >
+              <X className="h-6 w-6" />
+            </button>
           </form>
+          
+          {/* Quick search suggestions */}
+          <div className={`px-4 pb-3 transition-all duration-500 delay-100 ${
+            showSearch ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+          }`}>
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              {['Yoga', 'Meditation', 'Garden', 'Workshop', 'Community'].map((tag, index) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery(tag);
+                    if (tag.trim()) {
+                      navigate(`/search?q=${encodeURIComponent(tag.trim())}`);
+                      setSearchQuery('');
+                      setShowSearch(false);
+                    }
+                  }}
+                  className={`px-3 py-1 text-sm bg-white/80 text-forest-700 rounded-full whitespace-nowrap transition-all duration-300 hover:bg-white hover:shadow-sm ${
+                    showSearch ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
+                  }`}
+                  style={{ transitionDelay: `${(index + 2) * 50}ms` }}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Backdrop for mobile search */}
+      {showSearch && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/20 z-30 transition-opacity duration-300"
+          style={{ top: '8rem' }}
+          onClick={() => setShowSearch(false)}
+        />
       )}
     </header>
   );
