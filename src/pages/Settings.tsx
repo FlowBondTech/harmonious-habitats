@@ -30,7 +30,9 @@ import {
   ChefHat,
   Palette,
   Stethoscope,
-  Music
+  Music,
+  Activity,
+  CheckCircle
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../components/AuthProvider';
@@ -51,7 +53,26 @@ const Settings = () => {
   const { user, profile, loadUserProfile } = useAuthContext();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<string | null>('edit-profile');
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(window.innerWidth >= 1024);
+  
+  // Click outside handler for mobile and tablet
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Only apply on mobile and tablet (< 1024px)
+      if (window.innerWidth < 1024 && isSidebarExpanded) {
+        const sidebar = document.getElementById('settings-sidebar');
+        const expandButton = document.getElementById('sidebar-expand-button');
+        
+        if (sidebar && !sidebar.contains(event.target as Node) && 
+            expandButton && !expandButton.contains(event.target as Node)) {
+          setIsSidebarExpanded(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isSidebarExpanded]);
   
   // Profile editing state
   const [isEditing, setIsEditing] = useState(false);
@@ -473,6 +494,14 @@ const Settings = () => {
         return <MobileNotificationsSection />;
       case 'payment-methods':
         return <PaymentMethodsSection />;
+      case 'payments-made':
+        return <PaymentsMadeSection />;
+      case 'payments-received':
+        return <PaymentsReceivedSection />;
+      case 'organizer-subscription':
+        return <OrganizerSubscriptionSection />;
+      case 'meetup-plus':
+        return <HarmonicSubscriptionSection />;
       default:
         return (
           <div className="bg-white rounded-xl shadow-sm p-6">
@@ -490,9 +519,12 @@ const Settings = () => {
     <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
       <div className="flex h-screen">
         {/* Sidebar */}
-        <div className={`${
-          isSidebarExpanded ? 'w-64' : 'w-16'
-        } bg-white shadow-lg transition-all duration-300 flex flex-col`}>
+        <div 
+          id="settings-sidebar"
+          className={`${
+            isSidebarExpanded ? 'w-64' : 'w-16'
+          } bg-white shadow-lg transition-all duration-300 flex flex-col`}
+        >
           
           {/* Sidebar Header */}
           <div className="p-4 border-b border-gray-200">
@@ -509,6 +541,7 @@ const Settings = () => {
                 </>
               ) : (
                 <button
+                  id="sidebar-expand-button"
                   onClick={() => setIsSidebarExpanded(true)}
                   className="p-1 hover:bg-gray-100 rounded-lg transition-colors mx-auto"
                 >
@@ -600,16 +633,7 @@ const Settings = () => {
 
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-8">
-            {/* Back Button for Mobile */}
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center space-x-2 text-forest-600 hover:text-forest-800 mb-6 lg:hidden"
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back</span>
-            </button>
-
+          <div className="p-6 md:p-8">
             {/* Content */}
             {renderSectionContent()}
           </div>
@@ -1037,6 +1061,225 @@ const PaymentMethodsSection: React.FC = () => {
       <button className="w-full bg-forest-600 hover:bg-forest-700 text-white py-3 rounded-lg font-medium transition-colors">
         Add Payment Method
       </button>
+    </div>
+  );
+};
+
+const PaymentsMadeSection: React.FC = () => {
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h3 className="text-xl font-semibold text-forest-800 mb-6">Payment History</h3>
+        
+        <div className="space-y-4">
+          <div className="p-4 border border-forest-200 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="font-medium text-forest-800">Yoga Workshop - Sarah Chen</p>
+                <p className="text-sm text-forest-600">January 15, 2025</p>
+              </div>
+              <p className="font-semibold text-forest-800">$15.00</p>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-forest-600">Donation</span>
+              <span className="text-green-600">Completed</span>
+            </div>
+          </div>
+          
+          <div className="p-4 border border-forest-200 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="font-medium text-forest-800">Community Garden Space</p>
+                <p className="text-sm text-forest-600">January 10, 2025</p>
+              </div>
+              <p className="font-semibold text-forest-800">$10.00</p>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-forest-600">Space Rental</span>
+              <span className="text-green-600">Completed</span>
+            </div>
+          </div>
+          
+          <div className="p-4 border border-forest-200 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="font-medium text-forest-800">Harmonic Subscription - January</p>
+                <p className="text-sm text-forest-600">January 1, 2025</p>
+              </div>
+              <p className="font-semibold text-forest-800">$9.00</p>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-forest-600">Subscription</span>
+              <span className="text-green-600">Completed</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-6 flex items-center justify-between p-4 bg-forest-50 rounded-lg">
+          <span className="font-medium text-forest-800">Total This Month</span>
+          <span className="text-xl font-bold text-forest-800">$34.00</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PaymentsReceivedSection: React.FC = () => {
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h3 className="text-xl font-semibold text-forest-800 mb-6">Payments Received</h3>
+        
+        <div className="text-center py-12">
+          <Activity className="h-16 w-16 text-forest-300 mx-auto mb-4" />
+          <h4 className="text-lg font-semibold text-forest-800 mb-2">No payments received yet</h4>
+          <p className="text-forest-600 mb-6">Start hosting events or sharing spaces to receive payments</p>
+          <div className="flex justify-center space-x-4">
+            <Link
+              to="/events/create"
+              className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              Create Event
+            </Link>
+            <Link
+              to="/spaces/share"
+              className="bg-earth-500 hover:bg-earth-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              Share Space
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const OrganizerSubscriptionSection: React.FC = () => {
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h3 className="text-xl font-semibold text-forest-800 mb-6">Organizer Subscription</h3>
+        
+        <div className="bg-gradient-to-br from-forest-50 to-earth-50 p-6 rounded-lg mb-6">
+          <h4 className="text-2xl font-bold text-forest-800 mb-2">Become an Event Organizer</h4>
+          <p className="text-forest-600 mb-4">Host events and share your expertise with the community</p>
+          
+          <div className="space-y-3 mb-6">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="text-forest-700">Create unlimited events</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="text-forest-700">Advanced event management tools</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="text-forest-700">Priority listing in search results</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="text-forest-700">Analytics and insights</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="text-forest-700">Verified organizer badge</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-3xl font-bold text-forest-800">$15<span className="text-lg font-normal">/month</span></p>
+              <p className="text-sm text-forest-600">or $150/year (save 17%)</p>
+            </div>
+            <button className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+              Subscribe Now
+            </button>
+          </div>
+        </div>
+        
+        <div className="border-t border-gray-200 pt-6">
+          <h4 className="font-medium text-forest-800 mb-3">Current Status</h4>
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <p className="text-gray-600">You are not currently subscribed as an organizer</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const HarmonicSubscriptionSection: React.FC = () => {
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h3 className="text-xl font-semibold text-forest-800 mb-6">Harmonic Membership</h3>
+        
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-lg mb-6">
+          <div className="flex items-center space-x-2 mb-4">
+            <Crown className="h-8 w-8 text-purple-600" />
+            <h4 className="text-2xl font-bold text-purple-800">Harmonic Premium</h4>
+          </div>
+          <p className="text-purple-600 mb-4">Unlock the full potential of holistic community connection</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-purple-500" />
+                <span className="text-purple-700">Unlimited event bookings</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-purple-500" />
+                <span className="text-purple-700">Priority access to spaces</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-purple-500" />
+                <span className="text-purple-700">Advanced search filters</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-purple-500" />
+                <span className="text-purple-700">Exclusive community events</span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-purple-500" />
+                <span className="text-purple-700">Direct messaging</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-purple-500" />
+                <span className="text-purple-700">Profile customization</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-purple-500" />
+                <span className="text-purple-700">Ad-free experience</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-purple-500" />
+                <span className="text-purple-700">Early feature access</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-3xl font-bold text-purple-800">$9<span className="text-lg font-normal">/month</span></p>
+              <p className="text-sm text-purple-600">or $90/year (save 17%)</p>
+            </div>
+            <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+              Upgrade to Harmonic
+            </button>
+          </div>
+        </div>
+        
+        <div className="border-t border-gray-200 pt-6">
+          <h4 className="font-medium text-forest-800 mb-3">Current Plan</h4>
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <p className="text-gray-600">Free Community Member</p>
+            <p className="text-sm text-gray-500 mt-1">Basic access to events and spaces</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
