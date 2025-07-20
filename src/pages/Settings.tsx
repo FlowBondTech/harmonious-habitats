@@ -584,7 +584,7 @@ const Settings = () => {
               const sectionCount = settingSections.filter(s => s.category === category.id).length;
               
               return (
-                <div key={category.id} className="mb-6">
+                <div key={category.id} className={isSidebarExpanded ? "mb-6" : "mb-2"}>
                   {isSidebarExpanded && (
                     <h3 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                       {category.label}
@@ -641,6 +641,19 @@ const Settings = () => {
               );
             })}
           </div>
+
+          {/* Bottom expand button for collapsed state */}
+          {!isSidebarExpanded && (
+            <div className="p-2 border-t border-gray-200">
+              <button
+                onClick={() => setIsSidebarExpanded(true)}
+                className="w-full p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center justify-center"
+                title="Expand sidebar"
+              >
+                <ChevronRight className="h-5 w-5 text-gray-600" />
+              </button>
+            </div>
+          )}
 
         </div>
 
