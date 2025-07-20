@@ -70,7 +70,7 @@ const EventCalendar: React.FC = () => {
         endDate = addDays(new Date(), 30);
       }
 
-      let query = supabase
+      const query = supabase
         .from('events')
         .select(`
           *,

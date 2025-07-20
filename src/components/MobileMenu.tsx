@@ -157,7 +157,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onShareClick }
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
-  let navItems = user ? [...authenticatedNavItems] : [...publicNavItems];
+  const navItems = user ? [...authenticatedNavItems] : [...publicNavItems];
 
   // Add admin link if user is admin
   if (user && isAdmin) {

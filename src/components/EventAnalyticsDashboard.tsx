@@ -1,26 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, 
-  TrendingUp, 
   Users, 
   Star, 
   Calendar,
-  Clock,
-  MapPin,
   Activity,
-  PieChart,
   Download,
-  Filter,
   ChevronDown,
   ChevronUp,
-  Eye,
   MessageSquare,
-  ThumbsUp,
-  UserCheck
+  ThumbsUp
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { format, subDays } from 'date-fns';
 
 interface AnalyticsData {
   totalEvents: number;

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Menu, User, Settings, LogOut, CalendarPlus, LayoutDashboard,
-  Bell, Search, ChevronDown
+  Search, ChevronDown
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import Avatar from './Avatar';

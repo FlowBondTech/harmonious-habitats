@@ -20,7 +20,6 @@ const Map = lazy(() => import('./pages/Map'));
 const Search = lazy(() => import('./pages/Search'));
 const CreateEvent = lazy(() => import('./pages/CreateEvent'));
 const CreateEventSimple = lazy(() => import('./pages/CreateEventSimple'));
-const TestMinimalEvent = lazy(() => import('./pages/TestMinimalEvent'));
 const ShareSpace = lazy(() => import('./pages/ShareSpace'));
 const MyActivities = lazy(() => import('./pages/MyActivities'));
 const Messages = lazy(() => import('./pages/Messages'));
@@ -106,11 +105,6 @@ const AppContent = () => {
                   <Route path="/create-event-simple" element={
                     <ProtectedRoute>
                       <CreateEventSimple />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/test-minimal-event" element={
-                    <ProtectedRoute>
-                      <TestMinimalEvent />
                     </ProtectedRoute>
                   } />
                   <Route path="/share-space" element={
