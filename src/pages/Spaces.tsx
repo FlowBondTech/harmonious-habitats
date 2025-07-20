@@ -376,7 +376,7 @@ const Spaces = () => {
             {filteredSpaces.map((space) => (
               <div
                 key={space.id}
-                onClick={() => navigate(`/spaces/${space.id}`)}
+                onClick={() => navigate(`/spaces/${space.slug || space.id}`)}
                 className="cursor-pointer"
               >
                 <SpaceCard space={space} />

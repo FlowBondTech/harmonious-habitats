@@ -28,7 +28,7 @@ import {
   Shield,
   Home
 } from 'lucide-react';
-import { getSpaceById, Space, supabase, sendMessage } from '../lib/supabase';
+import { getSpaceById, getSpaceBySlug, Space, supabase, sendMessage } from '../lib/supabase';
 import { useAuthContext } from '../components/AuthProvider';
 import { LoadingSpinner } from '../components/LoadingStates';
 import Avatar from '../components/Avatar';
@@ -69,7 +69,17 @@ const SpaceDetail = () => {
   const loadSpace = async () => {
     try {
       setLoading(true);
-      const { data, error } = await getSpaceById(id!);
+      
+      // First try to load by slug (if id doesn't look like a UUID)
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id!);
+      
+      let data, error;
+      if (isUUID) {
+        ({ data, error } = await getSpaceById(id!));
+      } else {
+        ({ data, error } = await getSpaceBySlug(id!));
+      }
+      
       if (error) throw error;
       
       if (data) {
