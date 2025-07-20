@@ -129,10 +129,14 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
           {/* Search Toggle */}
           <button
             onClick={() => setShowSearch(!showSearch)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className={`p-2 hover:bg-gray-100 rounded-lg transition-all duration-300 ${
+              showSearch ? 'bg-gray-100 scale-110' : ''
+            }`}
             aria-label="Search"
           >
-            <Search className="h-5 w-5 text-gray-700" />
+            <Search className={`h-5 w-5 text-gray-700 transition-transform duration-300 ${
+              showSearch ? 'rotate-90' : ''
+            }`} />
           </button>
 
           {/* Notifications */}
@@ -237,76 +241,50 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
         </div>
       </div>
 
-      {/* Search Bar - Slides out from left on mobile */}
-      <div className={`lg:hidden fixed top-16 left-0 w-full bg-white border-b border-gray-200 shadow-lg transition-all duration-500 ease-out transform ${
-        showSearch ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
-      }`} style={{ zIndex: 35 }}>
-        <div className="relative overflow-hidden">
-          {/* Animated background gradient */}
-          <div className={`absolute inset-0 bg-gradient-to-r from-forest-50 to-earth-50 transition-transform duration-700 ${
-            showSearch ? 'translate-x-0' : '-translate-x-full'
-          }`} />
-          
-          <form onSubmit={handleSearch} className="relative flex items-center">
-            <div className="flex-1 relative">
-              <input
-                ref={searchRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search events, spaces, users..."
-                className="w-full pl-14 pr-4 py-5 text-base bg-transparent focus:outline-none placeholder-forest-600/60"
-              />
-              <div className={`absolute left-4 top-1/2 transform -translate-y-1/2 transition-all duration-300 ${
-                showSearch ? 'rotate-0 scale-100' : '-rotate-90 scale-0'
+      {/* Compact Search Bar - Slides out from search icon */}
+      {showSearch && (
+        <div className="lg:hidden fixed top-0 left-0 right-0 h-16 z-50 pointer-events-none">
+          <div className="relative h-full">
+            <div className={`absolute top-1/2 -translate-y-1/2 transition-all duration-500 ease-out ${
+              user ? 'right-[180px]' : 'right-[140px]'
+            }`}>
+              <form onSubmit={handleSearch} className={`flex items-center bg-white rounded-full shadow-xl border border-gray-200 transition-all duration-500 transform ${
+                showSearch ? 'w-60 scale-100 opacity-100 pointer-events-auto' : 'w-0 scale-95 opacity-0 pointer-events-none'
               }`}>
-                <Search className="h-6 w-6 text-forest-600" />
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowSearch(false)}
-              className="p-4 text-forest-600 hover:text-forest-800 transition-all duration-200 hover:rotate-90"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </form>
-          
-          {/* Quick search suggestions */}
-          <div className={`px-4 pb-3 transition-all duration-500 delay-100 ${
-            showSearch ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
-          }`}>
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-              {['Yoga', 'Meditation', 'Garden', 'Workshop', 'Community'].map((tag, index) => (
+                <div className="relative flex-1 flex items-center">
+                  <Search className={`absolute left-3 h-4 w-4 text-gray-400 transition-all duration-300 ${
+                    showSearch ? 'opacity-100' : 'opacity-0'
+                  }`} />
+                  <input
+                    ref={searchRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search events, spaces..."
+                    className={`w-full pl-10 pr-2 py-2.5 text-sm bg-transparent focus:outline-none transition-all duration-300 ${
+                      showSearch ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  />
+                </div>
                 <button
-                  key={tag}
                   type="button"
-                  onClick={() => {
-                    setSearchQuery(tag);
-                    if (tag.trim()) {
-                      navigate(`/search?q=${encodeURIComponent(tag.trim())}`);
-                      setSearchQuery('');
-                      setShowSearch(false);
-                    }
-                  }}
-                  className={`px-3 py-1 text-sm bg-white/80 text-forest-700 rounded-full whitespace-nowrap transition-all duration-300 hover:bg-white hover:shadow-sm ${
-                    showSearch ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
+                  onClick={() => setShowSearch(false)}
+                  className={`p-2 mr-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-300 ${
+                    showSearch ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'
                   }`}
-                  style={{ transitionDelay: `${(index + 2) * 50}ms` }}
                 >
-                  {tag}
+                  <X className="h-4 w-4" />
                 </button>
-              ))}
+              </form>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Backdrop for mobile search */}
+      )}
+      
+      {/* Backdrop for search */}
       {showSearch && (
         <div 
-          className="lg:hidden fixed inset-0 bg-black/20 z-30 transition-opacity duration-300"
-          style={{ top: '8rem' }}
+          className="lg:hidden fixed inset-0 z-40 transition-opacity duration-300"
           onClick={() => setShowSearch(false)}
         />
       )}
