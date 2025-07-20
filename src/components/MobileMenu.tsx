@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
@@ -14,9 +14,13 @@ import {
   Sprout, 
   Shield,
   Share2,
-  Settings
+  Settings,
+  Star,
+  Plus
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
+import Avatar from './Avatar';
+import { Space, getSpaces } from '../lib/supabase';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -24,9 +28,118 @@ interface MobileMenuProps {
   onShareClick: () => void;
 }
 
+interface NavItemProps {
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  isActive: boolean;
+  badge?: number;
+  isCollapsed: boolean;
+  onClick?: () => void;
+}
+
+const NavItem: React.FC<NavItemProps> = ({ path, icon: Icon, label, isActive, badge, isCollapsed, onClick }) => {
+  return (
+    <Link
+      to={path}
+      onClick={onClick}
+      className={`
+        relative flex items-center gap-3 transition-all duration-200 group
+        ${isActive 
+          ? 'bg-gradient-to-r from-forest-100 to-earth-50 text-forest-700 shadow-sm rounded-r-xl' 
+          : 'hover:bg-gray-50 text-gray-700 hover:text-forest-600 rounded-xl'
+        }
+        ${isCollapsed 
+          ? `justify-center ${isActive ? '-mx-2 px-2 py-3' : 'px-3 py-3'}` 
+          : `${isActive ? '-mx-4 px-8 py-3' : 'px-4 py-3'}`
+        }
+      `}
+      title={isCollapsed ? label : ''}
+    >
+      <Icon className={`h-5 w-5 transition-colors ${isActive ? 'text-forest-600' : 'text-gray-500 group-hover:text-forest-600'}`} />
+      {!isCollapsed && (
+        <>
+          <span className="font-medium transition-colors">{label}</span>
+          {badge && badge > 0 && (
+            <span className="ml-auto bg-forest-500 text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] text-center">
+              {badge > 99 ? '99+' : badge}
+            </span>
+          )}
+        </>
+      )}
+      {isActive && !isCollapsed && (
+        <div className="absolute right-4 w-2 h-2 bg-forest-600 rounded-full"></div>
+      )}
+      {isActive && isCollapsed && (
+        <div className="absolute -right-1 w-1 h-6 bg-forest-600 rounded-l-sm"></div>
+      )}
+    </Link>
+  );
+};
+
+interface FavoriteSpaceProps {
+  space: Space;
+  isActive: boolean;
+  isCollapsed: boolean;
+  onClick?: () => void;
+}
+
+const FavoriteSpace: React.FC<FavoriteSpaceProps> = ({ space, isActive, isCollapsed, onClick }) => {
+  return (
+    <Link
+      to={`/spaces/${space.id}`}
+      onClick={onClick}
+      className={`
+        relative flex items-center gap-3 transition-all duration-200 group rounded-lg
+        ${isActive 
+          ? 'bg-forest-50 text-forest-700' 
+          : 'hover:bg-gray-50 text-gray-600 hover:text-forest-600'
+        }
+        ${isCollapsed ? 'justify-center p-2' : 'px-3 py-2'}
+      `}
+      title={isCollapsed ? space.name : ''}
+    >
+      <div className={`rounded-md bg-forest-100 flex items-center justify-center ${isCollapsed ? 'w-8 h-8' : 'w-6 h-6'}`}>
+        <span className="text-forest-600 font-medium text-xs">
+          {space.name?.charAt(0).toUpperCase() || 'S'}
+        </span>
+      </div>
+      {!isCollapsed && (
+        <span className="text-sm font-medium truncate">{space.name}</span>
+      )}
+    </Link>
+  );
+};
+
 const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onShareClick }) => {
   const location = useLocation();
   const { user, profile, isAdmin, signOut, openAuthModalGlobal } = useAuthContext();
+  const [favoriteSpaces, setFavoriteSpaces] = useState<Space[]>([]);
+  const [showAllFavorites, setShowAllFavorites] = useState(false);
+
+  // Load favorite spaces
+  useEffect(() => {
+    const loadFavorites = async () => {
+      if (!user) {
+        setFavoriteSpaces([]);
+        return;
+      }
+      
+      try {
+        const { data } = await getSpaces();
+        if (data) {
+          // For now, just get the first few spaces as favorites
+          // In the future, this would be based on user's actual favorites
+          setFavoriteSpaces(data.slice(0, 5));
+        }
+      } catch (error) {
+        console.error('Failed to load favorite spaces:', error);
+        setFavoriteSpaces([]);
+      }
+    };
+
+    loadFavorites();
+  }, [user]);
 
   const publicNavItems = [
     { path: '/', icon: Home, label: 'Home' },
@@ -39,17 +152,19 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onShareClick }
     { path: '/calendar', icon: Calendar, label: 'Calendar' },
     { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
     { path: '/activities', icon: Calendar, label: 'Activities' },
-    { path: '/messages', icon: MessageCircle, label: 'Messages' },
+    { path: '/messages', icon: MessageCircle, label: 'Messages', badge: 3 },
     { path: '/profile', icon: User, label: 'Profile' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
-  const navItems = user ? authenticatedNavItems : publicNavItems;
+  let navItems = user ? [...authenticatedNavItems] : [...publicNavItems];
 
   // Add admin link if user is admin
   if (user && isAdmin) {
     navItems.push({ path: '/admin', icon: Shield, label: 'Admin' });
   }
+
+  const displayedFavorites = showAllFavorites ? favoriteSpaces : favoriteSpaces.slice(0, 3);
 
   return (
     <>
@@ -62,124 +177,162 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onShareClick }
       />
       
       {/* Slide-out Menu */}
-      <div className={`lg:hidden fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white shadow-2xl z-[90] transform transition-transform duration-300 ease-in-out ${
+      <div className={`lg:hidden fixed inset-y-0 left-0 w-80 md:w-96 max-w-[85vw] bg-white shadow-2xl z-[90] transform transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         {/* Menu Header */}
-        <div className="bg-gradient-to-br from-forest-100 to-earth-100 border-b border-forest-200 p-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="border-b border-gray-200 p-4 md:p-6">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm">
+              <div className="p-2 bg-forest-50 rounded-xl">
                 <Sprout className="h-6 w-6 text-forest-600" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-forest-800">Harmony Spaces</h2>
-                <p className="text-sm text-forest-600">Community Connection</p>
+                <h2 className="text-lg md:text-xl font-bold text-forest-800">Harmony Spaces</h2>
+                <p className="text-xs md:text-sm text-gray-600">Community Connection</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-forest-600 hover:text-forest-800 hover:bg-forest-100 rounded-lg transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
-          {user && profile && (
-            <div className="flex items-center space-x-3 p-3 bg-white rounded-xl border border-forest-200">
-              <img
-                src={profile.avatar_url || 'https://images.pexels.com/photos/3772622/pexels-photo-3772622.jpeg?auto=compress&cs=tinysrgb&w=100'}
-                alt={profile.full_name || 'User'}
-                className="w-12 h-12 rounded-full border-2 border-forest-300"
-              />
-              <div className="flex-1">
-                <p className="font-semibold text-forest-800">{profile.full_name || 'Welcome'}</p>
-                <p className="text-sm text-forest-600">{user.email}</p>
-              </div>
-            </div>
-          )}
         </div>
         
-        {/* Menu Content */}
-        <div className="flex-1 overflow-y-auto py-6 px-4">
-          {/* Navigation Items */}
-          <div className="space-y-2">
-            {navItems.map(({ path, icon: Icon, label }) => (
-              <Link
-                key={path}
-                to={path}
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Favorites Section */}
+          {user && favoriteSpaces.length > 0 && (
+            <div className="p-4 md:p-6 border-b border-gray-100">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-yellow-500" />
+                  <h2 className="text-sm font-semibold text-gray-700">Favorite Spaces</h2>
+                </div>
+                <button className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+              
+              <div className="space-y-1">
+                {displayedFavorites.map((space) => (
+                  <FavoriteSpace 
+                    key={space.id} 
+                    space={space} 
+                    isActive={location.pathname === `/spaces/${space.id}`}
+                    isCollapsed={false}
+                    onClick={onClose}
+                  />
+                ))}
+              </div>
+
+              {favoriteSpaces.length > 3 && (
+                <button
+                  onClick={() => setShowAllFavorites(!showAllFavorites)}
+                  className="w-full mt-2 text-xs text-gray-500 hover:text-gray-700 py-1 transition-colors"
+                >
+                  {showAllFavorites ? 'Show less' : `Show ${favoriteSpaces.length - 3} more`}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Main Navigation */}
+          <nav className="p-4 md:p-6 space-y-1">
+            {navItems.map((item) => (
+              <NavItem
+                key={item.path}
+                {...item}
+                isActive={location.pathname === item.path}
+                isCollapsed={false}
                 onClick={onClose}
-                className={`flex items-center space-x-3 px-4 py-3.5 rounded-xl text-base font-medium transition-all duration-300 group hover:scale-[1.02] ${
-                  location.pathname === path
-                    ? 'bg-gradient-to-r from-forest-100 to-earth-100 text-forest-800 shadow-sm border border-forest-200'
-                    : 'text-forest-700 hover:bg-forest-50 hover:shadow-sm active:bg-forest-100'
-                } ${path === '/admin' ? 'border border-purple-300 bg-gradient-to-r from-purple-100 to-blue-100' : ''}`}
-              >
-                <Icon className={`h-5 w-5 transition-colors ${
-                  location.pathname === path ? 'text-forest-700' : 'text-forest-500 group-hover:text-forest-600'
-                }`} />
-                <span className="flex-1">{label}</span>
-                {location.pathname === path && (
-                  <div className="w-2 h-2 bg-forest-600 rounded-full animate-pulse-gentle"></div>
-                )}
-              </Link>
+              />
             ))}
-          </div>
-          
-          {/* Mobile Quick Actions */}
-          {user && (
-            <div className="space-y-2 pt-4 border-t border-forest-100 mt-4">
+          </nav>
+        </div>
+
+        {/* User Profile Section */}
+        {user && (
+          <div className="border-t border-gray-100 p-4 md:p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <Avatar 
+                name={profile?.full_name || user.email?.split('@')[0]}
+                imageUrl={profile?.avatar_url}
+                size="md"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {profile?.full_name || user.email?.split('@')[0]}
+                </p>
+                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              {/* Share Space Button */}
               <button
                 onClick={() => {
                   onShareClick();
                   onClose();
                 }}
-                className="w-full px-4 py-3.5 bg-gradient-to-r from-forest-600 to-earth-600 text-white rounded-xl text-base font-medium transition-all duration-300 flex items-center justify-center space-x-3 hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors text-sm font-medium"
               >
-                <Share2 className="h-5 w-5" />
-                <span>Share Space</span>
+                <Share2 className="h-4 w-4" />
+                Share Space
               </button>
-            </div>
-          )}
-          
-          {/* Mobile Auth Section */}
-          <div className="border-t border-forest-100 pt-4 mt-4 space-y-3">
-            {user ? (
-              <button
-                onClick={() => {
-                  signOut();
-                  onClose();
-                }}
-                className="w-full flex items-center space-x-3 px-4 py-3.5 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300 group font-medium"
-              >
-                <LogOut className="h-5 w-5" />
-                <span>Sign Out</span>
-              </button>
-            ) : (
-              <div className="space-y-3">
+              
+              {/* Settings and Sign Out */}
+              <div className="flex gap-2">
+                <Link
+                  to="/settings"
+                  onClick={onClose}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </Link>
                 <button
                   onClick={() => {
-                    openAuthModalGlobal('signin');
+                    signOut();
                     onClose();
                   }}
-                  className="w-full flex items-center space-x-3 px-4 py-3.5 text-forest-600 hover:bg-forest-50 rounded-xl transition-all duration-300 group font-medium"
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
-                  <LogIn className="h-5 w-5" />
-                  <span>Sign In</span>
-                </button>
-                <button
-                  onClick={() => {
-                    openAuthModalGlobal('signup');
-                    onClose();
-                  }}
-                  className="w-full btn-primary justify-center"
-                >
-                  <User className="h-5 w-5 mr-2" />
-                  <span>Join Harmony Spaces</span>
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
                 </button>
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
+        
+        {/* Auth Section for Non-authenticated Users */}
+        {!user && (
+          <div className="border-t border-gray-100 p-4 md:p-6 space-y-3">
+            <button
+              onClick={() => {
+                openAuthModalGlobal('signin');
+                onClose();
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-forest-600 hover:bg-forest-50 rounded-lg transition-colors font-medium"
+            >
+              <LogIn className="h-5 w-5" />
+              Sign In
+            </button>
+            <button
+              onClick={() => {
+                openAuthModalGlobal('signup');
+                onClose();
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors font-medium"
+            >
+              <User className="h-5 w-5" />
+              Join Harmony Spaces
+            </button>
+          </div>
+        )}
       </div>
     </>
   );
