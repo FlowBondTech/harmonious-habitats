@@ -28,7 +28,7 @@ import {
   Shield,
   Home
 } from 'lucide-react';
-import { getSpaces, Space, supabase, sendMessage } from '../lib/supabase';
+import { getSpaceById, Space, supabase, sendMessage } from '../lib/supabase';
 import { useAuthContext } from '../components/AuthProvider';
 import { LoadingSpinner } from '../components/LoadingStates';
 import Avatar from '../components/Avatar';
@@ -69,13 +69,14 @@ const SpaceDetail = () => {
   const loadSpace = async () => {
     try {
       setLoading(true);
-      const { data, error } = await getSpaces({ status: 'available' });
+      const { data, error } = await getSpaceById(id!);
       if (error) throw error;
       
-      const foundSpace = data?.find(s => s.id === id);
-      if (foundSpace) {
-        setSpace(foundSpace);
-        loadOwnerProfile(foundSpace.owner_id);
+      if (data) {
+        setSpace(data);
+        if (data.owner_id) {
+          loadOwnerProfile(data.owner_id);
+        }
       }
     } catch (error) {
       console.error('Error loading space:', error);

@@ -857,6 +857,22 @@ export const getSpaces = async (filters?: {
   return await query
 }
 
+export const getSpaceById = async (id: string) => {
+  const { data, error } = await supabase
+    .from('spaces')
+    .select(`
+      *,
+      owner:profiles!spaces_owner_id_fkey(id, full_name, avatar_url, verified),
+      amenities:space_amenities(amenity),
+      accessibility_features:space_accessibility_features(feature),
+      holistic_categories:space_holistic_categories(category)
+    `)
+    .eq('id', id)
+    .single()
+  
+  return { data, error }
+}
+
 export const getReports = async (status?: string) => {
   let query = supabase
     .from('reports')

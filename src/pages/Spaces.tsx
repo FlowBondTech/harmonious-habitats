@@ -87,7 +87,10 @@ const Spaces = () => {
   const loadSpaces = async () => {
     try {
       setLoading(true);
-      const { data, error } = await getSpaces({ status: 'available' });
+      const { data, error } = await getSpaces({ 
+        status: 'available',
+        list_publicly: true 
+      });
       if (error) throw error;
       setSpaces(data || []);
     } catch (error) {
