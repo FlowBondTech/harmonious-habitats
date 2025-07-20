@@ -20,7 +20,8 @@ import {
   MoreVertical,
   UserCheck,
   UserX,
-  Mail
+  Mail,
+  X
 } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { 
@@ -30,7 +31,10 @@ import {
   getBookingRequests,
   updateBookingRequest,
   SpaceApplication,
-  Space
+  Space,
+  getFacilitatorAvailability,
+  createBookingRequest,
+  FacilitatorAvailability
 } from '../lib/supabase';
 import { LoadingSpinner } from '../components/LoadingStates';
 import { Button } from '../components/ui/button';
@@ -53,6 +57,8 @@ const SpaceHolderDashboard = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [bookingRequests, setBookingRequests] = useState<any[]>([]);
+  const [facilitators, setFacilitators] = useState<FacilitatorAvailability[]>([]);
+  const [facilitatorSearch, setFacilitatorSearch] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -84,6 +90,14 @@ const SpaceHolderDashboard = () => {
       const { data: bookingData, error: bookingError } = await getBookingRequests(user.id, 'space_holder');
       if (bookingError) throw bookingError;
       setBookingRequests(bookingData || []);
+      
+      // Load facilitators
+      const { data: facilitatorData, error: facilitatorError } = await getFacilitatorAvailability({
+        is_active: true,
+        limit: 50
+      });
+      if (facilitatorError) throw facilitatorError;
+      setFacilitators(facilitatorData || []);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -293,7 +307,7 @@ const SpaceHolderDashboard = () => {
 
         {/* Applications Tabs */}
         <Tabs defaultValue="pending" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="pending">
               Pending ({pendingApplications.length})
             </TabsTrigger>
@@ -305,6 +319,9 @@ const SpaceHolderDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="bookings">
               Bookings ({bookingRequests.length})
+            </TabsTrigger>
+            <TabsTrigger value="find-facilitators">
+              Find Facilitators
             </TabsTrigger>
           </TabsList>
 
@@ -400,6 +417,82 @@ const SpaceHolderDashboard = () => {
                 />
               ))
             )}
+          </TabsContent>
+          
+          <TabsContent value="find-facilitators" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Find Facilitators</CardTitle>
+                <CardDescription>
+                  Browse available facilitators and send booking requests
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Search Bar */}
+                <div className="mb-6">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search facilitators by name, specialty, or location..."
+                      value={facilitatorSearch}
+                      onChange={(e) => setFacilitatorSearch(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Facilitators Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {facilitators
+                    .filter(facilitator => {
+                      if (!facilitatorSearch) return true;
+                      const query = facilitatorSearch.toLowerCase();
+                      return (
+                        facilitator.facilitator?.full_name?.toLowerCase().includes(query) ||
+                        facilitator.specialties?.some(s => s.toLowerCase().includes(query)) ||
+                        facilitator.location_type?.toLowerCase().includes(query)
+                      );
+                    })
+                    .map((facilitator) => (
+                      <FacilitatorCard
+                        key={facilitator.id}
+                        facilitator={facilitator}
+                        onBookingRequest={async (facilitatorId, eventData) => {
+                          try {
+                            const { error } = await createBookingRequest({
+                              facilitator_id: facilitatorId,
+                              space_holder_id: user!.id,
+                              ...eventData
+                            });
+                            
+                            if (error) {
+                              alert('Failed to send booking request');
+                            } else {
+                              alert('Booking request sent successfully!');
+                              // Reload booking requests
+                              const { data: bookingData } = await getBookingRequests(user!.id, 'space_holder');
+                              setBookingRequests(bookingData || []);
+                            }
+                          } catch (error) {
+                            console.error('Error sending booking request:', error);
+                            alert('Failed to send booking request');
+                          }
+                        }}
+                        userSpaces={spaces}
+                      />
+                    ))}
+                </div>
+
+                {facilitators.length === 0 && (
+                  <div className="text-center py-12">
+                    <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">No facilitators found</h3>
+                    <p className="text-gray-500">Check back later for available facilitators</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
@@ -763,6 +856,260 @@ const BookingRequestCard: React.FC<BookingRequestCardProps> = ({
         )}
       </CardContent>
     </Card>
+  );
+};
+
+interface FacilitatorCardProps {
+  facilitator: FacilitatorAvailability;
+  onBookingRequest: (facilitatorId: string, eventData: any) => void;
+  userSpaces: Space[];
+}
+
+const FacilitatorCard: React.FC<FacilitatorCardProps> = ({
+  facilitator,
+  onBookingRequest,
+  userSpaces
+}) => {
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingData, setBookingData] = useState({
+    event_type: '',
+    event_description: '',
+    requested_date: '',
+    requested_start_time: '',
+    requested_end_time: '',
+    expected_attendance: '',
+    space_id: '',
+    initial_message: ''
+  });
+
+  const handleSendBookingRequest = () => {
+    if (!bookingData.event_type || !bookingData.requested_date || !bookingData.space_id) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    onBookingRequest(facilitator.facilitator_id, bookingData);
+    setShowBookingModal(false);
+    setBookingData({
+      event_type: '',
+      event_description: '',
+      requested_date: '',
+      requested_start_time: '',
+      requested_end_time: '',
+      expected_attendance: '',
+      space_id: '',
+      initial_message: ''
+    });
+  };
+
+  return (
+    <>
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="h-12 w-12 bg-gradient-to-br from-forest-400 to-earth-500 rounded-full flex items-center justify-center text-white font-semibold">
+                {facilitator.facilitator?.full_name?.charAt(0).toUpperCase() || '?'}
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">
+                  {facilitator.facilitator?.full_name || 'Unknown Facilitator'}
+                </h3>
+                {facilitator.facilitator?.facilitator_rating && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                    {facilitator.facilitator.facilitator_rating.toFixed(1)}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Specialties */}
+          {facilitator.specialties && facilitator.specialties.length > 0 && (
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">Specialties:</p>
+              <div className="flex flex-wrap gap-2">
+                {facilitator.specialties.slice(0, 3).map((specialty, index) => (
+                  <span key={index} className="px-2 py-1 bg-forest-100 text-forest-700 text-xs rounded-full">
+                    {specialty}
+                  </span>
+                ))}
+                {facilitator.specialties.length > 3 && (
+                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                    +{facilitator.specialties.length - 3} more
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Location Type */}
+          <div className="mb-4">
+            <p className="text-sm text-gray-600">
+              <strong>Location:</strong> {facilitator.location_type || 'Not specified'}
+            </p>
+          </div>
+
+          {/* Action Button */}
+          <Button
+            onClick={() => setShowBookingModal(true)}
+            className="w-full"
+            variant="secondary"
+          >
+            <MessageCircle className="h-4 w-4 mr-2" />
+            Send Booking Request
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Booking Modal */}
+      {showBookingModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold">
+                Send Booking Request to {facilitator.facilitator?.full_name}
+              </h3>
+              <button
+                onClick={() => setShowBookingModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Event Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Event Type *
+                </label>
+                <input
+                  type="text"
+                  value={bookingData.event_type}
+                  onChange={(e) => setBookingData(prev => ({ ...prev, event_type: e.target.value }))}
+                  placeholder="e.g., Yoga Workshop, Meditation Circle"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+                />
+              </div>
+
+              {/* Space Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Space *
+                </label>
+                <select
+                  value={bookingData.space_id}
+                  onChange={(e) => setBookingData(prev => ({ ...prev, space_id: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+                >
+                  <option value="">Select a space</option>
+                  {userSpaces.map(space => (
+                    <option key={space.id} value={space.id}>{space.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date and Time */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date *
+                  </label>
+                  <input
+                    type="date"
+                    value={bookingData.requested_date}
+                    onChange={(e) => setBookingData(prev => ({ ...prev, requested_date: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Expected Attendance
+                  </label>
+                  <input
+                    type="number"
+                    value={bookingData.expected_attendance}
+                    onChange={(e) => setBookingData(prev => ({ ...prev, expected_attendance: e.target.value }))}
+                    placeholder="10"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Start Time
+                  </label>
+                  <input
+                    type="time"
+                    value={bookingData.requested_start_time}
+                    onChange={(e) => setBookingData(prev => ({ ...prev, requested_start_time: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    End Time
+                  </label>
+                  <input
+                    type="time"
+                    value={bookingData.requested_end_time}
+                    onChange={(e) => setBookingData(prev => ({ ...prev, requested_end_time: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+                  />
+                </div>
+              </div>
+
+              {/* Event Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Event Description
+                </label>
+                <textarea
+                  value={bookingData.event_description}
+                  onChange={(e) => setBookingData(prev => ({ ...prev, event_description: e.target.value }))}
+                  placeholder="Describe the event, goals, and any special requirements..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+                />
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message to Facilitator
+                </label>
+                <textarea
+                  value={bookingData.initial_message}
+                  onChange={(e) => setBookingData(prev => ({ ...prev, initial_message: e.target.value }))}
+                  placeholder="Personal message or additional details..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setShowBookingModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSendBookingRequest}
+                className="bg-forest-600 hover:bg-forest-700"
+              >
+                Send Request
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

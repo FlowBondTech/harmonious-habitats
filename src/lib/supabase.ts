@@ -883,13 +883,43 @@ export const createProfile = async (userId: string, profileData: Partial<Profile
 }
 
 export const updateProfile = async (userId: string, updates: Partial<Profile>) => {
+  // First check if we have a valid session
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  
+  if (sessionError) {
+    return { data: null, error: sessionError };
+  }
+  
+  if (!session?.user) {
+    return { data: null, error: new Error('No authenticated user') };
+  }
+  
+  if (session.user.id !== userId) {
+    return { data: null, error: new Error('User ID mismatch') };
+  }
+  
+  // Add updated_at timestamp
+  const updatesWithTimestamp = {
+    ...updates,
+    updated_at: new Date().toISOString()
+  };
+  
   const { data, error } = await supabase
     .from('profiles')
-    .update(updates)
+    .update(updatesWithTimestamp)
     .eq('id', userId)
     .select()
     .single()
-
+  
+  // If we get a permission error, it might be an RLS issue
+  if (error && error.message?.includes('policy')) {
+    console.warn('Potential RLS policy issue detected:', error);
+    return { 
+      data: null, 
+      error: new Error('Profile update failed. Please ensure you are signed in and try again. If the problem persists, contact support.') 
+    };
+  }
+  
   return { data, error }
 }
 

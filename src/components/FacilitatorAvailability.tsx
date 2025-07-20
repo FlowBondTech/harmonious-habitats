@@ -93,7 +93,20 @@ export const FacilitatorAvailability: React.FC = () => {
       if (error && error.code !== 'PGRST116') throw error; // PGRST116 = not found
       
       if (data) {
-        setAvailability(data);
+        // Ensure weekly_schedule is properly initialized
+        const safeData = {
+          ...data,
+          weekly_schedule: data.weekly_schedule || {
+            monday: [],
+            tuesday: [],
+            wednesday: [],
+            thursday: [],
+            friday: [],
+            saturday: [],
+            sunday: []
+          }
+        };
+        setAvailability(safeData);
       }
     } catch (error) {
       console.error('Error loading availability:', error);
@@ -152,35 +165,62 @@ export const FacilitatorAvailability: React.FC = () => {
   };
 
   const addTimeSlot = (day: string) => {
-    setAvailability(prev => ({
-      ...prev,
-      weekly_schedule: {
-        ...prev.weekly_schedule!,
-        [day]: [...(prev.weekly_schedule![day] || []), { start: '09:00', end: '17:00' }]
-      }
-    }));
+    setAvailability(prev => {
+      const currentSchedule = prev.weekly_schedule || {};
+      const daySlots = currentSchedule[day] || [];
+      
+      return {
+        ...prev,
+        weekly_schedule: {
+          ...currentSchedule,
+          [day]: [...daySlots, { start: '09:00', end: '17:00' }]
+        }
+      };
+    });
   };
 
   const updateTimeSlot = (day: string, index: number, field: 'start' | 'end', value: string) => {
-    setAvailability(prev => ({
-      ...prev,
-      weekly_schedule: {
-        ...prev.weekly_schedule!,
-        [day]: prev.weekly_schedule![day].map((slot, i) =>
-          i === index ? { ...slot, [field]: value } : slot
-        )
+    // Validate time format (HH:MM)
+    if (value && !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)) {
+      console.warn('Invalid time format:', value);
+      return;
+    }
+    
+    setAvailability(prev => {
+      const currentSchedule = prev.weekly_schedule || {};
+      const daySlots = currentSchedule[day] || [];
+      
+      // Ensure the slot exists before updating
+      if (index >= daySlots.length) {
+        console.warn('Time slot index out of bounds:', index, daySlots.length);
+        return prev;
       }
-    }));
+      
+      return {
+        ...prev,
+        weekly_schedule: {
+          ...currentSchedule,
+          [day]: daySlots.map((slot, i) =>
+            i === index ? { ...slot, [field]: value } : slot
+          )
+        }
+      };
+    });
   };
 
   const removeTimeSlot = (day: string, index: number) => {
-    setAvailability(prev => ({
-      ...prev,
-      weekly_schedule: {
-        ...prev.weekly_schedule!,
-        [day]: prev.weekly_schedule![day].filter((_, i) => i !== index)
-      }
-    }));
+    setAvailability(prev => {
+      const currentSchedule = prev.weekly_schedule || {};
+      const daySlots = currentSchedule[day] || [];
+      
+      return {
+        ...prev,
+        weekly_schedule: {
+          ...currentSchedule,
+          [day]: daySlots.filter((_, i) => i !== index)
+        }
+      };
+    });
   };
 
   const addSpecialty = () => {
@@ -356,34 +396,39 @@ export const FacilitatorAvailability: React.FC = () => {
                   {isExpanded && (
                     <div className="p-3 border-t bg-gray-50">
                       <div className="space-y-2">
-                        {daySchedule.map((slot, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <input
-                              type="time"
-                              value={slot.start}
-                              onChange={(e) => updateTimeSlot(day, index, 'start', e.target.value)}
-                              className="px-3 py-1 border border-gray-300 rounded-md focus:ring-forest-500 focus:border-forest-500"
-                            />
-                            <span className="text-gray-500">to</span>
-                            <input
-                              type="time"
-                              value={slot.end}
-                              onChange={(e) => updateTimeSlot(day, index, 'end', e.target.value)}
-                              className="px-3 py-1 border border-gray-300 rounded-md focus:ring-forest-500 focus:border-forest-500"
-                            />
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeTimeSlot(day, index);
-                              }}
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
+                        {daySchedule.map((slot, index) => {
+                          // Ensure slot has valid structure
+                          const safeSlot = slot || { start: '09:00', end: '17:00' };
+                          
+                          return (
+                            <div key={index} className="flex items-center gap-2">
+                              <input
+                                type="time"
+                                value={safeSlot.start || '09:00'}
+                                onChange={(e) => updateTimeSlot(day, index, 'start', e.target.value)}
+                                className="px-3 py-1 border border-gray-300 rounded-md focus:ring-forest-500 focus:border-forest-500"
+                              />
+                              <span className="text-gray-500">to</span>
+                              <input
+                                type="time"
+                                value={safeSlot.end || '17:00'}
+                                onChange={(e) => updateTimeSlot(day, index, 'end', e.target.value)}
+                                className="px-3 py-1 border border-gray-300 rounded-md focus:ring-forest-500 focus:border-forest-500"
+                              />
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeTimeSlot(day, index);
+                                }}
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          );
+                        })}
                         
                         <Button
                           onClick={(e) => {

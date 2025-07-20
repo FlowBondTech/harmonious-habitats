@@ -205,10 +205,11 @@ const Profile = () => {
               <nav className="space-y-1">
                 <Link
                   to="/settings"
+                  state={{ activeSection: 'edit-profile' }}
                   className="w-full flex items-center px-4 py-3 rounded-lg text-left transition-colors text-forest-600 hover:bg-forest-50"
                 >
                   <Settings className="h-4 w-4 mr-3" />
-                  <span>Settings</span>
+                  <span>Edit Profile</span>
                 </Link>
               </nav>
             </div>

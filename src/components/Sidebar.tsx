@@ -124,7 +124,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
     { path: '/', icon: Home, label: 'Home' },
     { path: '/map', icon: Map, label: 'Discover' },
     { path: '/neighborhoods', icon: MapPin, label: 'Neighborhoods' },
-    { path: '/facilitators', icon: User, label: 'Facilitators' },
     { path: '/global-feed', icon: Globe, label: 'Global Feed' },
     { path: '/calendar', icon: Calendar, label: 'Calendar' },
     { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
@@ -139,7 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   }
 
   if (isSpaceHolder) {
-    navItems.splice(7, 0, { path: '/space-holder-dashboard', icon: Home, label: 'Space Dashboard', badge: 0 });
+    navItems.splice(7, 0, { path: '/space-holder-dashboard', icon: Home, label: 'Space & Facilitators', badge: 0 });
   }
 
   // Load favorite spaces and check if user is space holder
@@ -303,6 +302,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
               <div className="flex gap-2">
                 <Link
                   to="/settings"
+                  state={{ activeSection: 'edit-profile' }}
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   <Settings className="h-4 w-4" />
@@ -328,6 +328,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
               </div>
               <Link
                 to="/settings"
+                state={{ activeSection: 'edit-profile' }}
                 className="relative flex justify-center p-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors group"
                 title="Settings"
               >

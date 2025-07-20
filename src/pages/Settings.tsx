@@ -35,7 +35,7 @@ import {
   CheckCircle,
   Users as UsersIcon
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../components/AuthProvider';
 import { updateProfile } from '../lib/supabase';
 import { FacilitatorAvailability } from '../components/FacilitatorAvailability';
@@ -54,10 +54,18 @@ interface SettingSection {
 const Settings = () => {
   const { user, profile, loadUserProfile } = useAuthContext();
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeSection, setActiveSection] = useState<string | null>('edit-profile');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(window.innerWidth >= 1024);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
   
+  // Handle incoming navigation state
+  useEffect(() => {
+    if (location.state?.activeSection) {
+      setActiveSection(location.state.activeSection);
+    }
+  }, [location.state]);
+
   // Handle responsive behavior
   useEffect(() => {
     const handleResize = () => {
@@ -277,32 +285,43 @@ const Settings = () => {
     setActiveSection(section.id);
   };
   
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError(null);
   };
   
   const handleSaveProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      setError('No user found. Please sign in again.');
+      return;
+    }
     
     setLoading(true);
     setError(null);
     setSuccess(null);
 
     try {
+      // Validate required fields
+      if (!formData.full_name?.trim()) {
+        setError('Full name is required');
+        setLoading(false);
+        return;
+      }
+
       const updates = {
-        full_name: formData.full_name,
-        username: formData.username || undefined,
-        bio: formData.bio || undefined,
-        neighborhood: formData.neighborhood || undefined,
+        full_name: formData.full_name.trim(),
+        username: formData.username?.trim() || null,
+        bio: formData.bio?.trim() || null,
+        neighborhood: formData.neighborhood?.trim() || null,
         discovery_radius: formData.discovery_radius,
         holistic_interests: formData.holistic_interests
       };
 
-      const { error } = await updateProfile(user.id, updates);
+      const { data, error } = await updateProfile(user.id, updates);
       
       if (error) {
-        setError(error.message);
+        console.error('Profile update error:', error);
+        setError(error.message || 'Failed to update profile');
       } else {
         setSuccess('Profile updated successfully!');
         await loadUserProfile();
@@ -314,7 +333,8 @@ const Settings = () => {
         }, 3000);
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      console.error('Unexpected error updating profile:', err);
+      setError(`An unexpected error occurred: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }

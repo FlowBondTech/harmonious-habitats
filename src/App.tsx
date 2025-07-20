@@ -35,7 +35,6 @@ const SpaceDetail = lazy(() => import('./pages/SpaceDetail'));
 const Neighborhoods = lazy(() => import('./pages/Neighborhoods'));
 const NeighborhoodDetail = lazy(() => import('./pages/NeighborhoodDetail'));
 const SpaceHolderDashboard = lazy(() => import('./pages/SpaceHolderDashboard'));
-const FacilitatorDirectory = lazy(() => import('./pages/FacilitatorDirectory'));
 
 const AppContent = () => {
   const { showAuthModalGlobal, globalAuthMode, closeAuthModalGlobal } = useAuthContext();
@@ -168,9 +167,6 @@ const AppContent = () => {
                     <ProtectedRoute>
                       <SpaceHolderDashboard />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/facilitators" element={
-                    <FacilitatorDirectory />
                   } />
                   
                   {/* Fallback Routes */}
