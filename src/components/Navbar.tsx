@@ -168,7 +168,7 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                   {/* Menu Items */}
                   <div className="py-1">
                     <Link
-                      to="/account"
+                      to="/profile"
                       onClick={() => setShowProfileDropdown(false)}
                       className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
@@ -195,7 +195,7 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                     </Link>
 
                     <Link
-                      to="/account#settings"
+                      to="/settings"
                       onClick={() => setShowProfileDropdown(false)}
                       className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >

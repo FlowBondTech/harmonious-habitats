@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   UserCircle, 
@@ -17,10 +17,24 @@ import {
   Code, 
   HelpCircle,
   ChevronRight,
-  ArrowLeft
+  ChevronLeft,
+  ArrowLeft,
+  Menu,
+  X,
+  Edit,
+  Camera,
+  MapPin,
+  Globe,
+  Sprout,
+  Bot as Lotus,
+  ChefHat,
+  Palette,
+  Stethoscope,
+  Music
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../components/AuthProvider';
+import { updateProfile } from '../lib/supabase';
 
 interface SettingSection {
   id: string;
@@ -30,12 +44,42 @@ interface SettingSection {
   path?: string;
   badge?: string;
   color?: string;
+  category?: string;
 }
 
 const Settings = () => {
-  const { user, profile } = useAuthContext();
+  const { user, profile, loadUserProfile } = useAuthContext();
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<string | null>('edit-profile');
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  
+  // Profile editing state
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    full_name: profile?.full_name || '',
+    username: profile?.username || '',
+    bio: profile?.bio || '',
+    neighborhood: profile?.neighborhood || '',
+    discovery_radius: profile?.discovery_radius || 1,
+    holistic_interests: profile?.holistic_interests || []
+  });
+  
+  // Update form data when profile changes
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        username: profile.username || '',
+        bio: profile.bio || '',
+        neighborhood: profile.neighborhood || '',
+        discovery_radius: profile.discovery_radius || 1,
+        holistic_interests: profile.holistic_interests || []
+      });
+    }
+  }, [profile]);
 
   const settingSections: SettingSection[] = [
     {
@@ -43,57 +87,64 @@ const Settings = () => {
       title: 'Edit Profile',
       description: 'Update your profile information and photo',
       icon: User,
-      path: '/account',
-      color: 'text-forest-600'
+      color: 'text-forest-600',
+      category: 'account'
     },
     {
       id: 'personal-info',
       title: 'Personal Info',
       description: 'Manage your personal details and contact information',
       icon: UserCircle,
-      color: 'text-blue-600'
+      color: 'text-blue-600',
+      category: 'account'
     },
     {
       id: 'account-management',
       title: 'Account Management',
       description: 'Security settings, password, and account preferences',
       icon: SettingsIcon,
-      color: 'text-gray-600'
+      color: 'text-gray-600',
+      category: 'account'
     },
     {
       id: 'email-updates',
       title: 'Email Updates',
       description: 'Control what emails you receive from us',
       icon: Mail,
-      color: 'text-purple-600'
+      color: 'text-purple-600',
+      category: 'notifications'
     },
     {
       id: 'privacy',
       title: 'Privacy',
       description: 'Manage your privacy settings and data sharing',
       icon: Shield,
-      color: 'text-red-600'
+      color: 'text-red-600',
+      category: 'account'
     },
     {
       id: 'social-media',
       title: 'Social Media',
       description: 'Connect and manage your social media accounts',
       icon: Share2,
-      color: 'text-pink-600'
+      color: 'text-pink-600',
+      category: 'account'
     },
     {
       id: 'interests',
       title: 'Interests',
       description: 'Select topics and categories you\'re interested in',
       icon: Heart,
-      color: 'text-earth-600'
+      color: 'text-earth-600',
+      category: 'preferences'
     },
     {
       id: 'mobile-notifications',
       title: 'Mobile Notifications',
       description: 'Configure push notifications for mobile app',
       icon: Bell,
-      color: 'text-orange-600'
+      color: 'text-orange-600',
+      category: 'notifications'
     },
     {
       id: 'organizer-subscription',
@@ -101,7 +152,8 @@ const Settings = () => {
       description: 'Manage your event organizer features',
       icon: UserCheck,
       color: 'text-indigo-600',
-      badge: 'PRO'
+      badge: 'PRO',
+      category: 'subscriptions'
     },
     {
       id: 'meetup-plus',
@@ -109,137 +161,458 @@ const Settings = () => {
       description: 'Premium features and benefits',
       icon: Crown,
       color: 'text-yellow-600',
-      badge: 'PLUS'
+      badge: 'PLUS',
+      category: 'subscriptions'
     },
     {
       id: 'payment-methods',
       title: 'Payment Methods',
       description: 'Manage your cards and payment options',
       icon: CreditCard,
-      color: 'text-green-600'
+      color: 'text-green-600',
+      category: 'payments'
     },
     {
       id: 'payments-made',
       title: 'Payments Made',
       description: 'View your payment history and receipts',
       icon: DollarSign,
-      color: 'text-emerald-600'
+      color: 'text-emerald-600',
+      category: 'payments'
     },
     {
       id: 'payments-received',
       title: 'Payments Received',
       description: 'Track payments from your events',
       icon: Receipt,
-      color: 'text-teal-600'
+      color: 'text-teal-600',
+      category: 'payments'
     },
     {
       id: 'apps',
       title: 'Apps',
       description: 'Connected applications and integrations',
       icon: Smartphone,
-      color: 'text-cyan-600'
+      color: 'text-cyan-600',
+      category: 'developer'
     },
     {
       id: 'api-guide',
       title: 'API Guide',
       description: 'Developer documentation and API keys',
       icon: Code,
-      color: 'text-slate-600'
+      color: 'text-slate-600',
+      category: 'developer'
     },
     {
       id: 'help',
       title: 'Help',
       description: 'Get support and find answers',
       icon: HelpCircle,
-      color: 'text-forest-600'
+      color: 'text-forest-600',
+      category: 'support'
     }
   ];
 
+  const categories = [
+    { id: 'account', label: 'Account', icon: User },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'preferences', label: 'Preferences', icon: Heart },
+    { id: 'subscriptions', label: 'Subscriptions', icon: Crown },
+    { id: 'payments', label: 'Payments', icon: CreditCard },
+    { id: 'developer', label: 'Developer', icon: Code },
+    { id: 'support', label: 'Support', icon: HelpCircle }
+  ];
+
   const handleSectionClick = (section: SettingSection) => {
-    if (section.path) {
-      navigate(section.path);
-    } else {
-      setActiveSection(section.id);
+    setActiveSection(section.id);
+  };
+  
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setError(null);
+  };
+  
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const updates = {
+        full_name: formData.full_name,
+        username: formData.username || undefined,
+        bio: formData.bio || undefined,
+        neighborhood: formData.neighborhood || undefined,
+        discovery_radius: formData.discovery_radius,
+        holistic_interests: formData.holistic_interests
+      };
+
+      const { error } = await updateProfile(user.id, updates);
+      
+      if (error) {
+        setError(error.message);
+      } else {
+        setSuccess('Profile updated successfully!');
+        await loadUserProfile();
+        setIsEditing(false);
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSuccess(null);
+        }, 3000);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setLoading(false);
     }
+  };
+  
+  const toggleInterest = (interestId: string) => {
+    const updated = formData.holistic_interests.includes(interestId)
+      ? formData.holistic_interests.filter((i: string) => i !== interestId)
+      : [...formData.holistic_interests, interestId];
+    handleInputChange('holistic_interests', updated);
   };
 
   const renderSectionContent = () => {
+    const section = settingSections.find(s => s.id === activeSection);
+    if (!section) return null;
+
     switch (activeSection) {
+      case 'edit-profile':
+        return (
+          <div className="space-y-6">
+            {/* Success/Error Messages */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+            {success && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-sm text-green-600">{success}</p>
+              </div>
+            )}
+
+            {/* Basic Info */}
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-forest-800">Profile Information</h3>
+                {isEditing ? (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => {
+                        setIsEditing(false);
+                        setError(null);
+                        setSuccess(null);
+                      }}
+                      className="px-4 py-2 border border-forest-300 text-forest-700 rounded-lg hover:bg-forest-50 transition-colors text-sm font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveProfile}
+                      disabled={loading}
+                      className="bg-forest-600 hover:bg-forest-700 disabled:bg-forest-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+                    >
+                      {loading ? (
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <Edit className="h-4 w-4" />
+                      )}
+                      <span>{loading ? 'Saving...' : 'Save Changes'}</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span>Edit Profile</span>
+                  </button>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-forest-700 mb-2">Full Name</label>
+                  <input
+                    type="text"
+                    value={formData.full_name}
+                    onChange={(e) => handleInputChange('full_name', e.target.value)}
+                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    readOnly={!isEditing}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-forest-700 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={user?.email || ''}
+                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    readOnly
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-forest-700 mb-2">Username</label>
+                  <input
+                    type="text"
+                    value={formData.username}
+                    onChange={(e) => handleInputChange('username', e.target.value)}
+                    placeholder="Choose a unique username"
+                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    readOnly={!isEditing}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-forest-700 mb-2">Neighborhood</label>
+                  <input
+                    type="text"
+                    value={formData.neighborhood}
+                    onChange={(e) => handleInputChange('neighborhood', e.target.value)}
+                    placeholder="e.g., Downtown, Riverside, etc."
+                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    readOnly={!isEditing}
+                  />
+                </div>
+              </div>
+              
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-forest-700 mb-2">Bio</label>
+                <textarea
+                  rows={3}
+                  value={formData.bio}
+                  onChange={(e) => handleInputChange('bio', e.target.value)}
+                  placeholder="Tell your neighbors about yourself and your interests..."
+                  className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                  readOnly={!isEditing}
+                />
+              </div>
+            </div>
+
+            {/* Holistic Interests */}
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h3 className="text-xl font-semibold text-forest-800 mb-6">Holistic Interests</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                  { id: 'gardening', name: 'Gardening', icon: Sprout },
+                  { id: 'yoga', name: 'Yoga & Meditation', icon: Lotus },
+                  { id: 'cooking', name: 'Cooking', icon: ChefHat },
+                  { id: 'art', name: 'Art & Creativity', icon: Palette },
+                  { id: 'healing', name: 'Healing & Wellness', icon: Stethoscope },
+                  { id: 'music', name: 'Music & Movement', icon: Music },
+                ].map(interest => {
+                  const Icon = interest.icon;
+                  const isSelected = formData.holistic_interests.includes(interest.id);
+                  return (
+                    <button
+                      key={interest.id}
+                      onClick={() => isEditing && toggleInterest(interest.id)}
+                      disabled={!isEditing}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        isSelected
+                          ? 'border-forest-500 bg-forest-50'
+                          : 'border-gray-200 hover:border-forest-300'
+                      } ${!isEditing ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}
+                    >
+                      <Icon className={`h-8 w-8 mx-auto mb-2 ${isSelected ? 'text-forest-600' : 'text-gray-400'}`} />
+                      <p className={`text-sm font-medium ${isSelected ? 'text-forest-700' : 'text-gray-600'}`}>
+                        {interest.name}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Discovery Radius */}
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h3 className="text-xl font-semibold text-forest-800 mb-6">Discovery Settings</h3>
+              <div>
+                <label className="block text-sm font-medium text-forest-700 mb-3">
+                  <Globe className="h-4 w-4 inline mr-2" />
+                  Discovery Radius
+                </label>
+                <select
+                  value={formData.discovery_radius}
+                  onChange={(e) => handleInputChange('discovery_radius', Number(e.target.value))}
+                  disabled={!isEditing}
+                  className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                >
+                  <option value={0.5}>0.5 miles (walking distance)</option>
+                  <option value={1}>1 mile</option>
+                  <option value={2}>2 miles</option>
+                  <option value={5}>5 miles</option>
+                  <option value={10}>10 miles</option>
+                </select>
+                <p className="mt-2 text-sm text-forest-600">
+                  This controls how far away events and neighbors will appear in your local feed.
+                </p>
+              </div>
+            </div>
+          </div>
+        );
       case 'personal-info':
-        return <PersonalInfoSection onBack={() => setActiveSection(null)} />;
+        return <PersonalInfoSection />;
       case 'account-management':
-        return <AccountManagementSection onBack={() => setActiveSection(null)} />;
+        return <AccountManagementSection />;
       case 'email-updates':
-        return <EmailUpdatesSection onBack={() => setActiveSection(null)} />;
+        return <EmailUpdatesSection />;
       case 'privacy':
-        return <PrivacySection onBack={() => setActiveSection(null)} />;
+        return <PrivacySection />;
       case 'social-media':
-        return <SocialMediaSection onBack={() => setActiveSection(null)} />;
+        return <SocialMediaSection />;
       case 'interests':
-        return <InterestsSection onBack={() => setActiveSection(null)} />;
+        return <InterestsSection />;
       case 'mobile-notifications':
-        return <MobileNotificationsSection onBack={() => setActiveSection(null)} />;
+        return <MobileNotificationsSection />;
       case 'payment-methods':
-        return <PaymentMethodsSection onBack={() => setActiveSection(null)} />;
+        return <PaymentMethodsSection />;
       default:
-        return null;
+        return (
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-2xl font-bold text-forest-800 mb-6">{section.title}</h2>
+            <p className="text-gray-600">{section.description}</p>
+            <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-500">This section is coming soon.</p>
+            </div>
+          </div>
+        );
     }
   };
 
-  if (activeSection) {
-    return renderSectionContent();
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
-      <div className="container-responsive py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center space-x-2 text-forest-600 hover:text-forest-800 mb-4"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back</span>
-          </button>
-          <h1 className="text-3xl font-bold text-forest-800">Settings</h1>
-          <p className="text-forest-600 mt-2">Manage your account preferences and settings</p>
+      <div className="flex h-screen">
+        {/* Sidebar */}
+        <div className={`${
+          isSidebarExpanded ? 'w-64' : 'w-16'
+        } bg-white shadow-lg transition-all duration-300 flex flex-col`}>
+          
+          {/* Sidebar Header */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              {isSidebarExpanded ? (
+                <>
+                  <h2 className="text-xl font-bold text-forest-800">Settings</h2>
+                  <button
+                    onClick={() => setIsSidebarExpanded(false)}
+                    className="p-1 hover:bg-gray-100 rounded-lg transition-colors lg:hidden"
+                  >
+                    <ChevronLeft className="h-5 w-5 text-gray-600" />
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setIsSidebarExpanded(true)}
+                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors mx-auto"
+                >
+                  <Menu className="h-5 w-5 text-gray-600" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Categories */}
+          <div className="flex-1 overflow-y-auto py-4">
+            {categories.map((category) => {
+              const Icon = category.icon;
+              const sectionCount = settingSections.filter(s => s.category === category.id).length;
+              
+              return (
+                <div key={category.id} className="mb-6">
+                  {isSidebarExpanded && (
+                    <h3 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      {category.label}
+                    </h3>
+                  )}
+                  
+                  <div className="space-y-1">
+                    {settingSections
+                      .filter(section => section.category === category.id)
+                      .map((section) => {
+                        const SectionIcon = section.icon;
+                        const isActive = activeSection === section.id;
+                        
+                        return (
+                          <button
+                            key={section.id}
+                            onClick={() => handleSectionClick(section)}
+                            className={`w-full flex items-center ${
+                              isSidebarExpanded ? 'px-4 py-2' : 'px-2 py-2 justify-center'
+                            } hover:bg-gray-50 transition-colors relative group ${
+                              isActive ? 'bg-forest-50 border-r-4 border-forest-600' : ''
+                            }`}
+                          >
+                            <SectionIcon className={`h-5 w-5 ${
+                              isActive ? section.color : 'text-gray-600 group-hover:text-gray-800'
+                            }`} />
+                            
+                            {isSidebarExpanded && (
+                              <>
+                                <span className={`ml-3 text-sm ${
+                                  isActive ? 'font-semibold text-forest-800' : 'text-gray-700'
+                                }`}>
+                                  {section.title}
+                                </span>
+                                {section.badge && (
+                                  <span className="ml-auto px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-earth-400 to-earth-500 text-white rounded-full">
+                                    {section.badge}
+                                  </span>
+                                )}
+                              </>
+                            )}
+                            
+                            {/* Tooltip for collapsed state */}
+                            {!isSidebarExpanded && (
+                              <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                                {section.title}
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Expand/Collapse Button for Desktop */}
+          <div className="p-4 border-t border-gray-200 hidden lg:block">
+            <button
+              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+              className="w-full p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center justify-center"
+            >
+              {isSidebarExpanded ? (
+                <ChevronLeft className="h-5 w-5 text-gray-600" />
+              ) : (
+                <ChevronRight className="h-5 w-5 text-gray-600" />
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Settings Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {settingSections.map((section) => {
-            const Icon = section.icon;
-            return (
-              <button
-                key={section.id}
-                onClick={() => handleSectionClick(section)}
-                className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 text-left group"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-4">
-                    <div className={`p-3 rounded-lg bg-gray-50 group-hover:bg-gray-100 transition-colors`}>
-                      <Icon className={`h-6 w-6 ${section.color || 'text-gray-600'}`} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <h3 className="font-semibold text-forest-800">{section.title}</h3>
-                        {section.badge && (
-                          <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-earth-400 to-earth-500 text-white rounded-full">
-                            {section.badge}
-                          </span>
-                        )}
-                      </div>
-                      {section.description && (
-                        <p className="text-sm text-forest-600 mt-1">{section.description}</p>
-                      )}
-                    </div>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                </div>
-              </button>
-            );
-          })}
+        {/* Main Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-8">
+            {/* Back Button for Mobile */}
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center space-x-2 text-forest-600 hover:text-forest-800 mb-6 lg:hidden"
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back</span>
+            </button>
+
+            {/* Content */}
+            {renderSectionContent()}
+          </div>
         </div>
       </div>
     </div>
@@ -248,150 +621,127 @@ const Settings = () => {
 
 // Individual Section Components
 
-const PersonalInfoSection: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+const PersonalInfoSection: React.FC = () => {
   const { profile } = useAuthContext();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
-      <div className="container-responsive py-8">
-        <div className="max-w-3xl mx-auto">
-          <button
-            onClick={onBack}
-            className="flex items-center space-x-2 text-forest-600 hover:text-forest-800 mb-6"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back to Settings</span>
-          </button>
-
-          <h2 className="text-2xl font-bold text-forest-800 mb-6">Personal Info</h2>
-
-          <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-forest-700 mb-2">Full Name</label>
-              <input
-                type="text"
-                defaultValue={profile?.full_name || ''}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-forest-700 mb-2">Email</label>
-              <input
-                type="email"
-                defaultValue={profile?.email || ''}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
-                disabled
-              />
-              <p className="text-sm text-gray-500 mt-1">Contact support to change your email</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-forest-700 mb-2">Phone Number</label>
-              <input
-                type="tel"
-                placeholder="+1 (555) 123-4567"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-forest-700 mb-2">Date of Birth</label>
-              <input
-                type="date"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-forest-700 mb-2">Location</label>
-              <input
-                type="text"
-                placeholder="City, State"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
-              />
-            </div>
-
-            <button className="w-full bg-forest-600 hover:bg-forest-700 text-white py-3 rounded-lg font-medium transition-colors">
-              Save Changes
-            </button>
-          </div>
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <h2 className="text-2xl font-bold text-forest-800 mb-6">Personal Info</h2>
+      <div className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-forest-700 mb-2">Full Name</label>
+          <input
+            type="text"
+            defaultValue={profile?.full_name || ''}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+          />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-forest-700 mb-2">Email</label>
+          <input
+            type="email"
+            defaultValue={profile?.email || ''}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+            disabled
+          />
+          <p className="text-sm text-gray-500 mt-1">Contact support to change your email</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-forest-700 mb-2">Phone Number</label>
+          <input
+            type="tel"
+            placeholder="+1 (555) 123-4567"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-forest-700 mb-2">Date of Birth</label>
+          <input
+            type="date"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-forest-700 mb-2">Location</label>
+          <input
+            type="text"
+            placeholder="City, State"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest-500 focus:border-forest-500"
+          />
+        </div>
+
+        <button className="w-full bg-forest-600 hover:bg-forest-700 text-white py-3 rounded-lg font-medium transition-colors">
+          Save Changes
+        </button>
       </div>
     </div>
   );
 };
 
-const AccountManagementSection: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+const AccountManagementSection: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
-      <div className="container-responsive py-8">
-        <div className="max-w-3xl mx-auto">
-          <button
-            onClick={onBack}
-            className="flex items-center space-x-2 text-forest-600 hover:text-forest-800 mb-6"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back to Settings</span>
-          </button>
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-2xl font-bold text-forest-800 mb-6">Account Management</h2>
+        
+        <div className="space-y-6">
+          <div>
+            <h3 className="font-semibold text-forest-800 mb-4">Password & Security</h3>
+            <div className="space-y-4">
+              <button className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Change Password</span>
+                  <ChevronRight className="h-5 w-5 text-gray-400" />
+                </div>
+              </button>
+              <button className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Two-Factor Authentication</span>
+                  <ChevronRight className="h-5 w-5 text-gray-400" />
+                </div>
+              </button>
+            </div>
+          </div>
 
-          <h2 className="text-2xl font-bold text-forest-800 mb-6">Account Management</h2>
-
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="font-semibold text-forest-800 mb-4">Password & Security</h3>
-              <div className="space-y-4">
-                <button className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Change Password</span>
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
-                  </div>
-                </button>
-                <button className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Two-Factor Authentication</span>
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
-                  </div>
-                </button>
+          <div>
+            <h3 className="font-semibold text-forest-800 mb-4">Account Preferences</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Language</p>
+                  <p className="text-sm text-gray-500">English (US)</p>
+                </div>
+                <button className="text-forest-600 hover:text-forest-800">Change</button>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Time Zone</p>
+                  <p className="text-sm text-gray-500">Pacific Time (PT)</p>
+                </div>
+                <button className="text-forest-600 hover:text-forest-800">Change</button>
               </div>
             </div>
+          </div>
 
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="font-semibold text-forest-800 mb-4">Account Preferences</h3>
-              <div className="space-y-4">
+          <div>
+            <h3 className="font-semibold text-red-600 mb-4">Danger Zone</h3>
+            <div className="space-y-4">
+              <button className="w-full text-left p-4 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Language</p>
-                    <p className="text-sm text-gray-500">English (US)</p>
-                  </div>
-                  <button className="text-forest-600 hover:text-forest-800">Change</button>
+                  <span className="font-medium text-red-600">Deactivate Account</span>
+                  <ChevronRight className="h-5 w-5 text-red-400" />
                 </div>
+              </button>
+              <button className="w-full text-left p-4 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Time Zone</p>
-                    <p className="text-sm text-gray-500">Pacific Time (PT)</p>
-                  </div>
-                  <button className="text-forest-600 hover:text-forest-800">Change</button>
+                  <span className="font-medium text-red-600">Delete Account</span>
+                  <ChevronRight className="h-5 w-5 text-red-400" />
                 </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="font-semibold text-red-600 mb-4">Danger Zone</h3>
-              <div className="space-y-4">
-                <button className="w-full text-left p-4 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-red-600">Deactivate Account</span>
-                    <ChevronRight className="h-5 w-5 text-red-400" />
-                  </div>
-                </button>
-                <button className="w-full text-left p-4 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-red-600">Delete Account</span>
-                    <ChevronRight className="h-5 w-5 text-red-400" />
-                  </div>
-                </button>
-              </div>
+              </button>
             </div>
           </div>
         </div>
@@ -400,7 +750,7 @@ const AccountManagementSection: React.FC<{ onBack: () => void }> = ({ onBack }) 
   );
 };
 
-const EmailUpdatesSection: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+const EmailUpdatesSection: React.FC = () => {
   const [emailPrefs, setEmailPrefs] = useState({
     eventReminders: true,
     newEvents: true,
@@ -411,194 +761,118 @@ const EmailUpdatesSection: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
-      <div className="container-responsive py-8">
-        <div className="max-w-3xl mx-auto">
-          <button
-            onClick={onBack}
-            className="flex items-center space-x-2 text-forest-600 hover:text-forest-800 mb-6"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back to Settings</span>
-          </button>
-
-          <h2 className="text-2xl font-bold text-forest-800 mb-6">Email Updates</h2>
-
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="space-y-6">
-              {Object.entries({
-                eventReminders: 'Event Reminders',
-                newEvents: 'New Events in Your Area',
-                messages: 'Direct Messages',
-                newsletter: 'Weekly Newsletter',
-                marketing: 'Marketing & Promotions',
-                communityUpdates: 'Community Updates'
-              }).map(([key, label]) => (
-                <div key={key} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-forest-800">{label}</p>
-                    <p className="text-sm text-gray-500">
-                      {key === 'eventReminders' && 'Get notified about upcoming events you\'re attending'}
-                      {key === 'newEvents' && 'Discover new events based on your interests'}
-                      {key === 'messages' && 'Receive notifications for new messages'}
-                      {key === 'newsletter' && 'Weekly digest of community highlights'}
-                      {key === 'marketing' && 'Special offers and promotional content'}
-                      {key === 'communityUpdates' && 'Important updates about the platform'}
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={emailPrefs[key as keyof typeof emailPrefs]}
-                      onChange={(e) => setEmailPrefs(prev => ({ ...prev, [key]: e.target.checked }))}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-forest-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-forest-600"></div>
-                  </label>
-                </div>
-              ))}
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <h2 className="text-2xl font-bold text-forest-800 mb-6">Email Updates</h2>
+      
+      <div className="space-y-6">
+        {Object.entries({
+          eventReminders: 'Event Reminders',
+          newEvents: 'New Events in Your Area',
+          messages: 'Direct Messages',
+          newsletter: 'Weekly Newsletter',
+          marketing: 'Marketing & Promotions',
+          communityUpdates: 'Community Updates'
+        }).map(([key, label]) => (
+          <div key={key} className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-forest-800">{label}</p>
+              <p className="text-sm text-gray-500">
+                {key === 'eventReminders' && 'Get notified about upcoming events you\'re attending'}
+                {key === 'newEvents' && 'Discover new events based on your interests'}
+                {key === 'messages' && 'Receive notifications for new messages'}
+                {key === 'newsletter' && 'Weekly digest of community highlights'}
+                {key === 'marketing' && 'Special offers and promotional content'}
+                {key === 'communityUpdates' && 'Important updates about the platform'}
+              </p>
             </div>
-
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <button className="w-full bg-forest-600 hover:bg-forest-700 text-white py-3 rounded-lg font-medium transition-colors">
-                Save Email Preferences
-              </button>
-            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={emailPrefs[key as keyof typeof emailPrefs]}
+                onChange={(e) => setEmailPrefs(prev => ({ ...prev, [key]: e.target.checked }))}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-forest-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-forest-600"></div>
+            </label>
           </div>
-        </div>
+        ))}
+      </div>
+
+      <div className="mt-8 pt-6 border-t border-gray-200">
+        <button className="w-full bg-forest-600 hover:bg-forest-700 text-white py-3 rounded-lg font-medium transition-colors">
+          Save Email Preferences
+        </button>
       </div>
     </div>
   );
 };
 
-const PrivacySection: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+const PrivacySection: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
-      <div className="container-responsive py-8">
-        <div className="max-w-3xl mx-auto">
-          <button
-            onClick={onBack}
-            className="flex items-center space-x-2 text-forest-600 hover:text-forest-800 mb-6"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back to Settings</span>
-          </button>
-
-          <h2 className="text-2xl font-bold text-forest-800 mb-6">Privacy Settings</h2>
-
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="font-semibold text-forest-800 mb-4">Profile Visibility</h3>
-              <div className="space-y-4">
-                <label className="flex items-start space-x-3">
-                  <input type="radio" name="visibility" className="mt-1" defaultChecked />
-                  <div>
-                    <p className="font-medium">Public</p>
-                    <p className="text-sm text-gray-500">Anyone can see your profile and activities</p>
-                  </div>
-                </label>
-                <label className="flex items-start space-x-3">
-                  <input type="radio" name="visibility" className="mt-1" />
-                  <div>
-                    <p className="font-medium">Community Only</p>
-                    <p className="text-sm text-gray-500">Only registered members can see your profile</p>
-                  </div>
-                </label>
-                <label className="flex items-start space-x-3">
-                  <input type="radio" name="visibility" className="mt-1" />
-                  <div>
-                    <p className="font-medium">Private</p>
-                    <p className="text-sm text-gray-500">Only people you approve can see your profile</p>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="font-semibold text-forest-800 mb-4">Data Sharing</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Share activity data for recommendations</p>
-                    <p className="text-sm text-gray-500">Help us suggest better events</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" defaultChecked className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-forest-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-forest-600"></div>
-                  </label>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Analytics & Improvements</p>
-                    <p className="text-sm text-gray-500">Help improve Harmony Spaces</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" defaultChecked className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-forest-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-forest-600"></div>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="font-semibold text-forest-800 mb-4">Download Your Data</h3>
-              <p className="text-gray-600 mb-4">Get a copy of all your Harmony Spaces data</p>
-              <button className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                Request Data Download
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const SocialMediaSection: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
-      <div className="container-responsive py-8">
-        <div className="max-w-3xl mx-auto">
-          <button
-            onClick={onBack}
-            className="flex items-center space-x-2 text-forest-600 hover:text-forest-800 mb-6"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back to Settings</span>
-          </button>
-
-          <h2 className="text-2xl font-bold text-forest-800 mb-6">Social Media Connections</h2>
-
-          <div className="bg-white rounded-xl shadow-sm p-6">
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-2xl font-bold text-forest-800 mb-6">Privacy Settings</h2>
+        
+        <div className="space-y-6">
+          <div>
+            <h3 className="font-semibold text-forest-800 mb-4">Profile Visibility</h3>
             <div className="space-y-4">
-              {[
-                { name: 'Facebook', connected: false, color: 'bg-blue-600' },
-                { name: 'Twitter', connected: false, color: 'bg-sky-500' },
-                { name: 'Instagram', connected: true, color: 'bg-pink-600' },
-                { name: 'LinkedIn', connected: false, color: 'bg-blue-700' }
-              ].map((platform) => (
-                <div key={platform.name} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-10 h-10 ${platform.color} rounded-lg flex items-center justify-center text-white font-bold`}>
-                      {platform.name[0]}
-                    </div>
-                    <div>
-                      <p className="font-medium">{platform.name}</p>
-                      <p className="text-sm text-gray-500">
-                        {platform.connected ? 'Connected' : 'Not connected'}
-                      </p>
-                    </div>
-                  </div>
-                  <button className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    platform.connected 
-                      ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                      : 'bg-forest-600 hover:bg-forest-700 text-white'
-                  }`}>
-                    {platform.connected ? 'Disconnect' : 'Connect'}
-                  </button>
+              <label className="flex items-start space-x-3">
+                <input type="radio" name="visibility" className="mt-1" defaultChecked />
+                <div>
+                  <p className="font-medium">Public</p>
+                  <p className="text-sm text-gray-500">Anyone can see your profile and activities</p>
                 </div>
-              ))}
+              </label>
+              <label className="flex items-start space-x-3">
+                <input type="radio" name="visibility" className="mt-1" />
+                <div>
+                  <p className="font-medium">Community Only</p>
+                  <p className="text-sm text-gray-500">Only registered members can see your profile</p>
+                </div>
+              </label>
+              <label className="flex items-start space-x-3">
+                <input type="radio" name="visibility" className="mt-1" />
+                <div>
+                  <p className="font-medium">Private</p>
+                  <p className="text-sm text-gray-500">Only people you approve can see your profile</p>
+                </div>
+              </label>
             </div>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-forest-800 mb-4">Data Sharing</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Share activity data for recommendations</p>
+                  <p className="text-sm text-gray-500">Help us suggest better events</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" defaultChecked className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-forest-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-forest-600"></div>
+                </label>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Analytics & Improvements</p>
+                  <p className="text-sm text-gray-500">Help improve Harmony Spaces</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" defaultChecked className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-forest-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-forest-600"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-forest-800 mb-4">Download Your Data</h3>
+            <p className="text-gray-600 mb-4">Get a copy of all your Harmony Spaces data</p>
+            <button className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+              Request Data Download
+            </button>
           </div>
         </div>
       </div>
@@ -606,7 +880,45 @@ const SocialMediaSection: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   );
 };
 
-const InterestsSection: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+const SocialMediaSection: React.FC = () => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <h2 className="text-2xl font-bold text-forest-800 mb-6">Social Media Connections</h2>
+      
+      <div className="space-y-4">
+        {[
+          { name: 'Facebook', connected: false, color: 'bg-blue-600' },
+          { name: 'Twitter', connected: false, color: 'bg-sky-500' },
+          { name: 'Instagram', connected: true, color: 'bg-pink-600' },
+          { name: 'LinkedIn', connected: false, color: 'bg-blue-700' }
+        ].map((platform) => (
+          <div key={platform.name} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className={`w-10 h-10 ${platform.color} rounded-lg flex items-center justify-center text-white font-bold`}>
+                {platform.name[0]}
+              </div>
+              <div>
+                <p className="font-medium">{platform.name}</p>
+                <p className="text-sm text-gray-500">
+                  {platform.connected ? 'Connected' : 'Not connected'}
+                </p>
+              </div>
+            </div>
+            <button className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              platform.connected 
+                ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                : 'bg-forest-600 hover:bg-forest-700 text-white'
+            }`}>
+              {platform.connected ? 'Disconnect' : 'Connect'}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const InterestsSection: React.FC = () => {
   const interests = [
     'Gardening', 'Yoga', 'Meditation', 'Cooking', 'Art', 'Music',
     'Dance', 'Healing', 'Sustainability', 'Community Building',
@@ -624,41 +936,75 @@ const InterestsSection: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
-      <div className="container-responsive py-8">
-        <div className="max-w-3xl mx-auto">
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <h2 className="text-2xl font-bold text-forest-800 mb-6">Your Interests</h2>
+      <p className="text-gray-600 mb-6">Select topics you're interested in to get personalized event recommendations</p>
+      
+      <div className="flex flex-wrap gap-3 mb-6">
+        {interests.map((interest) => (
           <button
-            onClick={onBack}
-            className="flex items-center space-x-2 text-forest-600 hover:text-forest-800 mb-6"
+            key={interest}
+            onClick={() => toggleInterest(interest)}
+            className={`px-4 py-2 rounded-full font-medium transition-all ${
+              selectedInterests.includes(interest)
+                ? 'bg-forest-600 text-white'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            }`}
           >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back to Settings</span>
+            {interest}
           </button>
+        ))}
+      </div>
 
-          <h2 className="text-2xl font-bold text-forest-800 mb-6">Your Interests</h2>
+      <button className="w-full bg-forest-600 hover:bg-forest-700 text-white py-3 rounded-lg font-medium transition-colors">
+        Save Interests
+      </button>
+    </div>
+  );
+};
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <p className="text-gray-600 mb-6">Select topics you're interested in to get personalized event recommendations</p>
-            
-            <div className="flex flex-wrap gap-3 mb-6">
-              {interests.map((interest) => (
-                <button
-                  key={interest}
-                  onClick={() => toggleInterest(interest)}
-                  className={`px-4 py-2 rounded-full font-medium transition-all ${
-                    selectedInterests.includes(interest)
-                      ? 'bg-forest-600 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
-                >
-                  {interest}
-                </button>
-              ))}
+const MobileNotificationsSection: React.FC = () => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <h2 className="text-2xl font-bold text-forest-800 mb-6">Mobile Notifications</h2>
+      
+      <div className="space-y-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-blue-800">
+            Download the Harmony Spaces mobile app to manage push notifications
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Event Reminders</p>
+              <p className="text-sm text-gray-500">1 hour before events</p>
             </div>
-
-            <button className="w-full bg-forest-600 hover:bg-forest-700 text-white py-3 rounded-lg font-medium transition-colors">
-              Save Interests
-            </button>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" defaultChecked className="sr-only peer" />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-forest-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-forest-600"></div>
+            </label>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">New Messages</p>
+              <p className="text-sm text-gray-500">When someone messages you</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" defaultChecked className="sr-only peer" />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-forest-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-forest-600"></div>
+            </label>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Event Updates</p>
+              <p className="text-sm text-gray-500">Changes to events you're attending</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" defaultChecked className="sr-only peer" />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-forest-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-forest-600"></div>
+            </label>
           </div>
         </div>
       </div>
@@ -666,108 +1012,31 @@ const InterestsSection: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   );
 };
 
-const MobileNotificationsSection: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+const PaymentMethodsSection: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
-      <div className="container-responsive py-8">
-        <div className="max-w-3xl mx-auto">
-          <button
-            onClick={onBack}
-            className="flex items-center space-x-2 text-forest-600 hover:text-forest-800 mb-6"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back to Settings</span>
-          </button>
-
-          <h2 className="text-2xl font-bold text-forest-800 mb-6">Mobile Notifications</h2>
-
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="space-y-6">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-blue-800">
-                  Download the Harmony Spaces mobile app to manage push notifications
-                </p>
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <h2 className="text-2xl font-bold text-forest-800 mb-6">Payment Methods</h2>
+      
+      <div className="space-y-4 mb-6">
+        <div className="border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded flex items-center justify-center text-white text-xs font-bold">
+                VISA
               </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Event Reminders</p>
-                    <p className="text-sm text-gray-500">1 hour before events</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" defaultChecked className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-forest-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-forest-600"></div>
-                  </label>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">New Messages</p>
-                    <p className="text-sm text-gray-500">When someone messages you</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" defaultChecked className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-forest-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-forest-600"></div>
-                  </label>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Event Updates</p>
-                    <p className="text-sm text-gray-500">Changes to events you're attending</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" defaultChecked className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-forest-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-forest-600"></div>
-                  </label>
-                </div>
+              <div>
+                <p className="font-medium">•••• •••• •••• 4242</p>
+                <p className="text-sm text-gray-500">Expires 12/25</p>
               </div>
             </div>
+            <button className="text-red-600 hover:text-red-800">Remove</button>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
 
-const PaymentMethodsSection: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
-      <div className="container-responsive py-8">
-        <div className="max-w-3xl mx-auto">
-          <button
-            onClick={onBack}
-            className="flex items-center space-x-2 text-forest-600 hover:text-forest-800 mb-6"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back to Settings</span>
-          </button>
-
-          <h2 className="text-2xl font-bold text-forest-800 mb-6">Payment Methods</h2>
-
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="space-y-4 mb-6">
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded flex items-center justify-center text-white text-xs font-bold">
-                      VISA
-                    </div>
-                    <div>
-                      <p className="font-medium">•••• •••• •••• 4242</p>
-                      <p className="text-sm text-gray-500">Expires 12/25</p>
-                    </div>
-                  </div>
-                  <button className="text-red-600 hover:text-red-800">Remove</button>
-                </div>
-              </div>
-            </div>
-
-            <button className="w-full bg-forest-600 hover:bg-forest-700 text-white py-3 rounded-lg font-medium transition-colors">
-              Add Payment Method
-            </button>
-          </div>
-        </div>
-      </div>
+      <button className="w-full bg-forest-600 hover:bg-forest-700 text-white py-3 rounded-lg font-medium transition-colors">
+        Add Payment Method
+      </button>
     </div>
   );
 };

@@ -40,7 +40,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onShareClick }
     { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
     { path: '/activities', icon: Calendar, label: 'Activities' },
     { path: '/messages', icon: MessageCircle, label: 'Messages' },
-    { path: '/account', icon: User, label: 'Account' },
+    { path: '/profile', icon: User, label: 'Profile' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 

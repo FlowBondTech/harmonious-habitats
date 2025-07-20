@@ -126,7 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
     { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
     { path: '/activities', icon: Calendar, label: 'My Activities' },
     { path: '/messages', icon: MessageCircle, label: 'Messages', badge: 3 },
-    { path: '/account', icon: User, label: 'Account' },
+    { path: '/profile', icon: User, label: 'Profile' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -289,7 +289,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
               
               <div className="flex gap-2">
                 <Link
-                  to="/account"
+                  to="/settings"
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   <Settings className="h-4 w-4" />
@@ -314,7 +314,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
                 />
               </div>
               <Link
-                to="/account"
+                to="/settings"
                 className="relative flex justify-center p-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors group"
                 title="Settings"
               >

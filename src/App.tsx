@@ -24,12 +24,14 @@ const TestMinimalEvent = lazy(() => import('./pages/TestMinimalEvent'));
 const ShareSpace = lazy(() => import('./pages/ShareSpace'));
 const MyActivities = lazy(() => import('./pages/MyActivities'));
 const Messages = lazy(() => import('./pages/Messages'));
-const Account = lazy(() => import('./pages/Account'));
+const Profile = lazy(() => import('./pages/Profile'));
 const GlobalFeed = lazy(() => import('./pages/GlobalFeed'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const EventFeedbackForm = lazy(() => import('./components/EventFeedbackForm'));
 const EventCalendarPage = lazy(() => import('./pages/EventCalendar'));
 const Settings = lazy(() => import('./pages/Settings'));
+const Spaces = lazy(() => import('./pages/Spaces'));
+const SpaceDetail = lazy(() => import('./pages/SpaceDetail'));
 
 const AppContent = () => {
   const { showAuthModalGlobal, globalAuthMode, closeAuthModalGlobal } = useAuthContext();
@@ -119,9 +121,9 @@ const AppContent = () => {
                       <Messages />
                     </ProtectedRoute>
                   } />
-                  <Route path="/account" element={
+                  <Route path="/profile" element={
                     <ProtectedRoute>
-                      <Account />
+                      <Profile />
                     </ProtectedRoute>
                   } />
                   <Route path="/settings" element={
@@ -142,10 +144,16 @@ const AppContent = () => {
                   <Route path="/calendar" element={
                     <EventCalendarPage />
                   } />
+                  <Route path="/spaces" element={
+                    <Spaces />
+                  } />
+                  <Route path="/spaces/:id" element={
+                    <SpaceDetail />
+                  } />
                   
                   {/* Fallback Routes */}
                   <Route path="/my-activities" element={<Navigate to="/activities" replace />} />
-                  <Route path="/profile" element={<Navigate to="/account" replace />} />
+                  <Route path="/account" element={<Navigate to="/profile" replace />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>

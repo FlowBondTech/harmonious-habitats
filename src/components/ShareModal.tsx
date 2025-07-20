@@ -73,7 +73,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
     onClose();
     // Small delay to ensure modal closes before navigation
     setTimeout(() => {
-      navigate('/account', { state: { activeTab: 'share' } });
+      navigate('/profile', { state: { activeTab: 'share' } });
     }, 100);
   };
 
