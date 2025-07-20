@@ -5,6 +5,8 @@ import {
   Users, 
   Check, 
   X, 
+  MessageCircle, 
+  Eye,
   AlertCircle,
   DollarSign
 } from 'lucide-react';
