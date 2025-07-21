@@ -5,7 +5,11 @@ import {
   Plus,
   MapPin,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Heart,
+  Users,
+  Globe,
+  Zap
 } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { getEvents, Event } from '../lib/supabase';
@@ -50,7 +54,8 @@ const CompactEventCard: React.FC<{ event: Event }> = ({ event }) => {
 };
 
 const HomeMobile = () => {
-  const { user } = useAuthContext();
+  console.log('HomeMobile component rendering');
+  const { user, openAuthModalGlobal } = useAuthContext();
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -85,17 +90,98 @@ const HomeMobile = () => {
       }
     };
 
-    if (user) {
-      loadEvents();
-    }
+    loadEvents();
   }, [user]);
 
+  // Show welcome screen for unauthenticated users
   if (!user) {
-    return null; // Let the main Home component handle non-authenticated users
+    return (
+      <div>
+        {/* Hero Section */}
+        <div className="bg-gradient-to-br from-forest-600 to-forest-500 text-white px-4 py-12">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold mb-4 leading-tight">
+              Connect with Your
+              <span className="block text-earth-200 mt-1">Neighborhood</span>
+            </h1>
+            <p className="text-forest-100 mb-8 text-lg">
+              Discover holistic events and build meaningful connections within walking distance.
+            </p>
+            <button
+              onClick={() => openAuthModalGlobal('signin')}
+              className="w-full bg-white text-forest-600 px-6 py-4 rounded-xl text-lg font-semibold hover:bg-forest-50 transition-colors shadow-lg"
+            >
+              <Heart className="h-5 w-5 mr-2 inline" />
+              Join Our Community
+            </button>
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className="px-4 py-8 bg-gray-50">
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <div className="flex items-center mb-3">
+                <Calendar className="h-6 w-6 text-earth-500 mr-3" />
+                <h3 className="text-lg font-semibold text-gray-900">Holistic Events</h3>
+              </div>
+              <p className="text-gray-600">
+                Discover meditation circles, yoga sessions, permaculture workshops, and more in your neighborhood.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <div className="flex items-center mb-3">
+                <Users className="h-6 w-6 text-forest-500 mr-3" />
+                <h3 className="text-lg font-semibold text-gray-900">Community Spaces</h3>
+              </div>
+              <p className="text-gray-600">
+                Find and share beautiful spaces for your holistic practices and community gatherings.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <div className="flex items-center mb-3">
+                <Globe className="h-6 w-6 text-blue-500 mr-3" />
+                <h3 className="text-lg font-semibold text-gray-900">Global Connection</h3>
+              </div>
+              <p className="text-gray-600">
+                Join virtual events and connect with like-minded people around the world.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Call to Action */}
+        <div className="px-4 pb-8 bg-gray-50">
+          <div className="bg-gradient-to-br from-earth-500 to-forest-500 text-white rounded-xl p-6 text-center">
+            <h2 className="text-xl font-bold mb-3">Ready to Get Started?</h2>
+            <p className="text-earth-100 mb-6">
+              Join thousands building meaningful connections through holistic practices.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={() => openAuthModalGlobal('signup')}
+                className="w-full bg-white text-forest-600 px-6 py-3 rounded-lg font-semibold hover:bg-forest-50 transition-colors"
+              >
+                <Zap className="h-4 w-4 mr-2 inline" />
+                Sign Up Free
+              </button>
+              <button
+                onClick={() => openAuthModalGlobal('signin')}
+                className="w-full border border-white/30 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors"
+              >
+                Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       {/* Compact Header */}
       <div className="bg-gradient-to-br from-forest-600 to-forest-500 text-white px-4 py-6">
         <h1 className="text-2xl font-bold">Welcome back!</h1>
@@ -103,7 +189,7 @@ const HomeMobile = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="px-4 -mt-4 mb-6">
+      <div className="px-4 -mt-4 mb-6 bg-gray-50">
         <div className="bg-white rounded-xl shadow-lg p-4">
           <div className="grid grid-cols-2 gap-3">
             <Link
@@ -125,7 +211,7 @@ const HomeMobile = () => {
       </div>
 
       {/* Upcoming Events */}
-      <div className="px-4 mb-6">
+      <div className="px-4 mb-6 bg-gray-50">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center">
             <Sparkles className="h-5 w-5 text-earth-500 mr-2" />
@@ -164,7 +250,7 @@ const HomeMobile = () => {
       </div>
 
       {/* Today's Schedule - Quick glance */}
-      <div className="px-4 mb-6">
+      <div className="px-4 mb-6 bg-gray-50">
         <h3 className="text-lg font-semibold text-gray-900 mb-3">Today's Schedule</h3>
         <div className="bg-white rounded-lg p-4">
           {upcomingEvents.filter(e => e.date === new Date().toISOString().split('T')[0]).length > 0 ? (

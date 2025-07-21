@@ -53,7 +53,13 @@ const Home = () => {
   const [featuredSpaces, setFeaturedSpaces] = useState<Space[]>([]);
   const [loading, setLoading] = useState(true);
   const [, setError] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    // Check if window is available (client-side)
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false; // Default to desktop for SSR
+  });
 
   // Check if mobile
   useEffect(() => {
@@ -61,6 +67,7 @@ const Home = () => {
       setIsMobile(window.innerWidth < 768);
     };
     
+    // Initial check in case window wasn't available during useState
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -173,15 +180,21 @@ const Home = () => {
     }
   ];
 
-  // Render mobile version if on small screen
+  // Debug mobile detection
+  console.log('Mobile detection:', { 
+    isMobile, 
+    windowWidth: typeof window !== 'undefined' ? window.innerWidth : 'undefined',
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'undefined'
+  });
+
+  // Render mobile content if on small screen
   if (isMobile) {
+    console.log('Rendering mobile home content');
     return <HomeMobile />;
   }
 
   return (
-    <div className="min-h-screen">
-
-      
+    <>
       {/* Enhanced Hero Section */}
       <section className="relative bg-gradient-to-br from-forest-600 via-forest-500 to-earth-500 text-white overflow-hidden">
         {/* Background Elements */}
@@ -526,7 +539,7 @@ const Home = () => {
           </div>
         </section>
       )}
-    </div>
+    </>
   );
 };
 

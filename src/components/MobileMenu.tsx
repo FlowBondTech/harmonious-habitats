@@ -143,6 +143,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onShareClick }
 
   const publicNavItems = [
     { path: '/', icon: Home, label: 'Home' },
+    { path: '/map', icon: Map, label: 'Discover' },
+    { path: '/global-feed', icon: Globe, label: 'Global Feed' },
   ];
 
   const authenticatedNavItems = [
@@ -310,27 +312,34 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onShareClick }
         
         {/* Auth Section for Non-authenticated Users */}
         {!user && (
-          <div className="border-t border-gray-100 p-4 md:p-6 space-y-3">
-            <button
-              onClick={() => {
-                openAuthModalGlobal('signin');
-                onClose();
-              }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-forest-600 hover:bg-forest-50 rounded-lg transition-colors font-medium"
-            >
-              <LogIn className="h-5 w-5" />
-              Sign In
-            </button>
-            <button
-              onClick={() => {
-                openAuthModalGlobal('signup');
-                onClose();
-              }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors font-medium"
-            >
-              <User className="h-5 w-5" />
-              Join Harmony Spaces
-            </button>
+          <div className="border-t border-gray-100 p-4 md:p-6">
+            <div className="space-y-3 mb-4">
+              <p className="text-sm text-gray-600 text-center">
+                Join our community to create events, discover local spaces, and connect with neighbors.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  openAuthModalGlobal('signup');
+                  onClose();
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors font-medium"
+              >
+                <User className="h-5 w-5" />
+                Join Harmony Spaces
+              </button>
+              <button
+                onClick={() => {
+                  openAuthModalGlobal('signin');
+                  onClose();
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-forest-600 hover:bg-forest-50 border border-forest-200 rounded-lg transition-colors font-medium"
+              >
+                <LogIn className="h-5 w-5" />
+                Sign In
+              </button>
+            </div>
           </div>
         )}
       </div>
