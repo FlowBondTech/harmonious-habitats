@@ -56,12 +56,12 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
     const controlNavbar = () => {
       const currentScrollY = window.scrollY;
       
-      // Show navbar when scrolling up or at the top of the page
+      // Show navbar when scrolling up or at the very top of the page
       if (currentScrollY < lastScrollY || currentScrollY < 10) {
         setIsVisible(true);
       } 
       // Hide navbar when scrolling down
-      else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+      else if (currentScrollY > lastScrollY) {
         setIsVisible(false);
         setShowProfileDropdown(false); // Close dropdown when hiding
         setShowSearch(false); // Close search when hiding
@@ -108,24 +108,25 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
     <header className={`lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 transition-transform duration-300 ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
-      <div className="h-16 px-4 flex items-center justify-between">
-        {/* Left Section - Menu & Logo */}
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            aria-label="Toggle menu"
-          >
-            <Menu className="h-6 w-6 text-gray-700" />
-          </button>
-          
-          <Link to="/" className="flex items-center">
-            <h1 className="text-lg font-bold text-gradient">Harmony Spaces</h1>
-          </Link>
-        </div>
+      <div className="max-h-screen overflow-y-auto scrollbar-hide">
+        <div className="min-h-16 px-4 flex items-center justify-between py-2">
+          {/* Left Section - Menu & Logo */}
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Toggle menu"
+            >
+              <Menu className="h-6 w-6 text-gray-700" />
+            </button>
+            
+            <Link to="/" className="flex items-center">
+              <h1 className="text-lg font-bold text-gradient">Harmony Spaces</h1>
+            </Link>
+          </div>
 
-        {/* Right Section - Search, Notifications & Profile */}
-        <div className="flex items-center space-x-2">
+          {/* Right Section - Search, Notifications & Profile */}
+          <div className="flex items-center space-x-2">
           {/* Search Toggle */}
           <button
             onClick={() => setShowSearch(!showSearch)}
@@ -238,6 +239,7 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
               </button>
             </div>
           )}
+        </div>
         </div>
       </div>
 
