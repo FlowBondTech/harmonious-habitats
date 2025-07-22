@@ -119,8 +119,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isSpaceHolder, setIsSpaceHolder] = useState(false);
 
-  // Navigation items
-  const navItems = [
+  // Navigation items - different for authenticated vs unauthenticated users
+  const navItems = user ? [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/map', icon: Map, label: 'Discover' },
     { path: '/neighborhoods', icon: MapPin, label: 'Neighborhoods' },
@@ -131,13 +131,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
     { path: '/messages', icon: MessageCircle, label: 'Messages', badge: 3 },
     { path: '/profile', icon: User, label: 'Profile' },
     { path: '/settings', icon: Settings, label: 'Settings' },
+  ] : [
+    { path: '/', icon: Home, label: 'Home' },
+    { path: '/map', icon: Map, label: 'Discover' },
+    { path: '/neighborhoods', icon: MapPin, label: 'Neighborhoods' },
+    { path: '/global-feed', icon: Globe, label: 'Global Feed' },
   ];
 
-  if (isAdmin) {
+  if (user && isAdmin) {
     navItems.push({ path: '/admin', icon: Shield, label: 'Admin', badge: 0 });
   }
 
-  if (isSpaceHolder) {
+  if (user && isSpaceHolder) {
     navItems.splice(7, 0, { path: '/space-holder-dashboard', icon: Home, label: 'Space & Facilitators', badge: 0 });
   }
 
