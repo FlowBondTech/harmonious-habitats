@@ -17,7 +17,8 @@ import {
   Settings,
   Heart,
   Menu,
-  MapPin
+  MapPin,
+  LogIn
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import Avatar from './Avatar';
@@ -112,7 +113,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const location = useLocation();
-  const { user, profile, isAdmin, signOut } = useAuthContext();
+  const { user, profile, isAdmin, signOut, openAuthModalGlobal } = useAuthContext();
   const [favoriteSpaces, setFavoriteSpaces] = useState<Space[]>([]);
   const [showAllFavorites, setShowAllFavorites] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -350,6 +351,60 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
                 <LogOut className="h-5 w-5" />
                 <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
                   Sign Out
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Auth Section for Non-authenticated Users */}
+      {!user && (
+        <div className={`border-t border-gray-100 p-4 transition-all duration-300 ${!showSidebar ? 'px-2' : ''}`}>
+          {showSidebar ? (
+            <>
+              <div className="space-y-3 mb-4">
+                <p className="text-sm text-gray-600 text-center">
+                  Join our community to create events, discover local spaces, and connect with neighbors.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={() => openAuthModalGlobal('signup')}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  <User className="h-5 w-5" />
+                  Join Harmony Spaces
+                </button>
+                <button
+                  onClick={() => openAuthModalGlobal('signin')}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-forest-600 hover:bg-forest-50 border border-forest-200 rounded-lg transition-colors font-medium"
+                >
+                  <LogIn className="h-5 w-5" />
+                  Sign In
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <button
+                onClick={() => openAuthModalGlobal('signup')}
+                className="relative w-full flex justify-center p-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors group"
+                title="Join Harmony Spaces"
+              >
+                <User className="h-5 w-5" />
+                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                  Join Harmony Spaces
+                </div>
+              </button>
+              <button
+                onClick={() => openAuthModalGlobal('signin')}
+                className="relative w-full flex justify-center p-2 text-forest-600 hover:bg-forest-50 border border-forest-200 rounded-lg transition-colors group"
+                title="Sign In"
+              >
+                <LogIn className="h-5 w-5" />
+                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                  Sign In
                 </div>
               </button>
             </div>

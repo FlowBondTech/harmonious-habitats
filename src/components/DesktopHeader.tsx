@@ -13,7 +13,7 @@ interface DesktopHeaderProps {
 }
 
 const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
-  const { user, profile, signOut } = useAuthContext();
+  const { user, profile, signOut, openAuthModalGlobal } = useAuthContext();
   const navigate = useNavigate();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -212,13 +212,13 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
           ) : (
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => navigate('/login')}
+                onClick={() => openAuthModalGlobal('signin')}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
               >
                 Sign In
               </button>
               <button
-                onClick={() => navigate('/signup')}
+                onClick={() => openAuthModalGlobal('signup')}
                 className="px-4 py-2 text-sm font-medium text-white bg-forest-600 hover:bg-forest-700 rounded-lg transition-colors"
               >
                 Join
