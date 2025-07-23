@@ -14,7 +14,9 @@ import {
   Globe,
   Home as HomeIcon,
   Plus,
-  Zap
+  Zap,
+  Navigation,
+  Search
 } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { getEvents, getSpaces, Event, Space } from '../lib/supabase';
@@ -180,6 +182,16 @@ const Home = () => {
     }
   ];
 
+  // Sample events for map preview (unauthenticated users)
+  const sampleMapEvents = [
+    { title: 'Morning Yoga in the Park' },
+    { title: 'Community Garden Workshop' },
+    { title: 'Meditation Circle' },
+    { title: 'Cooking Class: Plant-Based' },
+    { title: 'Art & Wine Evening' },
+    { title: 'Hiking Group Meetup' }
+  ];
+
   // Mobile detection for responsive layout
 
   // Render mobile content if on small screen
@@ -232,7 +244,7 @@ const Home = () => {
                       className="w-full sm:w-auto glass text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2 hover:scale-105 hover:shadow-xl border border-white/30"
                     >
                       <Heart className="h-5 w-5" />
-                      <span>Share Your Practice</span>
+                      <span>Facilitate an Event</span>
                     </Link>
                   </>
                 ) : (
@@ -281,6 +293,124 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Interactive Map Preview for Unauthenticated Users */}
+      {!user && (
+        <section className="section-padding bg-gradient-to-br from-white to-forest-50/30">
+          <div className="container-responsive">
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center mb-4">
+                <MapPin className="h-6 w-6 text-earth-500 mr-2" />
+                <h2 className="heading-lg text-forest-800">Discover Your Community</h2>
+              </div>
+              <p className="body-lg text-forest-600 max-w-2xl mx-auto">
+                Explore events and spaces happening right in your neighborhood
+              </p>
+            </div>
+
+            {/* Interactive Map Container */}
+            <div className="relative bg-white rounded-3xl shadow-xl overflow-hidden border border-forest-100">
+              {/* Map Area */}
+              <div className="relative h-96 bg-gradient-to-br from-green-100 via-forest-50 to-earth-50">
+                {/* Map Visual Elements */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {/* Radius Circles */}
+                  <div className="absolute w-32 h-32 border-2 border-forest-300 rounded-full opacity-40"></div>
+                  <div className="absolute w-48 h-48 border-2 border-forest-200 rounded-full opacity-30"></div>
+                  <div className="absolute w-64 h-64 border-2 border-forest-100 rounded-full opacity-20"></div>
+                  
+                  {/* Center Location */}
+                  <div className="absolute bg-earth-500 w-4 h-4 rounded-full border-2 border-white shadow-lg z-20">
+                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-forest-800 text-white px-2 py-1 rounded text-xs font-medium whitespace-nowrap">
+                      Your Area
+                    </div>
+                  </div>
+
+                  {/* Sample Event Markers */}
+                  {sampleMapEvents.map((event, index) => {
+                    const angle = (index * 60) % 360;
+                    const distance = 60 + (index * 20);
+                    const x = Math.cos(angle * Math.PI / 180) * distance;
+                    const y = Math.sin(angle * Math.PI / 180) * distance;
+                    
+                    return (
+                      <div
+                        key={index}
+                        className="absolute w-3 h-3 bg-white border-2 border-forest-400 rounded-full shadow-md cursor-pointer hover:scale-125 transition-transform"
+                        style={{
+                          left: `calc(50% + ${x}px)`,
+                          top: `calc(50% + ${y}px)`,
+                        }}
+                        title={event.title}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Map Overlay - Call to Action */}
+                <div className="absolute inset-0 bg-black/5 hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                  <div className="text-center bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-forest-100 max-w-sm mx-4">
+                    <Navigation className="h-8 w-8 text-forest-600 mx-auto mb-3" />
+                    <h3 className="text-lg font-semibold text-forest-800 mb-2">Ready to Explore?</h3>
+                    <p className="text-sm text-forest-600 mb-4">
+                      Join our community to discover events and spaces near you
+                    </p>
+                    <button
+                      onClick={() => openAuthModalGlobal('signin')}
+                      className="w-full btn-primary text-sm py-2 px-4"
+                    >
+                      Get Started
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Map Legend */}
+              <div className="bg-white/95 p-4 border-t border-forest-100">
+                <div className="flex items-center justify-center space-x-6 text-sm">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-earth-500 rounded-full mr-2"></div>
+                    <span className="text-forest-700">Your Location</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-white border-2 border-forest-400 rounded-full mr-2"></div>
+                    <span className="text-forest-700">Community Events</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 border border-forest-300 rounded-full mr-2"></div>
+                    <span className="text-forest-700">Discovery Radius</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature Highlights */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-forest-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Search className="h-6 w-6 text-forest-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-forest-800 mb-2">Discover Events</h3>
+                <p className="text-forest-600">Find yoga, gardening, cooking, and healing events in your area</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-earth-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-6 w-6 text-earth-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-forest-800 mb-2">Connect Locally</h3>
+                <p className="text-forest-600">Meet like-minded neighbors and build meaningful community connections</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Heart className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-forest-800 mb-2">Share & Host</h3>
+                <p className="text-forest-600">Offer your space or skills to strengthen your local community</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Featured Events Section */}
       {user && (

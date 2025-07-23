@@ -184,7 +184,29 @@ export const useAuth = () => {
   }
 
   const signOut = async () => {
-    return await supabase.auth.signOut()
+    try {
+      // Clear local state first
+      setUser(null)
+      setProfile(null)
+      setUserRole(null)
+      
+      // Sign out from Supabase
+      const result = await supabase.auth.signOut()
+      
+      // Log success
+      logger.log('User signed out successfully')
+      
+      return result
+    } catch (error) {
+      logError(error as Error, 'signOut')
+      
+      // Even if there's an error, clear local state
+      setUser(null)
+      setProfile(null)
+      setUserRole(null)
+      
+      return { error: error as Error }
+    }
   }
 
   const openAuthModalGlobal = (mode: 'signin' | 'signup') => {

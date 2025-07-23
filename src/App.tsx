@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuthContext } from './components/AuthProvider';
 import KeyboardNavHelper from './components/KeyboardNavHelper';
 import AuthModal from './components/AuthModal';
@@ -41,6 +41,7 @@ const BecomeFacilitator = lazy(() => import('./pages/BecomeFacilitator'));
 
 const AppContent = () => {
   const { 
+    user,
     showAuthModalGlobal, 
     globalAuthMode, 
     closeAuthModalGlobal,
@@ -58,186 +59,233 @@ const AppContent = () => {
     <>
       <KeyboardNavHelper />
       <Router>
-        <MobileOptimization>
-          <ScrollToTop />
-          <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-earth-50/30 relative">
-            {/* Desktop Header - Only show on desktop */}
-            <div className="hidden lg:block">
-              <DesktopHeader onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-            </div>
-            
-            {/* Desktop Sidebar - Now as overlay, only on desktop */}
-            <div className="hidden lg:block">
-              <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-            </div>
-            
-            {/* Main Content Area - No permanent margin, add top padding for desktop header */}
-            <div className={`min-h-screen relative overflow-x-hidden transition-transform duration-300 ease-in-out ${
-              isMenuOpen ? 'transform translate-x-80 lg:translate-x-0' : 'transform translate-x-0'
-            }`}>
-              {/* Background Pattern */}
-              <div className="fixed inset-0 opacity-[0.02] pointer-events-none">
-                <div 
-                  className="absolute inset-0 bg-repeat"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234d7c2a' fill-opacity='1'%3E%3Ccircle cx='30' cy='30' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-                  }}
-                ></div>
-              </div>
-              
-              {/* Navigation - Only show on mobile */}
-              <div className="lg:hidden">
-                <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
-              </div>
-              
-              {/* Notification Center - Mobile only */}
-              <div className="lg:hidden">
-                <NotificationCenter />
-              </div>
-              
-              {/* Main Content with responsive padding */}
-              <main id="main" className="pt-16 lg:pt-16 pb-8 relative z-10">
-              <Suspense fallback={
-                <div className="flex items-center justify-center min-h-screen">
-                  <LoadingSpinner size="lg" text="Loading..." />
-                </div>
-              }>
-                <Routes>
-                  {/* Public Routes */}
-                  <Route path="/" element={<Home />} />
-                  <Route path="/map" element={<Map />} />
-                  <Route path="/search" element={<Search />} />
-                  <Route path="/global-feed" element={<GlobalFeed />} />
-                  
-                  {/* Protected Routes */}
-                  <Route path="/create-event" element={
-                    <ProtectedRoute>
-                      <CreateEvent />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/create-event-simple" element={
-                    <ProtectedRoute>
-                      <CreateEventSimple />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/test-minimal-event" element={
-                    <ProtectedRoute>
-                      <TestMinimalEvent />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/share-space" element={
-                    <ProtectedRoute>
-                      <ShareSpace />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/activities" element={
-                    <ProtectedRoute>
-                      <MyActivities />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/messages" element={
-                    <ProtectedRoute>
-                      <Messages />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/profile" element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/settings" element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin" element={
-                    <ProtectedRoute>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/events/:eventId/feedback" element={
-                    <ProtectedRoute>
-                      <EventFeedbackForm />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/calendar" element={
-                    <EventCalendarPage />
-                  } />
-                  <Route path="/spaces" element={
-                    <Spaces />
-                  } />
-                  <Route path="/spaces/:slug" element={
-                    <SpaceDetail />
-                  } />
-                  <Route path="/neighborhoods" element={
-                    <Neighborhoods />
-                  } />
-                  <Route path="/neighborhoods/:slug" element={
-                    <NeighborhoodDetail />
-                  } />
-                  <Route path="/space-holder-dashboard" element={
-                    <ProtectedRoute>
-                      <SpaceHolderDashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/become-facilitator" element={
-                    <ProtectedRoute>
-                      <BecomeFacilitator />
-                    </ProtectedRoute>
-                  } />
-                  
-                  {/* Fallback Routes */}
-                  <Route path="/my-activities" element={<Navigate to="/activities" replace />} />
-                  <Route path="/account" element={<Navigate to="/profile" replace />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </Suspense>
-            </main>
-            
-            {/* Background Elements for Visual Interest */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-              <div className="absolute top-1/4 -left-32 w-64 h-64 bg-forest-100/20 rounded-full blur-3xl animate-float"></div>
-              <div className="absolute top-3/4 -right-32 w-80 h-80 bg-earth-100/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
-              <div className="absolute bottom-1/4 left-1/4 w-48 h-48 bg-blue-100/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
-            </div>
-          </div>
-          </div>
-          
-          {/* Mobile Menu - Outside of transformed content */}
-          <MobileMenu 
-            isOpen={isMenuOpen} 
-            onClose={() => setIsMenuOpen(false)}
-            onShareClick={() => setShowShareModal(true)}
-          />
-          
-          {/* Global Modals - Outside of transformed content */}
-          <AuthModal
-            isOpen={showAuthModalGlobal}
-            onClose={closeAuthModalGlobal}
-            initialMode={globalAuthMode}
-          />
-          
-          {/* Share Modal - Outside of transformed content */}
-          <ShareModal
-            isOpen={showShareModal}
-            onClose={() => setShowShareModal(false)}
-          />
-          
-          {/* Onboarding Modal */}
-          <OnboardingModal
-            isOpen={showOnboarding}
-            onClose={closeOnboarding}
-            onComplete={completeOnboarding}
-          />
-          
-          {/* Share Options Modal */}
-          <ShareOptionsModal
-            isOpen={showShareOptions}
-            onClose={closeShareOptions}
-          />
-        </MobileOptimization>
+        <AppRouter 
+          user={user}
+          isMenuOpen={isMenuOpen}
+          setIsMenuOpen={setIsMenuOpen}
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+          showShareModal={showShareModal}
+          setShowShareModal={setShowShareModal}
+          showAuthModalGlobal={showAuthModalGlobal}
+          globalAuthMode={globalAuthMode}
+          closeAuthModalGlobal={closeAuthModalGlobal}
+          showOnboarding={showOnboarding}
+          showShareOptions={showShareOptions}
+          closeOnboarding={closeOnboarding}
+          completeOnboarding={completeOnboarding}
+          closeShareOptions={closeShareOptions}
+        />
       </Router>
     </>
+  );
+};
+
+const AppRouter = ({ 
+  user, 
+  isMenuOpen, 
+  setIsMenuOpen, 
+  isSidebarOpen, 
+  setIsSidebarOpen,
+  showShareModal,
+  setShowShareModal,
+  showAuthModalGlobal,
+  globalAuthMode,
+  closeAuthModalGlobal,
+  showOnboarding,
+  showShareOptions,
+  closeOnboarding,
+  completeOnboarding,
+  closeShareOptions
+}: any) => {
+  const location = useLocation();
+  
+  // Check if we should hide sidebar/menu (any unauthenticated user)
+  const shouldHideSidebar = !user;
+
+  return (
+    <MobileOptimization>
+      <ScrollToTop />
+      <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-earth-50/30 relative">
+        {/* Desktop Header - Always show on desktop */}
+        <div className="hidden lg:block">
+          <DesktopHeader onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+        </div>
+        
+        {/* Desktop Sidebar - Only show when user is authenticated or not on homepage */}
+        {!shouldHideSidebar && (
+          <div className="hidden lg:block">
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+          </div>
+        )}
+        
+        {/* Main Content Area - No permanent margin, add top padding for desktop header */}
+        <div className={`min-h-screen relative overflow-x-hidden transition-transform duration-300 ease-in-out ${
+          isMenuOpen ? 'transform translate-x-80 lg:translate-x-0' : 'transform translate-x-0'
+        }`}>
+          {/* Background Pattern */}
+          <div className="fixed inset-0 opacity-[0.02] pointer-events-none">
+            <div 
+              className="absolute inset-0 bg-repeat"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234d7c2a' fill-opacity='1'%3E%3Ccircle cx='30' cy='30' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+              }}
+            ></div>
+          </div>
+          
+          {/* Navigation - Always show on mobile */}
+          <div className="lg:hidden">
+            <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+          </div>
+          
+          {/* Notification Center - Mobile only and when user is authenticated */}
+          {user && (
+            <div className="lg:hidden">
+              <NotificationCenter />
+            </div>
+          )}
+          
+          {/* Main Content with responsive padding */}
+          <main id="main" className="pt-16 lg:pt-16 pb-8 relative z-10">
+            <Suspense fallback={
+              <div className="flex items-center justify-center min-h-screen">
+                <LoadingSpinner size="lg" text="Loading..." />
+              </div>
+            }>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/map" element={<Map />} />
+                <Route path="/search" element={<Search />} />
+                <Route path="/global-feed" element={<GlobalFeed />} />
+                
+                {/* Protected Routes */}
+                <Route path="/create-event" element={
+                  <ProtectedRoute>
+                    <CreateEvent />
+                  </ProtectedRoute>
+                } />
+                <Route path="/create-event-simple" element={
+                  <ProtectedRoute>
+                    <CreateEventSimple />
+                  </ProtectedRoute>
+                } />
+                <Route path="/test-minimal-event" element={
+                  <ProtectedRoute>
+                    <TestMinimalEvent />
+                  </ProtectedRoute>
+                } />
+                <Route path="/share-space" element={
+                  <ProtectedRoute>
+                    <ShareSpace />
+                  </ProtectedRoute>
+                } />
+                <Route path="/activities" element={
+                  <ProtectedRoute>
+                    <MyActivities />
+                  </ProtectedRoute>
+                } />
+                <Route path="/messages" element={
+                  <ProtectedRoute>
+                    <Messages />
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/events/:eventId/feedback" element={
+                  <ProtectedRoute>
+                    <EventFeedbackForm />
+                  </ProtectedRoute>
+                } />
+                <Route path="/calendar" element={
+                  <EventCalendarPage />
+                } />
+                <Route path="/spaces" element={
+                  <Spaces />
+                } />
+                <Route path="/spaces/:slug" element={
+                  <SpaceDetail />
+                } />
+                <Route path="/neighborhoods" element={
+                  <Neighborhoods />
+                } />
+                <Route path="/neighborhoods/:slug" element={
+                  <NeighborhoodDetail />
+                } />
+                <Route path="/space-holder-dashboard" element={
+                  <ProtectedRoute>
+                    <SpaceHolderDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/become-facilitator" element={
+                  <ProtectedRoute>
+                    <BecomeFacilitator />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Fallback Routes */}
+                <Route path="/my-activities" element={<Navigate to="/activities" replace />} />
+                <Route path="/account" element={<Navigate to="/profile" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </main>
+          
+          {/* Background Elements for Visual Interest */}
+          <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+            <div className="absolute top-1/4 -left-32 w-64 h-64 bg-forest-100/20 rounded-full blur-3xl animate-float"></div>
+            <div className="absolute top-3/4 -right-32 w-80 h-80 bg-earth-100/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+            <div className="absolute bottom-1/4 left-1/4 w-48 h-48 bg-blue-100/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile Menu - Outside of transformed content */}
+      <MobileMenu 
+        isOpen={isMenuOpen} 
+        onClose={() => setIsMenuOpen(false)}
+        onShareClick={() => setShowShareModal(true)}
+      />
+      
+      {/* Global Modals - Outside of transformed content */}
+      <AuthModal
+        isOpen={showAuthModalGlobal}
+        onClose={closeAuthModalGlobal}
+        initialMode={globalAuthMode}
+      />
+      
+      {/* Share Modal - Outside of transformed content */}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+      />
+      
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={closeOnboarding}
+        onComplete={completeOnboarding}
+      />
+      
+      {/* Share Options Modal */}
+      <ShareOptionsModal
+        isOpen={showShareOptions}
+        onClose={closeShareOptions}
+      />
+    </MobileOptimization>
   );
 };
 

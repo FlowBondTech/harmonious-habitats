@@ -57,10 +57,10 @@ const Settings = () => {
   const location = useLocation();
   const [activeSection, setActiveSection] = useState<string | null>('edit-profile');
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(window.innerWidth >= 1024);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
   
   // On desktop, always keep sidebar expanded
   const shouldShowExpanded = isDesktop || isSidebarExpanded;
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
   
   // Handle incoming navigation state
   useEffect(() => {
@@ -708,6 +708,17 @@ const Settings = () => {
           !isDesktop && !shouldShowExpanded ? 'ml-16' : ''
         }`}>
           <div className="p-6 md:p-8">
+            {/* Back Button */}
+            <div className="mb-6">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center space-x-2 text-forest-600 hover:text-forest-800 transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="text-sm font-medium">Back</span>
+              </button>
+            </div>
+            
             {/* Content */}
             {renderSectionContent()}
           </div>

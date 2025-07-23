@@ -315,7 +315,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
                   Settings
                 </Link>
                 <button
-                  onClick={signOut}
+                  onClick={async () => {
+                    try {
+                      await signOut();
+                    } catch (error) {
+                      console.error('Sign out error:', error);
+                    }
+                  }}
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
@@ -344,7 +350,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
                 </div>
               </Link>
               <button
-                onClick={signOut}
+                onClick={async () => {
+                  try {
+                    await signOut();
+                  } catch (error) {
+                    console.error('Sign out error:', error);
+                  }
+                }}
                 className="relative w-full flex justify-center p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors group"
                 title="Sign Out"
               >

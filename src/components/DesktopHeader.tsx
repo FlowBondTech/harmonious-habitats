@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Menu, User, Settings, LogOut, CalendarPlus, LayoutDashboard,
   Bell, Search, ChevronDown
@@ -15,6 +15,7 @@ interface DesktopHeaderProps {
 const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
   const { user, profile, signOut, openAuthModalGlobal } = useAuthContext();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isVisible, setIsVisible] = useState(true);
@@ -85,6 +86,9 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
     }
   };
 
+  // Check if we should hide the menu button (any unauthenticated user)
+  const shouldHideMenuButton = !user;
+
   return (
     <header className={`hidden lg:block fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 transition-transform duration-300 ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
@@ -92,13 +96,15 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
       <div className="h-16 px-6 flex items-center justify-between">
         {/* Left Section - Menu & Logo */}
         <div className="flex items-center space-x-4">
-          <button
-            onClick={onMenuClick}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            aria-label="Toggle menu"
-          >
-            <Menu className="h-6 w-6 text-gray-700" />
-          </button>
+          {!shouldHideMenuButton && (
+            <button
+              onClick={onMenuClick}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Toggle menu"
+            >
+              <Menu className="h-6 w-6 text-gray-700" />
+            </button>
+          )}
           
           <Link to="/" className="flex items-center space-x-2">
             <h1 className="text-xl font-bold text-gradient">Harmony Spaces</h1>
@@ -128,29 +134,85 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
           {/* Profile Dropdown */}
           {user ? (
             <div className="relative" ref={dropdownRef}>
+              {/* 
+              
+              FORMAT OPTIONS - Replace the button below with any of these:
+              
+              Option 1: Modern Card Style (Currently Active)
+              - Gradient background with status indicator
+              - Shows role/title below name
+              - More prominent, card-like appearance
+              
+              Option 2: Minimal Clean
               <button
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <Avatar
                   name={profile?.full_name || user.email?.split('@')[0]}
                   imageUrl={profile?.avatar_url}
                   size="sm"
                 />
-                <span className="text-sm font-medium text-gray-700">
-                  {profile?.full_name || user.email?.split('@')[0]}
+                <ChevronDown className={`h-3 w-3 text-gray-400 transition-transform ${
+                  showProfileDropdown ? 'rotate-180' : ''
+                }`} />
+              </button>
+              
+              Option 3: Avatar Only
+              <button
+                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                className="relative p-1 hover:ring-2 hover:ring-forest-300 rounded-full transition-all"
+              >
+                <Avatar
+                  name={profile?.full_name || user.email?.split('@')[0]}
+                  imageUrl={profile?.avatar_url}
+                  size="md"
+                />
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-forest-600 text-white rounded-full flex items-center justify-center">
+                  <ChevronDown className={`h-2.5 w-2.5 transition-transform ${
+                    showProfileDropdown ? 'rotate-180' : ''
+                  }`} />
+                </div>
+              </button>
+              
+              Option 4: Pill Style
+              <button
+                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                className="flex items-center space-x-2 px-4 py-2 bg-white hover:bg-gray-50 rounded-full border border-gray-200 shadow-sm hover:shadow transition-all"
+              >
+                <Avatar
+                  name={profile?.full_name || user.email?.split('@')[0]}
+                  imageUrl={profile?.avatar_url}
+                  size="sm"
+                />
+                <span className="text-sm font-medium text-gray-700 hidden xl:block">
+                  {profile?.full_name?.split(' ')[0] || user.email?.split('@')[0]}
                 </span>
                 <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${
                   showProfileDropdown ? 'rotate-180' : ''
                 }`} />
               </button>
+              
+              */}
+
+              {/* Profile Button - Image Only */}
+              <button
+                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <Avatar
+                  name={profile?.full_name || user.email?.split('@')[0]}
+                  imageUrl={profile?.avatar_url}
+                  size="sm"
+                />
+              </button>
 
               {/* Dropdown Menu */}
               {showProfileDropdown && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 py-2 animate-fade-in">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 animate-fade-in z-50">
                   {/* User Info */}
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="text-sm font-medium text-gray-900">
+                  <div className="px-3 py-2 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-900 truncate">
                       {profile?.full_name || 'User'}
                     </p>
                     <p className="text-xs text-gray-500 truncate">{user.email}</p>
@@ -161,7 +223,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
                     <Link
                       to="/profile"
                       onClick={() => setShowProfileDropdown(false)}
-                      className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       <User className="h-4 w-4" />
                       <span>Profile</span>
@@ -170,7 +232,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
                     <Link
                       to="/create-event"
                       onClick={() => setShowProfileDropdown(false)}
-                      className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       <CalendarPlus className="h-4 w-4" />
                       <span>Create Event</span>
@@ -179,7 +241,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
                     <Link
                       to="/activities"
                       onClick={() => setShowProfileDropdown(false)}
-                      className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       <LayoutDashboard className="h-4 w-4" />
                       <span>Dashboard</span>
@@ -189,7 +251,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
                       to="/settings"
                       state={{ activeSection: 'edit-profile' }}
                       onClick={() => setShowProfileDropdown(false)}
-                      className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       <Settings className="h-4 w-4" />
                       <span>Settings</span>

@@ -108,8 +108,8 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
     <header className={`lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 transition-transform duration-300 ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
-      <div className="max-h-screen overflow-y-auto scrollbar-hide">
-        <div className="min-h-16 px-4 flex items-center justify-between py-2">
+      <div className="max-h-screen overflow-y-auto scrollbar-hide overflow-x-visible">
+        <div className="min-h-16 px-4 flex items-center justify-between py-2 relative overflow-visible">
           {/* Left Section - Menu & Logo */}
           <div className="flex items-center space-x-3">
             <button
@@ -147,22 +147,23 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
           {user ? (
             <div className="relative" ref={dropdownRef}>
               <button
-                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowProfileDropdown(!showProfileDropdown);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors touch-manipulation"
               >
                 <Avatar
                   name={profile?.full_name || user.email?.split('@')[0]}
                   imageUrl={profile?.avatar_url}
                   size="sm"
                 />
-                <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${
-                  showProfileDropdown ? 'rotate-180' : ''
-                }`} />
               </button>
 
               {/* Dropdown Menu */}
               {showProfileDropdown && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 py-2 animate-fade-in">
+                <div className="fixed right-4 top-16 w-64 sm:w-72 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-[9999] max-w-[calc(100vw-2rem)]">
                   {/* User Info */}
                   <div className="px-4 py-3 border-b border-gray-100">
                     <p className="text-sm font-medium text-gray-900">
