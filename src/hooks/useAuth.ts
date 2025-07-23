@@ -10,6 +10,8 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true)
   const [showAuthModalGlobal, setShowAuthModalGlobal] = useState(false)
   const [globalAuthMode, setGlobalAuthMode] = useState<'signin' | 'signup'>('signin')
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [showShareOptions, setShowShareOptions] = useState(false)
 
   useEffect(() => {
     // Get initial session
@@ -194,6 +196,61 @@ export const useAuth = () => {
     setShowAuthModalGlobal(false)
   }
 
+  const updateProfile = async (profileData: Partial<Profile>) => {
+    if (!user) return { error: new Error('No user logged in') }
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          ...profileData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+        .select()
+        .single()
+
+      if (error) {
+        logError(error as Error, 'updateProfile')
+        return { error }
+      }
+
+      if (data) {
+        setProfile(data)
+      }
+
+      return { data, error: null }
+    } catch (error) {
+      logError(error as Error, 'updateProfile')
+      return { error: error as Error }
+    }
+  }
+
+  const startOnboarding = () => {
+    setShowOnboarding(true)
+  }
+
+  const closeOnboarding = () => {
+    setShowOnboarding(false)
+  }
+
+  const completeOnboarding = () => {
+    setShowOnboarding(false)
+    setShowShareOptions(true)
+  }
+
+  const closeShareOptions = () => {
+    setShowShareOptions(false)
+  }
+
+  // Check if user needs onboarding
+  const needsOnboarding = user && profile && (
+    !profile.full_name || 
+    !profile.neighborhood ||
+    !profile.interests ||
+    profile.interests.length === 0
+  )
+
   const isAdmin = userRole === 'admin'
   const isModerator = userRole === 'moderator' || isAdmin
 
@@ -206,11 +263,19 @@ export const useAuth = () => {
     isModerator,
     showAuthModalGlobal,
     globalAuthMode,
+    showOnboarding,
+    showShareOptions,
+    needsOnboarding,
     signUp,
     signIn,
     signOut,
     loadUserProfile,
+    updateProfile,
     openAuthModalGlobal,
-    closeAuthModalGlobal
+    closeAuthModalGlobal,
+    startOnboarding,
+    closeOnboarding,
+    completeOnboarding,
+    closeShareOptions
   }
 }

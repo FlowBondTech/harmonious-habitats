@@ -13,6 +13,8 @@ import ScrollToTop from './components/ScrollToTop';
 import { LoadingSpinner } from './components/LoadingStates';
 import MobileMenu from './components/MobileMenu';
 import { ShareModal } from './components/ShareModal';
+import OnboardingModal from './components/OnboardingModal';
+import ShareOptionsModal from './components/ShareOptionsModal';
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import('./pages/Home'));
@@ -35,9 +37,19 @@ const SpaceDetail = lazy(() => import('./pages/SpaceDetail'));
 const Neighborhoods = lazy(() => import('./pages/Neighborhoods'));
 const NeighborhoodDetail = lazy(() => import('./pages/NeighborhoodDetail'));
 const SpaceHolderDashboard = lazy(() => import('./pages/SpaceHolderDashboard'));
+const BecomeFacilitator = lazy(() => import('./pages/BecomeFacilitator'));
 
 const AppContent = () => {
-  const { showAuthModalGlobal, globalAuthMode, closeAuthModalGlobal } = useAuthContext();
+  const { 
+    showAuthModalGlobal, 
+    globalAuthMode, 
+    closeAuthModalGlobal,
+    showOnboarding,
+    showShareOptions,
+    closeOnboarding,
+    completeOnboarding,
+    closeShareOptions
+  } = useAuthContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -168,6 +180,11 @@ const AppContent = () => {
                       <SpaceHolderDashboard />
                     </ProtectedRoute>
                   } />
+                  <Route path="/become-facilitator" element={
+                    <ProtectedRoute>
+                      <BecomeFacilitator />
+                    </ProtectedRoute>
+                  } />
                   
                   {/* Fallback Routes */}
                   <Route path="/my-activities" element={<Navigate to="/activities" replace />} />
@@ -204,6 +221,19 @@ const AppContent = () => {
           <ShareModal
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
+          />
+          
+          {/* Onboarding Modal */}
+          <OnboardingModal
+            isOpen={showOnboarding}
+            onClose={closeOnboarding}
+            onComplete={completeOnboarding}
+          />
+          
+          {/* Share Options Modal */}
+          <ShareOptionsModal
+            isOpen={showShareOptions}
+            onClose={closeShareOptions}
           />
         </MobileOptimization>
       </Router>

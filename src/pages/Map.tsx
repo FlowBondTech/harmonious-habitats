@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Users, Clock, Navigation, X, Search } from 'lucide-react';
+import { MapPin, Filter, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Users, Clock, Navigation, X, Search, ChevronUp, ChevronDown, Info } from 'lucide-react';
 import { getEvents, Event } from '../lib/supabase';
 import SearchSystem from '../components/SearchSystem';
 
@@ -10,6 +10,7 @@ const Map = () => {
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showLegend, setShowLegend] = useState(true);
 
   const categories = [
     { id: 'all', name: 'All Events', icon: Filter, color: 'text-forest-600' },
@@ -137,24 +138,6 @@ const Map = () => {
                       </div>
                     )}
 
-                    {/* Legend */}
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-forest-100">
-                      <h4 className="font-semibold text-forest-800 mb-2 text-sm">Map Legend</h4>
-                      <div className="space-y-2 text-xs sm:text-sm">
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 bg-earth-500 rounded-full mr-2"></div>
-                          <span>Your Location</span>
-                        </div>
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 bg-white border-2 border-forest-400 rounded-full mr-2"></div>
-                          <span>Events</span>
-                        </div>
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 border border-forest-300 rounded-full mr-2"></div>
-                          <span>Discovery Radius</span>
-                        </div>
-                      </div>
-                    </div>
                   </>
                 )}
               </div>
@@ -185,12 +168,59 @@ const Map = () => {
             </div>
           </div>
 
-          {/* Event Counter */}
-          <div className="pointer-events-auto mt-3 flex justify-center">
-            <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-md">
-              <p className="text-sm font-medium text-forest-800">
-                {filteredItems.length} events {radius === 'global' ? 'worldwide' : radius === 'nearby' ? 'nearby' : 'in your area'}
-              </p>
+          {/* Event Counter and Legend Row */}
+          <div className="pointer-events-auto mt-3 relative">
+            {/* Event Counter - Always Centered */}
+            <div className="flex justify-center">
+              <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-md">
+                <p className="text-sm font-medium text-forest-800">
+                  {filteredItems.length} events {radius === 'global' ? 'worldwide' : radius === 'nearby' ? 'nearby' : 'in your area'}
+                </p>
+              </div>
+            </div>
+
+            {/* Legend - Absolutely positioned right, same row */}
+            <div className="absolute right-0 top-0 pointer-events-auto">
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-forest-100 overflow-hidden">
+                {/* Legend Header - Fully Clickable */}
+                <button
+                  onClick={() => setShowLegend(!showLegend)}
+                  className="w-full flex items-center justify-between p-3 bg-white/95 hover:bg-forest-50 transition-colors"
+                  aria-label={showLegend ? "Hide legend" : "Show legend"}
+                >
+                  <h4 className="font-semibold text-forest-800 text-sm hidden sm:block">Map Legend</h4>
+                  {/* Desktop: Arrow icons */}
+                  <span className="hidden sm:block">
+                    {showLegend ? (
+                      <ChevronUp className="h-4 w-4 text-forest-600" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-forest-600" />
+                    )}
+                  </span>
+                  {/* Mobile: Info icon */}
+                  <span className="block sm:hidden">
+                    <Info className="h-4 w-4 text-forest-600" />
+                  </span>
+                </button>
+                
+                {/* Legend Content */}
+                {showLegend && (
+                  <div className="px-3 pb-3 space-y-2 text-xs sm:text-sm">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-earth-500 rounded-full mr-2"></div>
+                      <span>Your Location</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-white border-2 border-forest-400 rounded-full mr-2"></div>
+                      <span>Events</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 border border-forest-300 rounded-full mr-2"></div>
+                      <span>Discovery Radius</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

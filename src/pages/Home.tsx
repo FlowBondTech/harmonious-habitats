@@ -180,12 +180,7 @@ const Home = () => {
     }
   ];
 
-  // Debug mobile detection
-  console.log('Mobile detection:', { 
-    isMobile, 
-    windowWidth: typeof window !== 'undefined' ? window.innerWidth : 'undefined',
-    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'undefined'
-  });
+  // Mobile detection for responsive layout
 
   // Render mobile content if on small screen
   if (isMobile) {

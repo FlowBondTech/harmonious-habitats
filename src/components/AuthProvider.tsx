@@ -12,12 +12,20 @@ interface AuthContextType {
   isModerator: boolean
   showAuthModalGlobal: boolean
   globalAuthMode: 'signin' | 'signup'
+  showOnboarding: boolean
+  showShareOptions: boolean
+  needsOnboarding: boolean
   signUp: (email: string, password: string, userData: Record<string, unknown>) => Promise<{ user: User | null; error: Error | null }>
   signIn: (email: string, password: string) => Promise<{ user: User | null; error: Error | null }>
   signOut: () => Promise<{ error: Error | null }>
   loadUserProfile: (userId: string) => Promise<void>
+  updateProfile: (profileData: Partial<Profile>) => Promise<{ data?: Profile; error: Error | null }>
   openAuthModalGlobal: (mode: 'signin' | 'signup') => void
   closeAuthModalGlobal: () => void
+  startOnboarding: () => void
+  closeOnboarding: () => void
+  completeOnboarding: () => void
+  closeShareOptions: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)

@@ -79,30 +79,44 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  const { signIn, signUp } = useAuthContext();
+  const { signIn, signUp, startOnboarding } = useAuthContext();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError(null);
+    
+    // Real-time validation for password confirmation
+    if (field === 'confirmPassword' && mode === 'signup') {
+      if (value && formData.password && value !== formData.password) {
+        setError('Passwords do not match');
+      }
+    }
   };
 
   const validateForm = () => {
+    // Clear any existing errors first
+    setError(null);
+    
     if (!formData.email || !formData.password) {
       setError('Email and password are required');
       return false;
     }
 
     if (mode === 'signup') {
-      if (!formData.full_name) {
+      if (!formData.full_name.trim()) {
         setError('Full name is required');
-        return false;
-      }
-      if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
         return false;
       }
       if (formData.password.length < 6) {
         setError('Password must be at least 6 characters');
+        return false;
+      }
+      if (!formData.confirmPassword) {
+        setError('Please confirm your password');
+        return false;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match');
         return false;
       }
     }
@@ -112,7 +126,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    
+    // Prevent double submission and validate form
+    if (loading || !validateForm()) {
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -138,10 +156,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
           setError(error.message);
         } else {
           setSuccess('Account created successfully! Welcome to Harmony Spaces!');
-          // Close modal and navigate after a short delay
+          // Close modal and start onboarding after a short delay
           setTimeout(() => {
             onClose();
-            navigate('/activities');
+            startOnboarding();
           }, 1500);
         }
       }
@@ -334,18 +352,36 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                       type={showPassword ? 'text' : 'password'}
                       value={formData.confirmPassword}
                       onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
+                      className={`w-full pl-10 pr-4 py-3 min-h-[44px] border rounded-lg focus:outline-none focus:ring-2 text-base ${
+                        formData.confirmPassword && formData.password
+                          ? formData.password === formData.confirmPassword
+                            ? 'border-green-300 focus:ring-green-500 focus:border-green-500'
+                            : 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                          : 'border-forest-200 focus:ring-forest-500 focus:border-transparent'
+                      }`}
                       placeholder="Confirm your password"
                       required
                     />
+                    {formData.confirmPassword && formData.password && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        {formData.password === formData.confirmPassword ? (
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        ) : (
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        )}
+                      </div>
+                    )}
                   </div>
+                  {formData.confirmPassword && formData.password && formData.password !== formData.confirmPassword && (
+                    <p className="mt-1 text-sm text-red-600">Passwords do not match</p>
+                  )}
                 </div>
               )}
 
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full btn-primary btn-lg focus-ring"
+                disabled={loading || (mode === 'signup' && formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword)}
+                className="w-full btn-primary btn-lg focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <div className="flex items-center justify-center space-x-2">

@@ -62,9 +62,14 @@ const SpaceDetail = () => {
   useEffect(() => {
     if (slug) {
       loadSpace();
-      checkFavorite();
     }
   }, [slug]);
+
+  useEffect(() => {
+    if (space) {
+      checkFavorite();
+    }
+  }, [space, user]);
 
   const loadSpace = async () => {
     try {
@@ -112,14 +117,14 @@ const SpaceDetail = () => {
   };
 
   const checkFavorite = async () => {
-    if (!user || !id) return;
+    if (!user || !space?.id) return;
     
     try {
       const { data } = await supabase
         .from('space_favorites')
         .select('id')
         .eq('user_id', user.id)
-        .eq('space_id', id)
+        .eq('space_id', space.id)
         .single();
       
       setIsFavorite(!!data);
@@ -324,13 +329,14 @@ const SpaceDetail = () => {
               <h2 className="text-xl font-bold text-forest-800 mb-4">Amenities</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {space.amenities?.map((amenity) => {
-                  const Icon = amenityIcons[amenity] || Check;
+                  const amenityStr = typeof amenity === 'string' ? amenity : String(amenity);
+                  const Icon = amenityIcons[amenityStr] || Check;
                   return (
-                    <div key={amenity} className="flex items-center space-x-3">
+                    <div key={amenityStr} className="flex items-center space-x-3">
                       <div className="p-2 bg-forest-50 rounded-lg">
                         <Icon className="h-5 w-5 text-forest-600" />
                       </div>
-                      <span className="text-forest-700 capitalize">{amenity.replace('_', ' ')}</span>
+                      <span className="text-forest-700 capitalize">{amenityStr.replace('_', ' ')}</span>
                     </div>
                   );
                 })}
