@@ -42,6 +42,80 @@ export interface Profile {
   total_reviews: number
   verified: boolean
   discovery_radius: number
+  // Personal Information
+  date_of_birth?: string
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say'
+  phone_number?: string
+  address?: string
+  city?: string
+  zip_code?: string
+  // Email Preferences
+  email_preferences?: {
+    weekly_digest: boolean
+    event_reminders: boolean
+    new_member_spotlights: boolean
+    space_availability: boolean
+    tips_resources: boolean
+    email_frequency: 'realtime' | 'daily' | 'weekly' | 'monthly'
+  }
+  // Social Media
+  social_media?: {
+    instagram?: string | null
+    facebook?: string | null
+    linkedin?: string | null
+    twitter?: string | null
+    sharing_preferences: {
+      auto_share_events: boolean
+      share_achievements: boolean
+      allow_friend_discovery: boolean
+    }
+  }
+  // Interests
+  holistic_interests: string[]
+  additional_interests?: string[]
+  involvement_level?: 'curious' | 'active' | 'dedicated'
+  other_interests?: string
+  // Mobile Notifications
+  mobile_notifications?: {
+    push_notifications: {
+      event_reminders: boolean
+      new_messages: boolean
+      event_updates: boolean
+      community_announcements: boolean
+    }
+    quiet_hours: {
+      enabled: boolean
+      start_time: string
+      end_time: string
+    }
+    notification_sound: string
+  }
+  // Profile Statistics
+  events_attended_count?: number
+  hours_contributed?: number
+  neighbors_met_count?: number
+  // Activity & Achievements
+  recent_activities?: any[]
+  achievements?: {
+    first_event: boolean
+    host_event: boolean
+    share_space: boolean
+    connector: boolean
+    regular: boolean
+    verified: boolean
+  }
+  // Privacy Settings
+  profile_visibility?: 'public' | 'community' | 'private'
+  share_activity_data?: boolean
+  analytics_enabled?: boolean
+  // Notification preferences (legacy - to be migrated)
+  notification_preferences: {
+    newEvents: boolean
+    messages: boolean
+    reminders: boolean
+    community: boolean
+    globalEvents?: boolean
+  }
   // Neighborhood features
   primary_neighborhood_id?: string
   verified_address?: string
@@ -55,14 +129,6 @@ export interface Profile {
   facilitator_certifications?: string[]
   facilitator_rating?: number
   facilitator_total_sessions?: number
-  holistic_interests: string[]
-  notification_preferences: {
-    newEvents: boolean
-    messages: boolean
-    reminders: boolean
-    community: boolean
-    globalEvents?: boolean
-  }
   // Enhanced Profile Capabilities
   skills?: ProfileSkill[]
   offerings?: ProfileOffering[]
@@ -2109,7 +2175,7 @@ export const getBookingsForUser = async (userId: string, status?: string) => {
 // Update personal information
 export const updatePersonalInfo = async (userId: string, personalInfo: {
   date_of_birth?: string
-  gender?: string
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say'
   phone_number?: string
   address?: string
   city?: string
@@ -2150,10 +2216,10 @@ export const updateEmailPreferences = async (userId: string, preferences: {
 
 // Update social media connections
 export const updateSocialMedia = async (userId: string, socialMedia: {
-  instagram?: string
-  facebook?: string
-  linkedin?: string
-  twitter?: string
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  twitter?: string | null
   sharing_preferences: {
     auto_share_events: boolean
     share_achievements: boolean
@@ -2213,6 +2279,24 @@ export const updateMobileNotifications = async (userId: string, settings: {
     .from('profiles')
     .update({
       mobile_notifications: settings,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', userId)
+    .select()
+    .single()
+  return { data, error }
+}
+
+// Update privacy settings
+export const updatePrivacySettings = async (userId: string, settings: {
+  profile_visibility: 'public' | 'community' | 'private'
+  share_activity_data: boolean
+  analytics_enabled: boolean
+}) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      ...settings,
       updated_at: new Date().toISOString()
     })
     .eq('id', userId)
