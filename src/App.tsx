@@ -38,6 +38,7 @@ const Neighborhoods = lazy(() => import('./pages/Neighborhoods'));
 const NeighborhoodDetail = lazy(() => import('./pages/NeighborhoodDetail'));
 const SpaceHolderDashboard = lazy(() => import('./pages/SpaceHolderDashboard'));
 const BecomeFacilitator = lazy(() => import('./pages/BecomeFacilitator'));
+const HyperlocalEvents = lazy(() => import('./pages/HyperlocalEvents'));
 
 const AppContent = () => {
   const { 
@@ -234,6 +235,9 @@ const AppRouter = ({
                   <ProtectedRoute>
                     <BecomeFacilitator />
                   </ProtectedRoute>
+                } />
+                <Route path="/hyperlocal" element={
+                  <HyperlocalEvents />
                 } />
                 
                 {/* Fallback Routes */}

@@ -18,7 +18,8 @@ import {
   Heart,
   Menu,
   MapPin,
-  LogIn
+  LogIn,
+  Zap
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import Avatar from './Avatar';
@@ -125,6 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
     { path: '/', icon: Home, label: 'Home' },
     { path: '/map', icon: Map, label: 'Discover' },
     { path: '/neighborhoods', icon: MapPin, label: 'Neighborhoods' },
+    { path: '/hyperlocal', icon: Zap, label: 'Hyperlocal' },
     { path: '/global-feed', icon: Globe, label: 'Global Feed' },
     { path: '/calendar', icon: Calendar, label: 'Calendar' },
     { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
@@ -136,6 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
     { path: '/', icon: Home, label: 'Home' },
     { path: '/map', icon: Map, label: 'Discover' },
     { path: '/neighborhoods', icon: MapPin, label: 'Neighborhoods' },
+    { path: '/hyperlocal', icon: Zap, label: 'Hyperlocal' },
     { path: '/global-feed', icon: Globe, label: 'Global Feed' },
   ];
 
