@@ -120,7 +120,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const { user, profile, isAdmin, signOut, openAuthModalGlobal } = useAuthContext();
   const [favoriteSpaces, setFavoriteSpaces] = useState<Space[]>([]);
   const [showAllFavorites, setShowAllFavorites] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isSpaceHolder, setIsSpaceHolder] = useState(false);
   const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' && window.innerWidth >= 1024);
 
@@ -193,13 +192,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
 
   const displayedFavorites = showAllFavorites ? favoriteSpaces : favoriteSpaces.slice(0, 3);
   
-  // Always show full sidebar with consistent width
-  const showSidebar = true; // Always show full menu with text
+  // Show based on isOpen state
+  const shouldShow = isOpen;
   
-  // Only show when explicitly opened (via menu trigger) on mobile, always visible on desktop
-  const shouldShow = isOpen || isDesktop;
-  
-  // Use consistent width across all desktop breakpoints (smallest desktop size)
+  // Use consistent width across all desktop breakpoints (same as largest responsive mode)
   const sidebarWidth = 'w-64';
 
   return (
@@ -219,86 +215,55 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
           shouldShow ? 'translate-x-0' : '-translate-x-full'
         } top-0 lg:top-16 lg:h-[calc(100vh-4rem)]`}
       >
-      {/* Toggle Button - Only show on mobile when sidebar is open */}
-      {!isDesktop && isOpen && (
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-6 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors z-50"
-        >
-          {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
-        </button>
-      )}
-      
       {/* Logo/Brand - Removed since it's in the header */}
 
       {/* Scrollable Content with custom scrollbar */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll">
         {/* Favorites Section */}
         {user && favoriteSpaces.length > 0 && (
-          <div className={`p-4 border-b border-gray-100 transition-all duration-300 ${!showSidebar ? 'px-2' : ''}`}>
-            {showSidebar ? (
-              <>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-yellow-500" />
-                    <h2 className="text-sm font-semibold text-gray-700">Favorite Spaces</h2>
-                  </div>
-                  <button className="btn-ghost btn-sm p-1 focus-ring">
-                    <Plus className="icon-sm" />
-                  </button>
-                </div>
-                
-                <div className="space-y-1">
-                  {displayedFavorites.map((space) => (
-                    <FavoriteSpace 
-                      key={space.id} 
-                      space={space} 
-                      isActive={location.pathname === `/spaces/${space.id}`}
-                      isCollapsed={false}
-                      onClick={isOpen ? onClose : undefined}
-                    />
-                  ))}
-                </div>
+          <div className="p-4 border-b border-gray-100 transition-all duration-300">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-yellow-500" />
+                <h2 className="text-sm font-semibold text-gray-700">Favorite Spaces</h2>
+              </div>
+              <button className="btn-ghost btn-sm p-1 focus-ring">
+                <Plus className="icon-sm" />
+              </button>
+            </div>
+            
+            <div className="space-y-1">
+              {displayedFavorites.map((space) => (
+                <FavoriteSpace 
+                  key={space.id} 
+                  space={space} 
+                  isActive={location.pathname === `/spaces/${space.id}`}
+                  isCollapsed={false}
+                  onClick={isOpen ? onClose : undefined}
+                />
+              ))}
+            </div>
 
-                {favoriteSpaces.length > 3 && (
-                  <button
-                    onClick={() => setShowAllFavorites(!showAllFavorites)}
-                    className="flex items-center gap-1 text-sm text-forest-600 hover:text-forest-700 mt-2 px-4 py-1"
-                  >
-                    <ChevronRight className={`h-3 w-3 transition-transform ${showAllFavorites ? 'rotate-90' : ''}`} />
-                    {showAllFavorites ? 'Show less' : `Show ${favoriteSpaces.length - 3} more`}
-                  </button>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="flex justify-center mb-3">
-                  <Star className="h-4 w-4 text-yellow-500" />
-                </div>
-                <div className="space-y-1">
-                  {favoriteSpaces.slice(0, 3).map((space) => (
-                    <FavoriteSpace 
-                      key={space.id} 
-                      space={space} 
-                      isActive={location.pathname === `/spaces/${space.id}`}
-                      isCollapsed={true}
-                      onClick={isOpen ? onClose : undefined}
-                    />
-                  ))}
-                </div>
-              </>
+            {favoriteSpaces.length > 3 && (
+              <button
+                onClick={() => setShowAllFavorites(!showAllFavorites)}
+                className="flex items-center gap-1 text-sm text-forest-600 hover:text-forest-700 mt-2 px-4 py-1"
+              >
+                <ChevronRight className={`h-3 w-3 transition-transform ${showAllFavorites ? 'rotate-90' : ''}`} />
+                {showAllFavorites ? 'Show less' : `Show ${favoriteSpaces.length - 3} more`}
+              </button>
             )}
           </div>
         )}
 
         {/* Main Navigation */}
-        <nav className={`p-4 space-y-1 transition-all duration-300 ${!showSidebar ? 'px-2' : ''}`}>
+        <nav className="p-4 space-y-1 transition-all duration-300">
           {navItems.map((item) => (
             <NavItem
               key={item.path}
               {...item}
               isActive={location.pathname === item.path}
-              isCollapsed={!showSidebar}
+              isCollapsed={false}
               onClick={isOpen ? onClose : undefined}
             />
           ))}
@@ -307,141 +272,72 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
 
       {/* User Profile Section */}
       {user && (
-        <div className={`border-t border-gray-100 p-4 transition-all duration-300 ${!showSidebar ? 'px-2' : ''}`}>
-          {showSidebar ? (
-            <>
-              <div className="flex items-center gap-3 mb-3">
-                <Avatar 
-                  name={profile?.full_name || user.email?.split('@')[0]}
-                  imageUrl={profile?.avatar_url}
-                  size="md"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {profile?.full_name || user.email?.split('@')[0]}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                <Link
-                  to="/settings"
-                  state={{ activeSection: 'edit-profile' }}
-                  onClick={isOpen ? onClose : undefined}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <Settings className="h-4 w-4" />
-                  Settings
-                </Link>
-                <button
-                  onClick={async () => {
-                    try {
-                      await signOut();
-                    } catch (error) {
-                      console.error('Sign out error:', error);
-                    }
-                  }}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign Out
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="space-y-2">
-              <div className="flex justify-center">
-                <Avatar 
-                  name={profile?.full_name || user.email?.split('@')[0]}
-                  imageUrl={profile?.avatar_url}
-                  size="md"
-                />
-              </div>
-              <Link
-                to="/settings"
-                state={{ activeSection: 'edit-profile' }}
-                onClick={isOpen ? onClose : undefined}
-                className="relative flex justify-center p-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors group"
-                title="Settings"
-              >
-                <Settings className="h-5 w-5" />
-                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                  Settings
-                </div>
-              </Link>
-              <button
-                onClick={async () => {
-                  try {
-                    await signOut();
-                  } catch (error) {
-                    console.error('Sign out error:', error);
-                  }
-                }}
-                className="relative w-full flex justify-center p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors group"
-                title="Sign Out"
-              >
-                <LogOut className="h-5 w-5" />
-                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                  Sign Out
-                </div>
-              </button>
+        <div className="border-t border-gray-100 p-4 transition-all duration-300">
+          <div className="flex items-center gap-3 mb-3">
+            <Avatar 
+              name={profile?.full_name || user.email?.split('@')[0]}
+              imageUrl={profile?.avatar_url}
+              size="md"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {profile?.full_name || user.email?.split('@')[0]}
+              </p>
+              <p className="text-xs text-gray-500 truncate">{user.email}</p>
             </div>
-          )}
+          </div>
+          
+          <div className="flex gap-2">
+            <Link
+              to="/settings"
+              state={{ activeSection: 'edit-profile' }}
+              onClick={isOpen ? onClose : undefined}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <Settings className="h-4 w-4" />
+              Settings
+            </Link>
+            <button
+              onClick={async () => {
+                try {
+                  await signOut();
+                } catch (error) {
+                  console.error('Sign out error:', error);
+                }
+              }}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </button>
+          </div>
         </div>
       )}
       
       {/* Auth Section for Non-authenticated Users */}
       {!user && (
-        <div className={`border-t border-gray-100 p-4 transition-all duration-300 ${!showSidebar ? 'px-2' : ''}`}>
-          {showSidebar ? (
-            <>
-              <div className="space-y-3 mb-4">
-                <p className="text-sm text-gray-600 text-center">
-                  Join our community to create events, discover local spaces, and connect with neighbors.
-                </p>
-              </div>
-              <div className="space-y-3">
-                <button
-                  onClick={() => openAuthModalGlobal('signup')}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors font-medium"
-                >
-                  <User className="h-5 w-5" />
-                  Join Harmony Spaces
-                </button>
-                <button
-                  onClick={() => openAuthModalGlobal('signin')}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-forest-600 hover:bg-forest-50 border border-forest-200 rounded-lg transition-colors font-medium"
-                >
-                  <LogIn className="h-5 w-5" />
-                  Sign In
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="space-y-2">
-              <button
-                onClick={() => openAuthModalGlobal('signup')}
-                className="relative w-full flex justify-center p-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors group"
-                title="Join Harmony Spaces"
-              >
-                <User className="h-5 w-5" />
-                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                  Join Harmony Spaces
-                </div>
-              </button>
-              <button
-                onClick={() => openAuthModalGlobal('signin')}
-                className="relative w-full flex justify-center p-2 text-forest-600 hover:bg-forest-50 border border-forest-200 rounded-lg transition-colors group"
-                title="Sign In"
-              >
-                <LogIn className="h-5 w-5" />
-                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                  Sign In
-                </div>
-              </button>
-            </div>
-          )}
+        <div className="border-t border-gray-100 p-4 transition-all duration-300">
+          <div className="space-y-3 mb-4">
+            <p className="text-sm text-gray-600 text-center">
+              Join our community to create events, discover local spaces, and connect with neighbors.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <button
+              onClick={() => openAuthModalGlobal('signup')}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors font-medium"
+            >
+              <User className="h-5 w-5" />
+              Join Harmony Spaces
+            </button>
+            <button
+              onClick={() => openAuthModalGlobal('signin')}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-forest-600 hover:bg-forest-50 border border-forest-200 rounded-lg transition-colors font-medium"
+            >
+              <LogIn className="h-5 w-5" />
+              Sign In
+            </button>
+          </div>
         </div>
       )}
       </aside>
