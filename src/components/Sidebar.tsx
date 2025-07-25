@@ -32,12 +32,14 @@ interface NavItemProps {
   isActive: boolean;
   badge?: number;
   isCollapsed: boolean;
+  onClick?: () => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ path, icon: Icon, label, isActive, badge, isCollapsed }) => {
+const NavItem: React.FC<NavItemProps> = ({ path, icon: Icon, label, isActive, badge, isCollapsed, onClick }) => {
   return (
     <Link
       to={path}
+      onClick={onClick}
       className={`
         relative flex items-center gap-3 transition-all duration-200 group
         ${isActive 
@@ -74,10 +76,11 @@ const NavItem: React.FC<NavItemProps> = ({ path, icon: Icon, label, isActive, ba
   );
 };
 
-const FavoriteSpace: React.FC<{ space: Space; isActive?: boolean; isCollapsed: boolean }> = ({ space, isActive, isCollapsed }) => {
+const FavoriteSpace: React.FC<{ space: Space; isActive?: boolean; isCollapsed: boolean; onClick?: () => void }> = ({ space, isActive, isCollapsed, onClick }) => {
   return (
     <Link
       to={`/spaces/${space.id}`}
+      onClick={onClick}
       className={`
         relative flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group
         ${isActive 
@@ -242,6 +245,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
                       space={space} 
                       isActive={location.pathname === `/spaces/${space.id}`}
                       isCollapsed={false}
+                      onClick={isOpen ? onClose : undefined}
                     />
                   ))}
                 </div>
@@ -268,6 +272,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
                       space={space} 
                       isActive={location.pathname === `/spaces/${space.id}`}
                       isCollapsed={true}
+                      onClick={isOpen ? onClose : undefined}
                     />
                   ))}
                 </div>
@@ -284,6 +289,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
               {...item}
               isActive={location.pathname === item.path}
               isCollapsed={!showSidebar}
+              onClick={isOpen ? onClose : undefined}
             />
           ))}
         </nav>
@@ -312,6 +318,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
                 <Link
                   to="/settings"
                   state={{ activeSection: 'edit-profile' }}
+                  onClick={isOpen ? onClose : undefined}
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   <Settings className="h-4 w-4" />
@@ -344,6 +351,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
               <Link
                 to="/settings"
                 state={{ activeSection: 'edit-profile' }}
+                onClick={isOpen ? onClose : undefined}
                 className="relative flex justify-center p-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors group"
                 title="Settings"
               >

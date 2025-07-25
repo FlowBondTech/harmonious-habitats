@@ -118,7 +118,7 @@ export default function HyperlocalEvents() {
                 <button
                   key={platform}
                   onClick={() => togglePlatform(platform)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                  className={`platform-${platform} px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                     selectedPlatforms.includes(platform) || selectedPlatforms.length === 0
                       ? 'text-white'
                       : 'bg-gray-100 text-gray-600'
@@ -202,7 +202,7 @@ function EventCard({ event }: { event: ExternalEvent }) {
         {/* Platform badge */}
         <div className="flex items-center justify-between mb-3">
           <span
-            className="text-xs font-medium px-2 py-1 rounded-full text-white"
+            className={`platform-badge-${event.platform} text-xs font-medium px-2 py-1 rounded-full text-white`}
             style={{ backgroundColor: platformColor }}
           >
             {platformIcons[event.platform]} {event.platform}
