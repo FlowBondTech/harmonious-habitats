@@ -53,15 +53,21 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
 
   // Handle scroll to show/hide navbar
   useEffect(() => {
+    let ticking = false;
+    
     const controlNavbar = () => {
       const currentScrollY = window.scrollY;
       
-      // Show navbar when scrolling up or at the very top of the page
-      if (currentScrollY < lastScrollY || currentScrollY < 10) {
+      // Always show navbar when at the very top
+      if (currentScrollY < 10) {
         setIsVisible(true);
-      } 
-      // Hide navbar when scrolling down
-      else if (currentScrollY > lastScrollY) {
+      }
+      // Show navbar when scrolling up
+      else if (currentScrollY < lastScrollY && currentScrollY > 10) {
+        setIsVisible(true);
+      }
+      // Hide navbar when scrolling down (with a small threshold to prevent jitter)
+      else if (currentScrollY > lastScrollY && currentScrollY > 50) {
         setIsVisible(false);
         setShowProfileDropdown(false); // Close dropdown when hiding
         setShowSearch(false); // Close search when hiding
@@ -70,21 +76,20 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
       setLastScrollY(currentScrollY);
     };
 
-    const throttledControlNavbar = () => {
-      let ticking = false;
-      return () => {
-        if (!ticking) {
-          window.requestAnimationFrame(() => {
-            controlNavbar();
-            ticking = false;
-          });
-          ticking = true;
-        }
-      };
+    const scrollHandler = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          controlNavbar();
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
-    const scrollHandler = throttledControlNavbar();
-    window.addEventListener('scroll', scrollHandler);
+    // Set initial state
+    controlNavbar();
+    
+    window.addEventListener('scroll', scrollHandler, { passive: true });
     
     return () => window.removeEventListener('scroll', scrollHandler);
   }, [lastScrollY]);

@@ -50,6 +50,30 @@
     background: linear-gradient(135deg, #2d5016, #4d7c2a);
   }
   
+  /* Sidebar specific scrollbar */
+  .sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 10px;
+    border: none;
+  }
+  
+  .sidebar-scroll:hover::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+  }
+  
   /* Selection */
   ::selection {
     background: rgba(77, 124, 42, 0.2);

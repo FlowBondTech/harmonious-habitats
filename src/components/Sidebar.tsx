@@ -123,6 +123,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isSpaceHolder, setIsSpaceHolder] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' && window.innerWidth >= 1024);
 
   // Navigation items - different for authenticated vs unauthenticated users
   const navItems = user ? [
@@ -153,6 +154,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
     navItems.splice(7, 0, { path: '/space-holder-dashboard', icon: Home, label: 'Space & Facilitators', badge: 0 });
   }
 
+  // Handle responsive state
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Load favorite spaces and check if user is space holder
   useEffect(() => {
     const loadData = async () => {
@@ -182,18 +193,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   }, [user]);
 
   const displayedFavorites = showAllFavorites ? favoriteSpaces : favoriteSpaces.slice(0, 3);
-  const showSidebar = !isCollapsed || isHovered || isOpen;
+  
+  // Always use collapsed size on desktop
+  const showSidebar = isDesktop ? false : (!isCollapsed || isHovered || isOpen);
 
   // Only show when explicitly opened (via menu trigger)
   const shouldShow = isOpen;
   
-  // On desktop, when sidebar is open, disable collapse functionality
-  const canCollapse = window.innerWidth >= 1024 && isOpen ? false : true;
+  const sidebarWidth = isDesktop ? 'w-20' : (showSidebar ? 'w-72' : 'w-20');
 
   return (
     <>
-      {/* Backdrop when sidebar is open */}
-      {isOpen && (
+      {/* Backdrop when sidebar is open on mobile */}
+      {isOpen && !isDesktop && (
         <div 
           className="fixed inset-0 bg-black/20 z-40"
           onClick={onClose}
@@ -201,16 +213,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
       )}
       
       <aside 
-        className={`fixed left-0 h-full bg-white border-r border-gray-200 flex flex-col overflow-hidden transition-all duration-300 z-50 ${
-          (isCollapsed && !isOpen) ? 'w-20' : 'w-72'
+        className={`fixed left-0 h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-50 ${
+          sidebarWidth
         } ${
           shouldShow ? 'translate-x-0' : '-translate-x-full'
         } top-0 lg:top-16 lg:h-[calc(100vh-4rem)]`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-      {/* Toggle Button - Hide when sidebar is forced open on desktop */}
-      {!isOpen && (
+      {/* Toggle Button - Only show on mobile when sidebar is open */}
+      {!isDesktop && isOpen && (
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="absolute -right-3 top-6 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors z-50"
@@ -221,8 +233,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
       
       {/* Logo/Brand - Removed since it's in the header */}
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto">
+      {/* Scrollable Content with custom scrollbar */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll">
         {/* Favorites Section */}
         {user && favoriteSpaces.length > 0 && (
           <div className={`p-4 border-b border-gray-100 transition-all duration-300 ${!showSidebar ? 'px-2' : ''}`}>
