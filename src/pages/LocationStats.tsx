@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import type { UserLocation, UserLocationVisit } from '../lib/supabase';
-import { LoadingSpinner } from '../components/LoadingSpinner';
+import { LoadingSpinner } from '../components/LoadingStates';
 import { MapPin, Clock, TrendingUp, Calendar, Navigation, BarChart3 } from 'lucide-react';
 
 interface LocationWithStats extends UserLocation {
@@ -108,7 +108,9 @@ export default function LocationStats() {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <LoadingSpinner className="mx-auto my-16" />
+        <div className="flex justify-center my-16">
+          <LoadingSpinner size="lg" />
+        </div>
       </div>
     );
   }

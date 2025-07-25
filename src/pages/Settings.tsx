@@ -42,6 +42,7 @@ import { useAuthContext } from '../components/AuthProvider';
 import { updateProfile } from '../lib/supabase';
 import { FacilitatorAvailability } from '../components/FacilitatorAvailability';
 import { LocationSettings } from '../components/LocationSettings';
+import { ConnectorsSection } from '../components/ConnectorsSection';
 
 interface SettingSection {
   id: string;
@@ -178,12 +179,12 @@ const Settings = () => {
       category: 'account'
     },
     {
-      id: 'social-media',
-      title: 'Social Media',
-      description: 'Connect and manage your social media accounts',
+      id: 'connectors',
+      title: 'Connectors',
+      description: 'Connect your social media and event platform accounts',
       icon: Share2,
-      color: 'text-pink-600',
-      category: 'account'
+      color: 'text-blue-600',
+      category: 'connectors'
     },
     {
       id: 'interests',
@@ -298,6 +299,7 @@ const Settings = () => {
     { id: 'account', label: 'Account', icon: User },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'preferences', label: 'Preferences', icon: Heart },
+    { id: 'connectors', label: 'Connectors', icon: Share2 },
     { id: 'subscriptions', label: 'Subscriptions', icon: Crown },
     { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'developer', label: 'Developer', icon: Code },
@@ -557,8 +559,16 @@ const Settings = () => {
         return <EmailUpdatesSection />;
       case 'privacy':
         return <PrivacySection />;
-      case 'social-media':
-        return <SocialMediaSection />;
+      case 'connectors':
+        return (
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-2xl font-bold text-forest-800 mb-6">Connectors</h2>
+            <p className="text-gray-600 mb-6">
+              Connect your social media and event platform accounts to enhance your Harmony Spaces experience.
+            </p>
+            {user && <ConnectorsSection userId={user.id} />}
+          </div>
+        );
       case 'interests':
         return <InterestsSection />;
       case 'location-settings':

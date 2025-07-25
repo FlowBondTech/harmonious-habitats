@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Plus, Trash2, Star, Navigation, Coffee, Briefcase, Home } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { UserLocation, UserLocationPreferences } from '../lib/supabase';
-import { LoadingSpinner } from './LoadingSpinner';
+import { LoadingSpinner } from './LoadingStates';
 import { useGPSTracking } from '../hooks/useGPSTracking';
 
 interface LocationSettingsProps {
@@ -208,7 +208,11 @@ export const LocationSettings: React.FC<LocationSettingsProps> = ({ userId }) =>
   };
 
   if (loading) {
-    return <LoadingSpinner className="mx-auto my-8" />;
+    return (
+      <div className="flex justify-center my-8">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (

@@ -3,7 +3,7 @@ import { MapPin, X, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { SuggestedClass, Event } from '../lib/supabase';
-import { LoadingSpinner } from './LoadingSpinner';
+import { LoadingSpinner } from './LoadingStates';
 import { formatEventTime } from '../utils/dateHelpers';
 
 interface LocationBasedSuggestionsProps {
@@ -160,7 +160,11 @@ export const LocationBasedSuggestions: React.FC<LocationBasedSuggestionsProps> =
   };
 
   if (loading) {
-    return <LoadingSpinner className="mx-auto my-4" />;
+    return (
+      <div className="flex justify-center my-4">
+        <LoadingSpinner size="md" />
+      </div>
+    );
   }
 
   if (suggestions.length === 0) {
