@@ -448,9 +448,14 @@ const NotificationCenter: React.FC = () => {
 
             {notifications.length > 0 && (
               <div className="p-3 border-t border-forest-100 bg-forest-25">
-                <button className="w-full text-sm text-forest-600 hover:text-forest-800 font-medium transition-colors">
+                <Link
+                  to="/settings"
+                  state={{ activeSection: 'notifications' }}
+                  onClick={() => setShowDropdown(false)}
+                  className="block w-full text-center text-sm text-forest-600 hover:text-forest-800 font-medium transition-colors"
+                >
                   View all notifications
-                </button>
+                </Link>
               </div>
             )}
           </div>

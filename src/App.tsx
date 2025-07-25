@@ -111,20 +111,16 @@ const AppRouter = ({
       <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-earth-50/30 relative">
         {/* Desktop Header - Always show on desktop */}
         <div className="hidden lg:block">
-          <DesktopHeader onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+          <DesktopHeader onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} isSidebarOpen={isSidebarOpen} />
         </div>
         
-        {/* Desktop Sidebar - Only show when user is authenticated or not on homepage */}
+        {/* Sidebar - Show on all screen sizes when user is authenticated */}
         {!shouldHideSidebar && (
-          <div className="hidden lg:block">
-            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-          </div>
+          <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         )}
         
         {/* Main Content Area - No permanent margin, add top padding for desktop header */}
-        <div className={`min-h-screen relative overflow-x-hidden transition-transform duration-300 ease-in-out ${
-          isMenuOpen ? 'transform translate-x-80 lg:translate-x-0' : 'transform translate-x-0'
-        }`}>
+        <div className={`min-h-screen relative overflow-x-hidden transition-transform duration-300 ease-in-out`}>
           {/* Background Pattern */}
           <div className="fixed inset-0 opacity-[0.02] pointer-events-none">
             <div 
@@ -136,16 +132,8 @@ const AppRouter = ({
           </div>
           
           {/* Navigation - Always show on mobile */}
-          <div className="lg:hidden">
-            <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
-          </div>
+          <Navbar isMenuOpen={isSidebarOpen} setIsMenuOpen={setIsSidebarOpen} />
           
-          {/* Notification Center - Mobile only and when user is authenticated */}
-          {user && (
-            <div className="lg:hidden">
-              <NotificationCenter />
-            </div>
-          )}
           
           {/* Main Content with responsive padding */}
           <main id="main" className={`pt-16 lg:pt-16 pb-8 relative z-10 ${
@@ -265,12 +253,12 @@ const AppRouter = ({
         </div>
       </div>
       
-      {/* Mobile Menu - Outside of transformed content */}
-      <MobileMenu 
+      {/* Mobile Menu - Disabled, using Sidebar instead */}
+      {/* <MobileMenu 
         isOpen={isMenuOpen} 
         onClose={() => setIsMenuOpen(false)}
         onShareClick={() => setShowShareModal(true)}
-      />
+      /> */}
       
       {/* Global Modals - Outside of transformed content */}
       <AuthModal

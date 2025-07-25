@@ -10,7 +10,8 @@ import {
   Search,
   ChevronDown,
   LogIn,
-  X
+  X,
+  Home
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import Avatar from './Avatar';
@@ -32,7 +33,7 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
   const searchRef = useRef<HTMLInputElement>(null);
   
   const { scrollDirection, isAtTop } = useScrollDirection();
-  const isVisible = scrollDirection === 'up' || isAtTop;
+  const isVisible = scrollDirection === 'up' || isAtTop || isMenuOpen;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -84,13 +85,15 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
         <div className="min-h-16 px-4 flex items-center justify-between py-2 relative overflow-visible">
           {/* Left Section - Menu & Logo */}
           <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Toggle menu"
-            >
-              <Menu className="h-6 w-6 text-gray-700" />
-            </button>
+            {user && (
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="Toggle menu"
+              >
+                <Menu className="h-6 w-6 text-gray-700" />
+              </button>
+            )}
             
             <Link to="/" className="flex items-center">
               <h1 className="text-lg font-bold text-gradient">Harmony Spaces</h1>
@@ -165,12 +168,12 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                     </Link>
 
                     <Link
-                      to="/activities"
+                      to="/"
                       onClick={() => setShowProfileDropdown(false)}
                       className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      <LayoutDashboard className="h-4 w-4" />
-                      <span>Dashboard</span>
+                      <Home className="h-4 w-4" />
+                      <span>Home</span>
                     </Link>
 
                     <Link
@@ -200,13 +203,13 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => openAuthModalGlobal('signin')}
-                className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                className="h-9 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors inline-flex items-center"
               >
                 Sign In
               </button>
               <button
                 onClick={() => openAuthModalGlobal('signup')}
-                className="px-3 py-2 text-sm font-medium text-white bg-forest-600 hover:bg-forest-700 rounded-lg transition-colors"
+                className="h-9 px-3 py-2 text-sm font-medium text-white bg-forest-600 hover:bg-forest-700 rounded-lg transition-colors inline-flex items-center"
               >
                 Join
               </button>

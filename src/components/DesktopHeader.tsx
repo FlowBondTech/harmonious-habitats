@@ -10,9 +10,10 @@ import NotificationCenter from './NotificationCenter';
 
 interface DesktopHeaderProps {
   onMenuClick: () => void;
+  isSidebarOpen: boolean;
 }
 
-const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
+const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick, isSidebarOpen }) => {
   const { user, profile, signOut, openAuthModalGlobal } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,6 +39,12 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
   // Handle scroll to show/hide header
   useEffect(() => {
     const controlHeader = () => {
+      // Always show header when sidebar is open
+      if (isSidebarOpen) {
+        setIsVisible(true);
+        return;
+      }
+      
       const currentScrollY = window.scrollY;
       
       // Show header when scrolling up or at the top of the page
@@ -70,7 +77,14 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
     window.addEventListener('scroll', scrollHandler);
     
     return () => window.removeEventListener('scroll', scrollHandler);
-  }, [lastScrollY]);
+  }, [lastScrollY, isSidebarOpen]);
+
+  // Ensure header is visible when sidebar opens
+  useEffect(() => {
+    if (isSidebarOpen) {
+      setIsVisible(true);
+    }
+  }, [isSidebarOpen]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -93,9 +107,9 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
     <header className={`hidden lg:block fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 transition-transform duration-300 ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
-      <div className="h-16 px-6 flex items-center justify-between">
+      <div className="h-16 px-4 flex items-center justify-between">
         {/* Left Section - Menu & Logo */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           {!shouldHideMenuButton && (
             <button
               onClick={onMenuClick}
@@ -107,7 +121,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
           )}
           
           <Link to="/" className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold text-gradient">Harmony Spaces</h1>
+            <h1 className="text-lg font-bold text-gradient">Harmony Spaces</h1>
           </Link>
         </div>
 
@@ -127,7 +141,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
         </div>
 
         {/* Right Section - Notifications & Profile */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           {/* Notification Bell */}
           {user && <NotificationCenter />}
 
@@ -275,13 +289,13 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick }) => {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => openAuthModalGlobal('signin')}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                className="h-9 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors inline-flex items-center"
               >
                 Sign In
               </button>
               <button
                 onClick={() => openAuthModalGlobal('signup')}
-                className="px-4 py-2 text-sm font-medium text-white bg-forest-600 hover:bg-forest-700 rounded-lg transition-colors"
+                className="h-9 px-3 py-2 text-sm font-medium text-white bg-forest-600 hover:bg-forest-700 rounded-lg transition-colors inline-flex items-center"
               >
                 Join
               </button>

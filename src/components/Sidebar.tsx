@@ -175,36 +175,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const sidebarWidth = 'w-64';
 
   return (
-    <>
-      {/* Backdrop when sidebar is open on mobile */}
-      {isOpen && !isDesktop && (
-        <div 
-          className="fixed inset-0 bg-black/20 z-40"
-          onClick={onClose}
-        />
-      )}
-      
-      <aside 
-        className={`fixed left-0 h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-50 overflow-y-auto ${
+    <aside 
+        className={`fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 transition-all duration-300 z-30 ${
           sidebarWidth
         } ${
           shouldShow ? 'translate-x-0' : '-translate-x-full'
-        } top-0 lg:top-16 lg:h-[calc(100vh-4rem)]`}
-      >
-      {/* Logo/Brand - Removed since it's in the header */}
-
-      {/* Scrollable Content with custom scrollbar */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll">
-        {/* Favorites Section */}
-        {user && favoriteSpaces.length > 0 && (
-          <div className="p-4 border-b border-gray-100 transition-all duration-300">
+        }`}
+      ><div className="h-full overflow-y-auto overflow-x-hidden sidebar-scroll text-sm leading-tight">{user && favoriteSpaces.length > 0 ? (
+          <div className="p-4 border-b border-gray-100 -mt-0.5 md:mt-0">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4 text-yellow-500" />
                 <h2 className="text-sm font-semibold text-gray-700">Favorite Spaces</h2>
               </div>
-              <button className="btn-ghost btn-sm p-1 focus-ring">
-                <Plus className="icon-sm" />
+              <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors focus-ring">
+                <Plus className="h-4 w-4" />
               </button>
             </div>
             
@@ -230,10 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
               </button>
             )}
           </div>
-        )}
-
-        {/* Main Navigation */}
-        <nav className="p-4 space-y-1 transition-all duration-300">
+        ) : null}<nav className={`${!user || favoriteSpaces.length === 0 ? 'p-4 -mt-0.5 md:mt-0' : 'px-4 pb-4'} space-y-1`}>
           {navItems.map((item) => (
             <NavItem
               key={item.path}
@@ -248,7 +230,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
 
       {/* User Profile Section */}
       {user && (
-        <div className="border-t border-gray-100 p-4 transition-all duration-300">
+        <div className="border-t border-gray-100 p-4">
           <div className="flex items-center gap-3 mb-3">
             <Avatar 
               name={profile?.full_name || user.email?.split('@')[0]}
@@ -292,7 +274,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
       
       {/* Auth Section for Non-authenticated Users */}
       {!user && (
-        <div className="border-t border-gray-100 p-4 transition-all duration-300">
+        <div className="border-t border-gray-100 p-4">
           <div className="space-y-3 mb-4">
             <p className="text-sm text-gray-600 text-center">
               Join our community to create events, discover local spaces, and connect with neighbors.
@@ -301,14 +283,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
           <div className="space-y-3">
             <button
               onClick={() => openAuthModalGlobal('signup')}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors font-medium"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors font-medium text-sm"
             >
               <User className="h-5 w-5" />
               Join Harmony Spaces
             </button>
             <button
               onClick={() => openAuthModalGlobal('signin')}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-forest-600 hover:bg-forest-50 border border-forest-200 rounded-lg transition-colors font-medium"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-forest-600 hover:bg-forest-50 border border-forest-200 rounded-lg transition-colors font-medium text-sm"
             >
               <LogIn className="h-5 w-5" />
               Sign In
@@ -317,7 +299,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
         </div>
       )}
       </aside>
-    </>
   );
 };
 
