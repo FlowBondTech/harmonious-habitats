@@ -386,6 +386,63 @@ export interface EventParticipant {
   user?: Profile
 }
 
+export interface UserLocation {
+  id: string
+  user_id: string
+  name: string
+  type: 'manual' | 'tracked'
+  latitude: number
+  longitude: number
+  address?: string
+  visit_count: number
+  total_time_spent: string // interval stored as string
+  last_visited: string
+  is_favorite: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface UserLocationVisit {
+  id: string
+  user_id: string
+  location_id: string
+  arrived_at: string
+  departed_at?: string
+  duration?: string // interval stored as string
+  created_at: string
+  
+  // Relations
+  location?: UserLocation
+}
+
+export interface UserLocationPreferences {
+  user_id: string
+  track_gps_enabled: boolean
+  tracking_frequency: string // interval stored as string
+  auto_detect_hotspots: boolean
+  hotspot_threshold: number
+  class_suggestion_radius: number
+  last_gps_update?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface SuggestedClass {
+  id: string
+  user_id: string
+  event_id: string
+  location_id?: string
+  distance: number
+  relevance_score: number
+  reason: string
+  dismissed: boolean
+  created_at: string
+  
+  // Relations
+  event?: Event
+  location?: UserLocation
+}
+
 export interface EventReview {
   id: string
   event_id: string

@@ -39,6 +39,7 @@ const NeighborhoodDetail = lazy(() => import('./pages/NeighborhoodDetail'));
 const SpaceHolderDashboard = lazy(() => import('./pages/SpaceHolderDashboard'));
 const BecomeFacilitator = lazy(() => import('./pages/BecomeFacilitator'));
 const HyperlocalEvents = lazy(() => import('./pages/HyperlocalEvents'));
+const LocationStats = lazy(() => import('./pages/LocationStats'));
 
 const AppContent = () => {
   const { 
@@ -199,6 +200,11 @@ const AppRouter = ({
                 <Route path="/settings" element={
                   <ProtectedRoute>
                     <Settings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/location-stats" element={
+                  <ProtectedRoute>
+                    <LocationStats />
                   </ProtectedRoute>
                 } />
                 <Route path="/admin" element={

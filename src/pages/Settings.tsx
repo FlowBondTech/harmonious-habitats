@@ -33,12 +33,15 @@ import {
   Music,
   Activity,
   CheckCircle,
-  Users as UsersIcon
+  Users as UsersIcon,
+  Navigation,
+  BarChart3
 } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../components/AuthProvider';
 import { updateProfile } from '../lib/supabase';
 import { FacilitatorAvailability } from '../components/FacilitatorAvailability';
+import { LocationSettings } from '../components/LocationSettings';
 
 interface SettingSection {
   id: string;
@@ -188,6 +191,23 @@ const Settings = () => {
       description: 'Select topics and categories you\'re interested in',
       icon: Heart,
       color: 'text-earth-600',
+      category: 'preferences'
+    },
+    {
+      id: 'location-settings',
+      title: 'Location Settings',
+      description: 'Manage your locations and get personalized class suggestions',
+      icon: Navigation,
+      color: 'text-forest',
+      category: 'preferences'
+    },
+    {
+      id: 'location-stats',
+      title: 'Location Statistics',
+      description: 'View your movement patterns and frequent locations',
+      icon: BarChart3,
+      color: 'text-sage',
+      path: '/location-stats',
       category: 'preferences'
     },
     {
@@ -541,6 +561,16 @@ const Settings = () => {
         return <SocialMediaSection />;
       case 'interests':
         return <InterestsSection />;
+      case 'location-settings':
+        return (
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-2xl font-bold text-forest-800 mb-6">Location Settings</h2>
+            <p className="text-gray-600 mb-6">
+              Manage your favorite locations and enable GPS tracking to get personalized class suggestions.
+            </p>
+            {user && <LocationSettings userId={user.id} />}
+          </div>
+        );
       case 'facilitator-settings':
         return (
           <div className="bg-white rounded-xl shadow-sm p-6">

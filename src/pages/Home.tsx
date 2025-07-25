@@ -24,6 +24,7 @@ import EventCard from '../components/EventCard';
 import SpaceCard from '../components/SpaceCard';
 import RadiusSelector from '../components/RadiusSelector';
 import HomeMobile from './HomeMobile';
+import { LocationBasedSuggestions } from '../components/LocationBasedSuggestions';
 
 
 interface HighlightCardProps {
@@ -407,6 +408,17 @@ const Home = () => {
                 <h3 className="text-lg font-semibold text-forest-800 mb-2">Share & Host</h3>
                 <p className="text-forest-600">Offer your space or skills to strengthen your local community</p>
               </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Location-Based Suggestions Section */}
+      {user && (
+        <section className="section-padding bg-gradient-to-br from-forest-50/30 to-sage-50/20">
+          <div className="container-responsive">
+            <div className="max-w-4xl mx-auto">
+              <LocationBasedSuggestions userId={user.id} limit={3} />
             </div>
           </div>
         </section>
