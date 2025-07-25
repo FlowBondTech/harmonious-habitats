@@ -136,7 +136,9 @@ const AppRouter = ({
           </div>
           
           {/* Navigation - Always show on mobile */}
-          <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+          <div className="lg:hidden">
+            <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+          </div>
           
           {/* Notification Center - Mobile only and when user is authenticated */}
           {user && (

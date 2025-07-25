@@ -15,6 +15,7 @@ import {
 import { useAuthContext } from './AuthProvider';
 import Avatar from './Avatar';
 import NotificationCenter from './NotificationCenter';
+import { useScrollDirection } from '../hooks/useScrollDirection';
 
 interface NavbarProps {
   isMenuOpen: boolean;
@@ -27,9 +28,11 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  
+  const { scrollDirection, isAtTop } = useScrollDirection();
+  const isVisible = scrollDirection === 'up' || isAtTop;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -50,49 +53,13 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
     }
   }, [showSearch]);
 
-  // Handle scroll to show/hide navbar
+  // Close dropdowns when navbar hides
   useEffect(() => {
-    let lastScrollY = 0;
-    let ticking = false;
-    
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
-          
-          // Always show navbar when at the very top
-          if (currentScrollY <= 10) {
-            setIsVisible(true);
-          }
-          // Show navbar when scrolling up
-          else if (currentScrollY < lastScrollY - 3) {
-            setIsVisible(true);
-          }
-          // Hide navbar when scrolling down
-          else if (currentScrollY > lastScrollY + 3 && currentScrollY > 50) {
-            setIsVisible(false);
-            setShowProfileDropdown(false);
-            setShowSearch(false);
-          }
-          
-          lastScrollY = currentScrollY;
-          ticking = false;
-        });
-        
-        ticking = true;
-      }
-    };
-
-    // Set initial state
-    setIsVisible(true);
-    
-    // Add scroll listener
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+    if (!isVisible) {
+      setShowProfileDropdown(false);
+      setShowSearch(false);
+    }
+  }, [isVisible]);
 
   const handleSignOut = async () => {
     await signOut();
