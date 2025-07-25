@@ -28,7 +28,6 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -53,46 +52,47 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
 
   // Handle scroll to show/hide navbar
   useEffect(() => {
+    let lastScrollY = 0;
     let ticking = false;
     
-    const controlNavbar = () => {
-      const currentScrollY = window.scrollY;
-      
-      // Always show navbar when at the very top
-      if (currentScrollY < 10) {
-        setIsVisible(true);
-      }
-      // Show navbar when scrolling up
-      else if (currentScrollY < lastScrollY && currentScrollY > 10) {
-        setIsVisible(true);
-      }
-      // Hide navbar when scrolling down (with a small threshold to prevent jitter)
-      else if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        setIsVisible(false);
-        setShowProfileDropdown(false); // Close dropdown when hiding
-        setShowSearch(false); // Close search when hiding
-      }
-      
-      setLastScrollY(currentScrollY);
-    };
-
-    const scrollHandler = () => {
+    const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          controlNavbar();
+          const currentScrollY = window.scrollY;
+          
+          // Always show navbar when at the very top
+          if (currentScrollY <= 10) {
+            setIsVisible(true);
+          }
+          // Show navbar when scrolling up
+          else if (currentScrollY < lastScrollY - 3) {
+            setIsVisible(true);
+          }
+          // Hide navbar when scrolling down
+          else if (currentScrollY > lastScrollY + 3 && currentScrollY > 50) {
+            setIsVisible(false);
+            setShowProfileDropdown(false);
+            setShowSearch(false);
+          }
+          
+          lastScrollY = currentScrollY;
           ticking = false;
         });
+        
         ticking = true;
       }
     };
 
     // Set initial state
-    controlNavbar();
+    setIsVisible(true);
     
-    window.addEventListener('scroll', scrollHandler, { passive: true });
+    // Add scroll listener
+    window.addEventListener('scroll', handleScroll, { passive: true });
     
-    return () => window.removeEventListener('scroll', scrollHandler);
-  }, [lastScrollY]);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -110,7 +110,7 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
   };
 
   return (
-    <header className={`lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 transition-transform duration-300 ${
+    <header className={`lg:hidden fixed top-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-md border-b border-gray-200 transition-transform duration-300 ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
       <div className="max-h-screen overflow-y-auto scrollbar-hide overflow-x-visible">
