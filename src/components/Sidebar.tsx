@@ -41,36 +41,20 @@ const NavItem: React.FC<NavItemProps> = ({ path, icon: Icon, label, isActive, ba
       to={path}
       onClick={onClick}
       className={`
-        relative flex items-center gap-3 transition-all duration-200 group
+        relative flex items-center gap-3 px-4 py-2.5 transition-all duration-200 group text-sm font-medium
         ${isActive 
-          ? 'bg-gradient-to-r from-forest-100 to-earth-50 text-forest-700 shadow-sm rounded-r-xl' 
-          : 'hover:bg-gray-50 text-gray-700 hover:text-forest-600 rounded-xl'
-        }
-        ${isCollapsed 
-          ? `justify-center ${isActive ? '-mx-2 px-2 py-3' : 'px-3 py-3'}` 
-          : `${isActive ? '-mx-4 px-8 py-3' : 'px-4 py-3'}`
+          ? 'bg-gradient-to-r from-forest-100 to-earth-50 text-forest-700 shadow-sm rounded-lg' 
+          : 'hover:bg-gray-50 text-gray-700 hover:text-forest-600 rounded-lg'
         }
       `}
       title={isCollapsed ? label : ''}
     >
-      <Icon className={`h-5 w-5 ${isActive ? 'text-forest-600' : ''} ${isCollapsed ? 'mx-auto' : ''}`} />
-      {!isCollapsed && <span className="font-medium">{label}</span>}
-      {badge && badge > 0 && (
-        <span className={`
-          ${isCollapsed 
-            ? 'absolute -top-1 -right-1 bg-forest-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full' 
-            : 'ml-auto bg-forest-500 text-white text-xs px-2 py-0.5 rounded-full'
-          }
-        `}>
+      <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? 'text-forest-600' : ''}`} />
+      {!isCollapsed && <span>{label}</span>}
+      {badge && badge > 0 && !isCollapsed && (
+        <span className="ml-auto bg-forest-500 text-white text-xs px-2 py-0.5 rounded-full">
           {badge}
         </span>
-      )}
-      
-      {/* Tooltip for collapsed mode */}
-      {isCollapsed && (
-        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-          {label}
-        </div>
       )}
     </Link>
   );
@@ -82,12 +66,11 @@ const FavoriteSpace: React.FC<{ space: Space; isActive?: boolean; isCollapsed: b
       to={`/spaces/${space.id}`}
       onClick={onClick}
       className={`
-        relative flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group
+        relative flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 group text-sm
         ${isActive 
           ? 'bg-forest-50 text-forest-700' 
           : 'hover:bg-gray-50 text-gray-600 hover:text-forest-600'
         }
-        ${isCollapsed ? 'justify-center px-2' : ''}
       `}
       title={isCollapsed ? space.name : ''}
     >
@@ -98,14 +81,7 @@ const FavoriteSpace: React.FC<{ space: Space; isActive?: boolean; isCollapsed: b
           <Home className="h-4 w-4 text-forest-600" />
         )}
       </div>
-      {!isCollapsed && <span className="text-sm font-medium truncate">{space.name}</span>}
-      
-      {/* Tooltip for collapsed mode */}
-      {isCollapsed && (
-        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-          {space.name}
-        </div>
-      )}
+      {!isCollapsed && <span className="font-medium truncate">{space.name}</span>}
     </Link>
   );
 };
