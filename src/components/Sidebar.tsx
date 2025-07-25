@@ -121,7 +121,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const [favoriteSpaces, setFavoriteSpaces] = useState<Space[]>([]);
   const [showAllFavorites, setShowAllFavorites] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   const [isSpaceHolder, setIsSpaceHolder] = useState(false);
   const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' && window.innerWidth >= 1024);
 
@@ -194,13 +193,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
 
   const displayedFavorites = showAllFavorites ? favoriteSpaces : favoriteSpaces.slice(0, 3);
   
-  // Always use collapsed size on desktop
-  const showSidebar = isDesktop ? false : (!isCollapsed || isHovered || isOpen);
-
-  // Only show when explicitly opened (via menu trigger)
-  const shouldShow = isOpen;
+  // Always show full sidebar with consistent width
+  const showSidebar = true; // Always show full menu with text
   
-  const sidebarWidth = isDesktop ? 'w-20' : (showSidebar ? 'w-72' : 'w-20');
+  // Only show when explicitly opened (via menu trigger) on mobile, always visible on desktop
+  const shouldShow = isOpen || isDesktop;
+  
+  // Use consistent width across all desktop breakpoints (smallest desktop size)
+  const sidebarWidth = 'w-64';
 
   return (
     <>
@@ -213,13 +213,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
       )}
       
       <aside 
-        className={`fixed left-0 h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-50 ${
+        className={`fixed left-0 h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-50 overflow-y-auto ${
           sidebarWidth
         } ${
           shouldShow ? 'translate-x-0' : '-translate-x-full'
         } top-0 lg:top-16 lg:h-[calc(100vh-4rem)]`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
       {/* Toggle Button - Only show on mobile when sidebar is open */}
       {!isDesktop && isOpen && (

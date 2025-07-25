@@ -148,7 +148,9 @@ const AppRouter = ({
           )}
           
           {/* Main Content with responsive padding */}
-          <main id="main" className="pt-16 lg:pt-16 pb-8 relative z-10">
+          <main id="main" className={`pt-16 lg:pt-16 pb-8 relative z-10 ${
+            !shouldHideSidebar ? 'lg:ml-64' : ''
+          }`}>
             <Suspense fallback={
               <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner size="lg" text="Loading..." />
