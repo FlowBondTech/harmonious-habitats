@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmonious Habitats - Design Showcase</title>
+    
+    <!-- CSS Design Switcher -->
+    <!-- Uncomment the design you want to use -->
+    
+    <!-- Earth Tones Design (Natural & Grounding) -->
+    <link rel="stylesheet" href="styles-earth-tones.css">
+    
+    <!-- Zen Minimalist Design (Clean & Mindful) -->
+    <!-- <link rel="stylesheet" href="styles-zen-minimal.css"> -->
+    
+    <!-- Vibrant Community Design (Energetic & Inclusive) -->
+    <!-- <link rel="stylesheet" href="styles-vibrant-community.css"> -->
+    
+    <!-- Sacred Geometry Design (Mystical & Harmonious) -->
+    <!-- <link rel="stylesheet" href="styles-sacred-geometry.css"> -->
+    
+    <style>
+        /* Design Switcher UI */
+        .design-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .design-switcher select {
+            padding: 0.5rem;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .design-switcher label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Design Switcher -->
+    <div class="design-switcher">
+        <label for="design-select">Choose Design:</label>
+        <select id="design-select" onchange="switchDesign(this.value)">
+            <option value="styles-earth-tones.css">Earth Tones</option>
+            <option value="styles-zen-minimal.css">Zen Minimalist</option>
+            <option value="styles-vibrant-community.css">Vibrant Community</option>
+            <option value="styles-sacred-geometry.css">Sacred Geometry</option>
+        </select>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="container">
+        <div class="hero">
+            <h1>Harmonious Habitats</h1>
+            <p class="subtitle">Cultivating Wellness Communities Through Mindful Spaces</p>
+            <div style="margin-top: 2rem;">
+                <a href="#vision" class="btn">Our Vision</a>
+                <a href="#impact" class="btn btn-secondary" style="margin-left: 1rem;">See Impact</a>
+            </div>
+        </div>
+
+        <!-- Vision Section -->
+        <section id="vision" style="margin: 4rem 0;">
+            <h2>Our Vision</h2>
+            <div class="grid grid-3">
+                <div class="card">
+                    <h3>Community First</h3>
+                    <p>Building authentic connections through shared holistic practices and mindful gatherings in every neighborhood.</p>
+                </div>
+                <div class="card">
+                    <h3>Wellness Access</h3>
+                    <p>Making wellness practices accessible to all, breaking down barriers and creating inclusive spaces for healing.</p>
+                </div>
+                <div class="card">
+                    <h3>Sacred Spaces</h3>
+                    <p>Transforming everyday locations into sanctuaries for meditation, yoga, and community wellness activities.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Impact Stats -->
+        <section id="impact" style="margin: 4rem 0;">
+            <h2>Our Impact</h2>
+            <div class="grid grid-4">
+                <div class="stat-card">
+                    <div class="stat-number">1,250+</div>
+                    <div class="stat-label">Active Communities</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">45K</div>
+                    <div class="stat-label">Members</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">3,200</div>
+                    <div class="stat-label">Events Monthly</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">89%</div>
+                    <div class="stat-label">Well-being Increase</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section style="margin: 4rem 0;">
+            <h2>Platform Features</h2>
+            <div class="grid grid-2">
+                <div class="card">
+                    <h3>Space Sharing</h3>
+                    <p>Connect space holders with facilitators to create vibrant wellness hubs in every neighborhood. From yoga studios to community gardens, we help transform spaces into healing sanctuaries.</p>
+                    <div style="margin-top: 1rem;">
+                        <span class="badge">Booking System</span>
+                        <span class="badge">Availability Calendar</span>
+                        <span class="badge">Reviews</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Event Discovery</h3>
+                    <p>Find and join local wellness events, from meditation circles to ecstatic dance, sound baths to breathwork sessions. Connect with your tribe through shared experiences.</p>
+                    <div style="margin-top: 1rem;">
+                        <span class="badge">Local Events</span>
+                        <span class="badge">Virtual Sessions</span>
+                        <span class="badge">Workshops</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section style="margin: 4rem 0; text-align: center;">
+            <div class="card" style="padding: 3rem;">
+                <h2>Join the Movement</h2>
+                <p style="font-size: 1.2rem; margin: 1.5rem 0;">Be part of the wellness revolution. Create harmonious habitats in your neighborhood.</p>
+                <div style="margin-top: 2rem;">
+                    <a href="#" class="btn btn-primary">Get Started</a>
+                    <a href="#" class="btn" style="margin-left: 1rem;">Learn More</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Decorative Elements (for certain designs) -->
+        <div class="mandala" style="top: 100px; left: -100px;"></div>
+        <div class="zen-circle"></div>
+        <div class="leaf-decoration" style="top: 50px; right: 50px;"></div>
+        <div class="bubble" style="width: 100px; height: 100px; top: 200px; right: 100px;"></div>
+        <div class="emoji-float" style="top: 150px; left: 100px;">🌿</div>
+        <div class="flower-of-life" style="bottom: 100px; right: 50px;">
+            <svg viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="30" />
+                <circle cx="130" cy="100" r="30" />
+                <circle cx="70" cy="100" r="30" />
+                <circle cx="115" cy="126" r="30" />
+                <circle cx="85" cy="126" r="30" />
+                <circle cx="115" cy="74" r="30" />
+                <circle cx="85" cy="74" r="30" />
+            </svg>
+        </div>
+    </div>
+
+    <script>
+        function switchDesign(cssFile) {
+            // Remove all existing style links
+            const existingLinks = document.querySelectorAll('link[rel="stylesheet"]');
+            existingLinks.forEach(link => {
+                if (link.href.includes('styles-')) {
+                    link.remove();
+                }
+            });
+            
+            // Add new style link
+            const newLink = document.createElement('link');
+            newLink.rel = 'stylesheet';
+            newLink.href = cssFile;
+            document.head.appendChild(newLink);
+        }
+    </script>
+</body>
+</html>
