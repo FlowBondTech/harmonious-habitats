@@ -263,21 +263,182 @@ h3 {
     animation: breathe 4s ease-in-out infinite;
 }
 
-/* Responsive with mindful breakpoints */
+/* Mobile-First Responsive Design */
 @media (max-width: 768px) {
+    body {
+        font-size: 16px;
+        letter-spacing: 0.01em;
+    }
+    
     .container {
         padding: 2rem 1rem;
+        max-width: 100%;
+    }
+    
+    h1 {
+        font-size: 1.75rem;
+        padding: 2rem 0;
+    }
+    
+    h1::after {
+        bottom: 1rem;
+        width: 40px;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    h3 {
+        font-size: 1.125rem;
     }
     
     .card {
-        padding: 2rem;
+        padding: 1.5rem;
+        margin: 1rem 0;
     }
     
     .hero {
-        padding: 4rem 1rem;
+        padding: 3rem 1rem;
+        text-align: center;
     }
     
+    /* Touch-friendly minimal buttons */
+    .btn {
+        padding: 0.875rem 2rem;
+        font-size: 0.875rem;
+        min-height: 48px;
+        width: 100%;
+        display: block;
+        margin-bottom: 1rem;
+    }
+    
+    .btn + .btn {
+        margin-left: 0;
+    }
+    
+    /* Grid optimization */
     .grid {
-        gap: 2rem;
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .grid-2,
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Stat cards mobile */
+    .stat-card {
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-number {
+        font-size: 2.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        letter-spacing: 0.1em;
+    }
+    
+    /* Zen elements adjustment */
+    .zen-circle {
+        width: 60px;
+        height: 60px;
+        margin: 1rem auto;
+    }
+    
+    .zen-circle::before {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .spacer {
+        height: 2rem;
+    }
+    
+    .divider {
+        margin: 2rem 0;
+    }
+    
+    .quote {
+        font-size: 1.1rem;
+        padding: 1.5rem;
+    }
+    
+    .quote::before,
+    .quote::after {
+        font-size: 2rem;
+    }
+    
+    /* Hide background effects on mobile */
+    .hero::before,
+    .hero::after {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5rem;
+        padding: 1.5rem 0;
+    }
+    
+    h2 {
+        font-size: 1.25rem;
+    }
+    
+    .container {
+        padding: 1.5rem 0.75rem;
+    }
+    
+    .card {
+        padding: 1.25rem;
+        margin: 0.75rem 0;
+    }
+    
+    .hero {
+        padding: 2rem 0.75rem;
+    }
+}
+
+/* Landscape mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .hero {
+        padding: 2rem 1rem;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+        padding: 1rem 0;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .btn:hover {
+        background: transparent;
+        color: var(--ink);
+    }
+    
+    .btn-primary:hover {
+        background: var(--bamboo);
+        color: white;
+    }
+    
+    .card:hover {
+        transform: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Ensure touch targets */
+    a, button {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 }

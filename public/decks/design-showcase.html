@@ -24,13 +24,13 @@
         /* Design Switcher UI */
         .design-switcher {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 10px;
+            right: 10px;
             z-index: 1000;
             background: white;
-            padding: 1rem;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 0.75rem;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
         }
         
         .design-switcher select {
@@ -39,13 +39,54 @@
             border: 1px solid #ddd;
             font-size: 14px;
             cursor: pointer;
+            width: 100%;
+            max-width: 180px;
         }
         
         .design-switcher label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.35rem;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 12px;
+            color: #333;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .design-switcher {
+                top: 5px;
+                right: 5px;
+                padding: 0.5rem;
+            }
+            
+            .design-switcher select {
+                font-size: 13px;
+                max-width: 140px;
+            }
+            
+            .design-switcher label {
+                font-size: 11px;
+            }
+        }
+        
+        /* Button container for mobile */
+        .button-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .button-container {
+                flex-direction: column;
+                gap: 0;
+                width: 100%;
+            }
+            
+            .button-container > * {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -66,9 +107,9 @@
         <div class="hero">
             <h1>Harmonious Habitats</h1>
             <p class="subtitle">Cultivating Wellness Communities Through Mindful Spaces</p>
-            <div style="margin-top: 2rem;">
+            <div class="button-container" style="margin-top: 2rem;">
                 <a href="#vision" class="btn">Our Vision</a>
-                <a href="#impact" class="btn btn-secondary" style="margin-left: 1rem;">See Impact</a>
+                <a href="#impact" class="btn btn-secondary">See Impact</a>
             </div>
         </div>
 
@@ -144,9 +185,9 @@
             <div class="card" style="padding: 3rem;">
                 <h2>Join the Movement</h2>
                 <p style="font-size: 1.2rem; margin: 1.5rem 0;">Be part of the wellness revolution. Create harmonious habitats in your neighborhood.</p>
-                <div style="margin-top: 2rem;">
+                <div class="button-container" style="margin-top: 2rem;">
                     <a href="#" class="btn btn-primary">Get Started</a>
-                    <a href="#" class="btn" style="margin-left: 1rem;">Learn More</a>
+                    <a href="#" class="btn">Learn More</a>
                 </div>
             </div>
         </section>

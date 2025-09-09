@@ -197,17 +197,152 @@ h3 {
     animation: float 6s ease-in-out infinite;
 }
 
-/* Responsive */
+/* Mobile-First Responsive Design */
 @media (max-width: 768px) {
+    body {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
     .container {
         padding: 1rem;
+        max-width: 100%;
+    }
+    
+    h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+        margin-bottom: 0.75rem;
+    }
+    
+    h2 {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
     }
     
     .card {
-        padding: 1.5rem;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        border-radius: 15px;
     }
     
     .hero {
         padding: 2rem 1rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+    
+    /* Touch-friendly buttons */
+    .btn {
+        padding: 1rem 1.75rem;
+        font-size: 0.95rem;
+        min-height: 48px; /* iOS touch target */
+        min-width: 120px;
+        display: block;
+        width: 100%;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    
+    .btn + .btn {
+        margin-left: 0;
+    }
+    
+    /* Optimize grids for mobile */
+    .grid {
+        gap: 1rem;
+    }
+    
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Better stat cards on mobile */
+    .stat-card {
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+    }
+    
+    /* Hide decorative elements on small screens */
+    .leaf-decoration,
+    .floating {
+        display: none;
+    }
+    
+    /* Improve readability */
+    p {
+        font-size: 1rem;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+    }
+    
+    /* Badge optimization */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.75rem;
+        margin: 0.25rem 0.125rem;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.75rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+    }
+    
+    .hero {
+        padding: 1.5rem 0.75rem;
+    }
+    
+    .container {
+        padding: 0.75rem;
+    }
+}
+
+/* Landscape orientation optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+    .hero {
+        padding: 1.5rem 1rem;
+        min-height: auto;
+    }
+    
+    h1 {
+        font-size: 1.75rem;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .btn:hover {
+        transform: none;
+        box-shadow: 0 4px 15px rgba(74, 93, 35, 0.3);
+    }
+    
+    .card:hover {
+        transform: none;
+        box-shadow: 0 10px 30px rgba(26, 61, 46, 0.1);
+    }
+    
+    /* Larger touch targets */
+    a, button {
+        min-height: 44px;
+        min-width: 44px;
     }
 }

@@ -319,25 +319,220 @@ h3 {
     }
 }
 
-/* Responsive with energy */
+/* Mobile-First Responsive Design */
 @media (max-width: 768px) {
+    body {
+        font-size: 16px;
+        background: linear-gradient(180deg, #f6d365 0%, #fda085 100%);
+    }
+    
     .container {
         padding: 1rem;
-    }
-    
-    .card {
-        padding: 1.5rem;
-    }
-    
-    .hero {
-        padding: 2rem 1rem;
+        max-width: 100%;
     }
     
     h1 {
         font-size: 2rem;
+        line-height: 1.1;
+        margin-bottom: 1rem;
+        text-shadow: none;
     }
     
     h2 {
         font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    h2::after {
+        height: 3px;
+        bottom: -3px;
+    }
+    
+    h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .card {
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        border-radius: 15px;
+        border-width: 2px;
+    }
+    
+    .card::before {
+        height: 3px;
+    }
+    
+    .hero {
+        padding: 2rem 1rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+    
+    .hero::before {
+        width: 150px;
+        height: 150px;
+        top: -75px;
+        right: -75px;
+    }
+    
+    .hero::after {
+        width: 100px;
+        height: 100px;
+        bottom: -50px;
+        left: -50px;
+    }
+    
+    /* Touch-friendly colorful buttons */
+    .btn {
+        padding: 1rem 2rem;
+        font-size: 0.9rem;
+        min-height: 48px;
+        width: 100%;
+        display: block;
+        margin-bottom: 1rem;
+        border-radius: 30px;
+    }
+    
+    .btn + .btn {
+        margin-left: 0;
+    }
+    
+    /* Grid optimization for mobile */
+    .grid {
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Stat cards mobile */
+    .stat-card {
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border-radius: 12px;
+    }
+    
+    .stat-card::before {
+        display: none;
+    }
+    
+    .stat-number {
+        font-size: 2.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Badges mobile */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.8rem;
+        margin: 0.2rem;
+        border-radius: 15px;
+    }
+    
+    /* Hide decorative elements */
+    .bubble,
+    .emoji-float {
+        display: none;
+    }
+    
+    /* Simplify animations on mobile */
+    @keyframes float-bubble {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+    
+    p {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.75rem;
+    }
+    
+    h2 {
+        font-size: 1.35rem;
+    }
+    
+    h3 {
+        font-size: 1.1rem;
+    }
+    
+    .container {
+        padding: 0.75rem;
+    }
+    
+    .hero {
+        padding: 1.5rem 0.75rem;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    .btn {
+        font-size: 0.85rem;
+        padding: 0.875rem 1.5rem;
+    }
+}
+
+/* Landscape mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .hero {
+        padding: 1.5rem 1rem;
+        min-height: auto;
+    }
+    
+    h1 {
+        font-size: 1.75rem;
+    }
+    
+    .grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .btn:hover {
+        transform: none;
+        box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+    }
+    
+    .btn-ocean:hover {
+        box-shadow: 0 10px 30px rgba(72, 219, 251, 0.3);
+    }
+    
+    .btn-lavender:hover {
+        box-shadow: 0 10px 30px rgba(162, 155, 254, 0.3);
+    }
+    
+    .card:hover {
+        transform: none;
+    }
+    
+    .stat-card:hover {
+        transform: none;
+    }
+    
+    /* Ensure all touch targets */
+    a, button {
+        min-height: 44px;
     }
 }
