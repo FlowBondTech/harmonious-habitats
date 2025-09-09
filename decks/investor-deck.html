@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony Spaces - Investor Deck</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            scroll-snap-align: start;
+        }
+        
+        .slide-container {
+            scroll-snap-type: y mandatory;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        /* Title Slide */
+        .slide-title {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            text-align: center;
+        }
+        
+        .slide-title .content {
+            max-width: 800px;
+        }
+        
+        .company-logo {
+            font-size: 120px;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .company-title {
+            font-size: 80px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .company-tagline {
+            font-size: 24px;
+            font-weight: 300;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+        
+        .pitch-info {
+            font-size: 18px;
+            opacity: 0.7;
+        }
+        
+        /* Problem Slide */
+        .slide-problem {
+            background: #1a1a1a;
+        }
+        
+        .content {
+            max-width: 1000px;
+            padding: 60px;
+        }
+        
+        .slide-header {
+            margin-bottom: 40px;
+        }
+        
+        .slide-title-text {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        
+        .slide-subtitle {
+            font-size: 20px;
+            opacity: 0.7;
+        }
+        
+        .problem-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin: 40px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-5px);
+        }
+        
+        .stat-value {
+            font-size: 48px;
+            font-weight: 800;
+            color: #ff4444;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+        
+        /* Solution Slide */
+        .slide-solution {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        }
+        
+        .solution-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 40px;
+        }
+        
+        .solution-image {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 200px;
+        }
+        
+        .solution-points {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .point {
+            display: flex;
+            align-items: start;
+            gap: 16px;
+        }
+        
+        .point-icon {
+            font-size: 24px;
+            color: #00d2ff;
+            flex-shrink: 0;
+        }
+        
+        .point-text h4 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .point-text p {
+            font-size: 16px;
+            opacity: 0.7;
+            line-height: 1.5;
+        }
+        
+        /* Market Slide */
+        .slide-market {
+            background: #0f0f0f;
+        }
+        
+        .market-visual {
+            margin: 40px 0;
+            text-align: center;
+        }
+        
+        .market-circles {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: -50px;
+            margin: 40px 0;
+        }
+        
+        .market-circle {
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+        
+        .circle-tam {
+            width: 400px;
+            height: 400px;
+            background: rgba(0, 210, 255, 0.1);
+            border: 2px solid #00d2ff;
+            z-index: 1;
+        }
+        
+        .circle-sam {
+            width: 300px;
+            height: 300px;
+            background: rgba(58, 123, 213, 0.2);
+            border: 2px solid #3a7bd5;
+            z-index: 2;
+            margin-left: -100px;
+        }
+        
+        .circle-som {
+            width: 200px;
+            height: 200px;
+            background: rgba(52, 73, 94, 0.3);
+            border: 2px solid #34495e;
+            z-index: 3;
+            margin-left: -100px;
+        }
+        
+        .circle-label {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .circle-value {
+            font-size: 36px;
+            font-weight: 900;
+        }
+        
+        .circle-desc {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-top: 10px;
+        }
+        
+        /* Business Model Slide */
+        .slide-business {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+        
+        .revenue-streams {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .revenue-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            transition: all 0.3s;
+        }
+        
+        .revenue-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
+        
+        .revenue-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .revenue-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .revenue-desc {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 16px;
+        }
+        
+        .revenue-metric {
+            font-size: 24px;
+            font-weight: 700;
+            color: #00d2ff;
+        }
+        
+        /* Traction Slide */
+        .slide-traction {
+            background: #1a1a1a;
+        }
+        
+        .traction-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .traction-item {
+            text-align: center;
+        }
+        
+        .traction-value {
+            font-size: 56px;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .traction-label {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+        
+        .growth-chart {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 40px;
+            height: 300px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+        }
+        
+        .chart-bar {
+            width: 60px;
+            background: linear-gradient(180deg, #00d2ff 0%, #3a7bd5 100%);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+        }
+        
+        .chart-bar::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        /* Team Slide */
+        .slide-team {
+            background: linear-gradient(135deg, #232526 0%, #414345 100%);
+        }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            margin: 40px 0;
+        }
+        
+        .team-member {
+            text-align: center;
+        }
+        
+        .member-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .member-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .member-role {
+            font-size: 14px;
+            color: #00d2ff;
+            margin-bottom: 10px;
+        }
+        
+        .member-bio {
+            font-size: 12px;
+            opacity: 0.7;
+            line-height: 1.4;
+        }
+        
+        /* Ask Slide */
+        .slide-ask {
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+        }
+        
+        .ask-details {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+        }
+        
+        .ask-amount {
+            font-size: 72px;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+        
+        .ask-terms {
+            font-size: 24px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+        
+        .use-of-funds {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+        }
+        
+        .fund-item {
+            text-align: center;
+        }
+        
+        .fund-percentage {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .fund-category {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .contact-cta {
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .cta-button {
+            background: white;
+            color: #3a7bd5;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .slide {
+                padding: 20px;
+            }
+            .content {
+                padding: 30px;
+            }
+            .company-title {
+                font-size: 48px;
+            }
+            .problem-stats,
+            .traction-grid,
+            .team-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .revenue-streams {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <!-- Slide 1: Title -->
+        <div class="slide slide-title">
+            <div class="content">
+                <div class="company-logo">🌿</div>
+                <h1 class="company-title">Harmony Spaces</h1>
+                <p class="company-tagline">The Airbnb of Wellness Spaces</p>
+                <p class="pitch-info">Series Seed | $1.5M Raise | Q1 2025</p>
+            </div>
+        </div>
+        
+        <!-- Slide 2: Problem -->
+        <div class="slide slide-problem">
+            <div class="content">
+                <div class="slide-header">
+                    <h2 class="slide-title-text">The Wellness Connection Crisis</h2>
+                    <p class="slide-subtitle">A $4.5 trillion market with a fundamental problem</p>
+                </div>
+                
+                <div class="problem-stats">
+                    <div class="stat-card">
+                        <div class="stat-value">68%</div>
+                        <div class="stat-label">Feel disconnected from community</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">$3,000</div>
+                        <div class="stat-label">Average annual wellness spend</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">82%</div>
+                        <div class="stat-label">Want local wellness options</div>
+                    </div>
+                </div>
+                
+                <p style="font-size: 20px; line-height: 1.6; opacity: 0.9;">
+                    Despite massive spending on wellness, people struggle to find authentic, 
+                    affordable, and accessible options in their own neighborhoods. Traditional 
+                    wellness services are expensive, impersonal, and create barriers to entry.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Slide 3: Solution -->
+        <div class="slide slide-solution">
+            <div class="content">
+                <div class="slide-header">
+                    <h2 class="slide-title-text">Hyperlocal Wellness Marketplace</h2>
+                    <p class="slide-subtitle">Connecting neighbors through shared spaces and practices</p>
+                </div>
+                
+                <div class="solution-grid">
+                    <div class="solution-image">🏠</div>
+                    <div class="solution-points">
+                        <div class="point">
+                            <div class="point-icon">📍</div>
+                            <div class="point-text">
+                                <h4>Location-Based Discovery</h4>
+                                <p>Find wellness events and spaces within walking distance</p>
+                            </div>
+                        </div>
+                        <div class="point">
+                            <div class="point-icon">🤝</div>
+                            <div class="point-text">
+                                <h4>Peer-to-Peer Marketplace</h4>
+                                <p>Share and monetize your space for wellness activities</p>
+                            </div>
+                        </div>
+                        <div class="point">
+                            <div class="point-icon">👥</div>
+                            <div class="point-text">
+                                <h4>Community Building</h4>
+                                <p>Connect with neighbors through regular practices</p>
+                            </div>
+                        </div>
+                        <div class="point">
+                            <div class="point-icon">🔒</div>
+                            <div class="point-text">
+                                <h4>Trust & Safety</h4>
+                                <p>Verified practitioners and secure payments</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 4: Market -->
+        <div class="slide slide-market">
+            <div class="content">
+                <div class="slide-header">
+                    <h2 class="slide-title-text">Massive Market Opportunity</h2>
+                    <p class="slide-subtitle">Riding the wellness revolution</p>
+                </div>
+                
+                <div class="market-visual">
+                    <div class="market-circles">
+                        <div class="market-circle circle-tam">
+                            <div class="circle-label">TAM</div>
+                            <div class="circle-value">$4.5T</div>
+                            <div class="circle-desc">Global Wellness</div>
+                        </div>
+                        <div class="market-circle circle-sam">
+                            <div class="circle-label">SAM</div>
+                            <div class="circle-value">$450B</div>
+                            <div class="circle-desc">US Local Wellness</div>
+                        </div>
+                        <div class="market-circle circle-som">
+                            <div class="circle-label">SOM</div>
+                            <div class="circle-value">$4.5B</div>
+                            <div class="circle-desc">5-Year Target</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <p style="text-align: center; font-size: 18px; opacity: 0.9;">
+                    Growing at 42% annually | 150M target users in the US alone
+                </p>
+            </div>
+        </div>
+        
+        <!-- Slide 5: Business Model -->
+        <div class="slide slide-business">
+            <div class="content">
+                <div class="slide-header">
+                    <h2 class="slide-title-text">Multiple Revenue Streams</h2>
+                    <p class="slide-subtitle">Proven marketplace monetization model</p>
+                </div>
+                
+                <div class="revenue-streams">
+                    <div class="revenue-card">
+                        <div class="revenue-icon">💳</div>
+                        <div class="revenue-title">Transaction Fees</div>
+                        <div class="revenue-desc">10% commission on all bookings</div>
+                        <div class="revenue-metric">$2.4M ARR projected</div>
+                    </div>
+                    <div class="revenue-card">
+                        <div class="revenue-icon">⭐</div>
+                        <div class="revenue-title">Premium Subscriptions</div>
+                        <div class="revenue-desc">$9.99/month for unlimited access</div>
+                        <div class="revenue-metric">$1.2M ARR projected</div>
+                    </div>
+                    <div class="revenue-card">
+                        <div class="revenue-icon">🏢</div>
+                        <div class="revenue-title">Business Accounts</div>
+                        <div class="revenue-desc">$49/month for professionals</div>
+                        <div class="revenue-metric">$600K ARR projected</div>
+                    </div>
+                    <div class="revenue-card">
+                        <div class="revenue-icon">📢</div>
+                        <div class="revenue-title">Sponsored Listings</div>
+                        <div class="revenue-desc">Featured events and spaces</div>
+                        <div class="revenue-metric">$300K ARR projected</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 6: Traction -->
+        <div class="slide slide-traction">
+            <div class="content">
+                <div class="slide-header">
+                    <h2 class="slide-title-text">Strong Early Traction</h2>
+                    <p class="slide-subtitle">Product-market fit validated</p>
+                </div>
+                
+                <div class="traction-grid">
+                    <div class="traction-item">
+                        <div class="traction-value">2,500+</div>
+                        <div class="traction-label">Active Users</div>
+                    </div>
+                    <div class="traction-item">
+                        <div class="traction-value">150+</div>
+                        <div class="traction-label">Weekly Events</div>
+                    </div>
+                    <div class="traction-item">
+                        <div class="traction-value">85%</div>
+                        <div class="traction-label">User Retention</div>
+                    </div>
+                    <div class="traction-item">
+                        <div class="traction-value">4.8</div>
+                        <div class="traction-label">App Rating</div>
+                    </div>
+                </div>
+                
+                <div class="growth-chart">
+                    <div class="chart-bar" style="height: 30%" data-label="Q1"></div>
+                    <div class="chart-bar" style="height: 45%" data-label="Q2"></div>
+                    <div class="chart-bar" style="height: 65%" data-label="Q3"></div>
+                    <div class="chart-bar" style="height: 85%" data-label="Q4"></div>
+                    <div class="chart-bar" style="height: 100%" data-label="Now"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 7: Team -->
+        <div class="slide slide-team">
+            <div class="content">
+                <div class="slide-header">
+                    <h2 class="slide-title-text">Experienced Leadership Team</h2>
+                    <p class="slide-subtitle">Marketplace and wellness expertise</p>
+                </div>
+                
+                <div class="team-grid">
+                    <div class="team-member">
+                        <div class="member-avatar">SC</div>
+                        <div class="member-name">Sarah Chen</div>
+                        <div class="member-role">CEO & Co-founder</div>
+                        <div class="member-bio">Ex-Airbnb PM<br>10+ years marketplaces</div>
+                    </div>
+                    <div class="team-member">
+                        <div class="member-avatar">MJ</div>
+                        <div class="member-name">Marcus Johnson</div>
+                        <div class="member-role">CTO & Co-founder</div>
+                        <div class="member-bio">Ex-Google Engineer<br>ML/AI Expert</div>
+                    </div>
+                    <div class="team-member">
+                        <div class="member-avatar">ER</div>
+                        <div class="member-name">Elena Rodriguez</div>
+                        <div class="member-role">Head of Community</div>
+                        <div class="member-bio">Built 100K+ community<br>Wellness influencer</div>
+                    </div>
+                    <div class="team-member">
+                        <div class="member-avatar">DK</div>
+                        <div class="member-name">David Kim</div>
+                        <div class="member-role">Head of Growth</div>
+                        <div class="member-bio">Ex-Uber Growth<br>Scaled to 50 cities</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 8: Ask -->
+        <div class="slide slide-ask">
+            <div class="content">
+                <div class="slide-header">
+                    <h2 class="slide-title-text" style="color: white;">Investment Opportunity</h2>
+                    <p class="slide-subtitle" style="color: white;">Join us in transforming neighborhood wellness</p>
+                </div>
+                
+                <div class="ask-details">
+                    <div class="ask-amount">$1.5M Seed Round</div>
+                    <div class="ask-terms">$8M pre-money valuation | 24-month runway</div>
+                    
+                    <div class="use-of-funds">
+                        <div class="fund-item">
+                            <div class="fund-percentage">40%</div>
+                            <div class="fund-category">Product Development</div>
+                        </div>
+                        <div class="fund-item">
+                            <div class="fund-percentage">30%</div>
+                            <div class="fund-category">Market Expansion</div>
+                        </div>
+                        <div class="fund-item">
+                            <div class="fund-percentage">20%</div>
+                            <div class="fund-category">Team Growth</div>
+                        </div>
+                        <div class="fund-item">
+                            <div class="fund-percentage">10%</div>
+                            <div class="fund-category">Operations</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="contact-cta">
+                    <a href="mailto:invest@harmony-spaces.com" class="cta-button">Let's Connect</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

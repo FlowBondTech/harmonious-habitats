@@ -325,10 +325,10 @@ const NotificationCenter: React.FC = () => {
       {showDropdown && (
         <>
           <div 
-            className="fixed inset-0 z-10" 
+            className="fixed inset-0 z-[110] bg-black/20" 
             onClick={() => setShowDropdown(false)}
           />
-          <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-forest-100 z-20 max-h-96 overflow-hidden">
+          <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-forest-100 z-[120] max-h-96 overflow-hidden">
             <div className="p-4 border-b border-forest-100">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-forest-800">Notifications</h3>
