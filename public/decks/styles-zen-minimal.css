@@ -1,0 +1,283 @@
+/* Zen Minimalist Design - Clean & Mindful */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;600&family=Noto+Serif:wght@300;400&display=swap');
+
+:root {
+    --ink: #2c2c2c;
+    --paper: #fafafa;
+    --mist: #e8e8e8;
+    --bamboo: #6b8e5a;
+    --stone: #a8a8a8;
+    --water: #b8d4e3;
+    --sand: #f5f2ed;
+    --gold: #d4af37;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Noto Sans', sans-serif;
+    font-weight: 300;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.8;
+    min-height: 100vh;
+    letter-spacing: 0.02em;
+}
+
+/* Typography - Minimal & Elegant */
+h1, h2, h3 {
+    font-family: 'Noto Serif', serif;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+}
+
+h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    text-align: center;
+    padding: 3rem 0;
+    position: relative;
+}
+
+h1::after {
+    content: '';
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 1px;
+    background: var(--bamboo);
+}
+
+h2 {
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    color: var(--ink);
+    margin-top: 3rem;
+}
+
+h3 {
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    color: var(--stone);
+}
+
+/* Container with breathing room */
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+}
+
+/* Zen cards - minimal shadows */
+.card {
+    background: white;
+    padding: 3rem;
+    margin: 2rem 0;
+    border: 1px solid var(--mist);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+}
+
+/* Minimal buttons */
+.btn {
+    display: inline-block;
+    padding: 1rem 3rem;
+    background: transparent;
+    color: var(--ink);
+    text-decoration: none;
+    border: 1px solid var(--ink);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: var(--ink);
+    color: var(--paper);
+}
+
+.btn-primary {
+    background: var(--bamboo);
+    color: white;
+    border-color: var(--bamboo);
+}
+
+.btn-primary:hover {
+    background: transparent;
+    color: var(--bamboo);
+}
+
+/* Stats - clean presentation */
+.stat-card {
+    text-align: center;
+    padding: 2rem;
+    background: var(--sand);
+    border: none;
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 300;
+    color: var(--bamboo);
+    font-family: 'Noto Serif', serif;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: var(--stone);
+    font-size: 0.875rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+/* Hero - zen garden inspired */
+.hero {
+    background: linear-gradient(to bottom, var(--sand) 0%, var(--paper) 100%);
+    padding: 6rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: -20%;
+    width: 40%;
+    height: 40%;
+    background: radial-gradient(circle, var(--water) 0%, transparent 70%);
+    opacity: 0.1;
+    border-radius: 50%;
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    bottom: 10%;
+    right: -20%;
+    width: 40%;
+    height: 40%;
+    background: radial-gradient(circle, var(--bamboo) 0%, transparent 70%);
+    opacity: 0.08;
+    border-radius: 50%;
+}
+
+/* Grid - balanced spacing */
+.grid {
+    display: grid;
+    gap: 3rem;
+    margin: 4rem 0;
+}
+
+.grid-2 {
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+}
+
+.grid-3 {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* Zen circle decoration */
+.zen-circle {
+    width: 100px;
+    height: 100px;
+    border: 1px solid var(--bamboo);
+    border-radius: 50%;
+    margin: 2rem auto;
+    position: relative;
+}
+
+.zen-circle::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    background: var(--bamboo);
+    border-radius: 50%;
+}
+
+/* Breathing space elements */
+.spacer {
+    height: 4rem;
+}
+
+.divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--mist), transparent);
+    margin: 3rem 0;
+}
+
+/* Quote styling */
+.quote {
+    font-style: italic;
+    font-family: 'Noto Serif', serif;
+    font-size: 1.25rem;
+    text-align: center;
+    color: var(--stone);
+    padding: 2rem;
+    position: relative;
+}
+
+.quote::before,
+.quote::after {
+    content: '"';
+    font-size: 3rem;
+    color: var(--mist);
+    position: absolute;
+}
+
+.quote::before {
+    top: 0;
+    left: 0;
+}
+
+.quote::after {
+    bottom: 0;
+    right: 0;
+}
+
+/* Subtle animations */
+@keyframes breathe {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+}
+
+.breathing {
+    animation: breathe 4s ease-in-out infinite;
+}
+
+/* Responsive with mindful breakpoints */
+@media (max-width: 768px) {
+    .container {
+        padding: 2rem 1rem;
+    }
+    
+    .card {
+        padding: 2rem;
+    }
+    
+    .hero {
+        padding: 4rem 1rem;
+    }
+    
+    .grid {
+        gap: 2rem;
+    }
+}

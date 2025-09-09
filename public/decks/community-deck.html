@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony Spaces - Community Deck</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #ffeaa7 0%, #dfe6e9 100%);
+            color: #2d3436;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            margin-bottom: 60px;
+        }
+        
+        .hero-emoji {
+            font-size: 100px;
+            margin-bottom: 30px;
+            animation: wave 2s ease-in-out infinite;
+        }
+        
+        @keyframes wave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+        
+        .hero-title {
+            font-size: 56px;
+            font-weight: 700;
+            color: #00b894;
+            margin-bottom: 20px;
+        }
+        
+        .hero-subtitle {
+            font-size: 24px;
+            color: #636e72;
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        
+        .hero-cta {
+            display: inline-block;
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 184, 148, 0.3);
+        }
+        
+        .hero-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 184, 148, 0.4);
+        }
+        
+        /* Story Section */
+        .story {
+            background: white;
+            border-radius: 30px;
+            padding: 60px;
+            margin-bottom: 60px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+        
+        .story-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .story-title {
+            font-size: 40px;
+            color: #00b894;
+            margin-bottom: 10px;
+        }
+        
+        .story-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        .story-image {
+            font-size: 200px;
+            text-align: center;
+        }
+        
+        .story-text {
+            font-size: 18px;
+            color: #636e72;
+        }
+        
+        .story-highlight {
+            color: #00b894;
+            font-weight: 600;
+        }
+        
+        /* How It Works */
+        .how-it-works {
+            margin-bottom: 60px;
+        }
+        
+        .section-title {
+            font-size: 40px;
+            color: #00b894;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+        }
+        
+        .step {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+        }
+        
+        .step:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 auto 20px;
+        }
+        
+        .step-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        
+        .step-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3436;
+            margin-bottom: 10px;
+        }
+        
+        .step-desc {
+            font-size: 16px;
+            color: #636e72;
+        }
+        
+        /* Features Grid */
+        .features {
+            margin-bottom: 60px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .feature-emoji {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        
+        .feature-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #00b894;
+            margin-bottom: 15px;
+        }
+        
+        .feature-desc {
+            font-size: 16px;
+            color: #636e72;
+            line-height: 1.6;
+        }
+        
+        /* Community Impact */
+        .impact {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            border-radius: 30px;
+            padding: 60px;
+            margin-bottom: 60px;
+            text-align: center;
+        }
+        
+        .impact-title {
+            font-size: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .impact-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+        }
+        
+        .impact-stat {
+            text-align: center;
+        }
+        
+        .impact-number {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .impact-label {
+            font-size: 18px;
+            opacity: 0.95;
+        }
+        
+        /* Testimonials */
+        .testimonials {
+            margin-bottom: 60px;
+        }
+        
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        
+        .testimonial {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+        
+        .testimonial-text {
+            font-size: 16px;
+            color: #636e72;
+            font-style: italic;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+        
+        .author-info {
+            flex: 1;
+        }
+        
+        .author-name {
+            font-weight: 600;
+            color: #2d3436;
+        }
+        
+        .author-role {
+            font-size: 14px;
+            color: #636e72;
+        }
+        
+        /* Join Section */
+        .join {
+            background: white;
+            border-radius: 30px;
+            padding: 60px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+        
+        .join-title {
+            font-size: 48px;
+            color: #00b894;
+            margin-bottom: 20px;
+        }
+        
+        .join-subtitle {
+            font-size: 20px;
+            color: #636e72;
+            margin-bottom: 40px;
+        }
+        
+        .join-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .join-option {
+            padding: 30px;
+            border: 2px solid #00b894;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        
+        .join-option:hover {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+        }
+        
+        .join-option-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .join-option-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .join-option-desc {
+            font-size: 16px;
+        }
+        
+        .join-cta {
+            display: inline-block;
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            padding: 20px 50px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 184, 148, 0.3);
+        }
+        
+        .join-cta:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 184, 148, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .story-content,
+            .steps,
+            .features-grid,
+            .impact-stats,
+            .testimonials-grid,
+            .join-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-title {
+                font-size: 36px;
+            }
+            
+            .hero-subtitle {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-emoji">🌿</div>
+            <h1 class="hero-title">Welcome to Harmony Spaces</h1>
+            <p class="hero-subtitle">Transform your neighborhood into a wellness community where everyone belongs</p>
+            <a href="#join" class="hero-cta">Join Your Community</a>
+        </section>
+        
+        <!-- Our Story -->
+        <section class="story">
+            <div class="story-header">
+                <h2 class="story-title">Our Story</h2>
+            </div>
+            <div class="story-content">
+                <div class="story-image">🏡</div>
+                <div class="story-text">
+                    <p>We believe <span class="story-highlight">wellness should be accessible to everyone</span>, right in your own neighborhood.</p>
+                    <br>
+                    <p>Harmony Spaces was born from a simple idea: what if your neighbors could be your wellness community? What if that spare room could become a yoga studio? What if your local park could host meditation circles?</p>
+                    <br>
+                    <p>We're building a platform where <span class="story-highlight">neighbors connect through holistic practices</span>, share spaces, and create meaningful relationships that make our communities healthier and happier.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- How It Works -->
+        <section class="how-it-works">
+            <h2 class="section-title">How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">📍</div>
+                    <div class="step-title">Set Your Location</div>
+                    <div class="step-desc">Choose your neighborhood radius</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">🔍</div>
+                    <div class="step-title">Discover Events</div>
+                    <div class="step-desc">Find wellness activities nearby</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">🤝</div>
+                    <div class="step-title">Connect</div>
+                    <div class="step-desc">Join events or host your own</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-icon">💚</div>
+                    <div class="step-title">Grow Together</div>
+                    <div class="step-desc">Build lasting connections</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Features -->
+        <section class="features">
+            <h2 class="section-title">What Makes Us Special</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-emoji">🏠</div>
+                    <div class="feature-title">Share Your Space</div>
+                    <div class="feature-desc">Turn your home into a wellness sanctuary and earn extra income by hosting events</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-emoji">👥</div>
+                    <div class="feature-title">Find Your Tribe</div>
+                    <div class="feature-desc">Connect with like-minded neighbors who share your passion for wellness</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-emoji">🧘‍♀️</div>
+                    <div class="feature-title">Practice Together</div>
+                    <div class="feature-desc">Join or create regular wellness practices from yoga to meditation to sound healing</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-emoji">💬</div>
+                    <div class="feature-title">Stay Connected</div>
+                    <div class="feature-desc">Message neighbors, coordinate events, and build genuine friendships</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-emoji">✨</div>
+                    <div class="feature-title">Grow as a Practitioner</div>
+                    <div class="feature-desc">Share your skills, build your practice, and make a difference locally</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-emoji">🌱</div>
+                    <div class="feature-title">Support Local</div>
+                    <div class="feature-desc">Keep wellness dollars in your community and support local practitioners</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Community Impact -->
+        <section class="impact">
+            <h2 class="impact-title">Our Community Impact</h2>
+            <div class="impact-stats">
+                <div class="impact-stat">
+                    <div class="impact-number">2,500+</div>
+                    <div class="impact-label">Happy Members</div>
+                </div>
+                <div class="impact-stat">
+                    <div class="impact-number">150+</div>
+                    <div class="impact-label">Weekly Events</div>
+                </div>
+                <div class="impact-stat">
+                    <div class="impact-number">50+</div>
+                    <div class="impact-label">Shared Spaces</div>
+                </div>
+                <div class="impact-stat">
+                    <div class="impact-number">85%</div>
+                    <div class="impact-label">Feel More Connected</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Testimonials -->
+        <section class="testimonials">
+            <h2 class="section-title">What Our Community Says</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial">
+                    <p class="testimonial-text">"I've met the most amazing neighbors through Harmony Spaces. We now have a weekly yoga group in my backyard!"</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">JD</div>
+                        <div class="author-info">
+                            <div class="author-name">Jessica Davis</div>
+                            <div class="author-role">Community Member</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial">
+                    <p class="testimonial-text">"As a new yoga teacher, this platform helped me build my practice and connect with students in my area."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">MT</div>
+                        <div class="author-info">
+                            <div class="author-name">Michael Torres</div>
+                            <div class="author-role">Wellness Practitioner</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial">
+                    <p class="testimonial-text">"My spare room is now generating income while bringing wellness to my community. It's a win-win!"</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">SP</div>
+                        <div class="author-info">
+                            <div class="author-name">Sarah Park</div>
+                            <div class="author-role">Space Host</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Join Section -->
+        <section class="join" id="join">
+            <h2 class="join-title">Ready to Transform Your Neighborhood?</h2>
+            <p class="join-subtitle">Choose how you want to participate in your wellness community</p>
+            
+            <div class="join-options">
+                <div class="join-option">
+                    <div class="join-option-icon">🌟</div>
+                    <div class="join-option-title">Join Events</div>
+                    <div class="join-option-desc">Discover and attend wellness activities</div>
+                </div>
+                <div class="join-option">
+                    <div class="join-option-icon">🏠</div>
+                    <div class="join-option-title">Host Spaces</div>
+                    <div class="join-option-desc">Share your space and earn income</div>
+                </div>
+                <div class="join-option">
+                    <div class="join-option-icon">🧘</div>
+                    <div class="join-option-title">Lead Practices</div>
+                    <div class="join-option-desc">Share your wellness expertise</div>
+                </div>
+            </div>
+            
+            <a href="#" class="join-cta">Start Your Journey Today</a>
+        </section>
+    </div>
+</body>
+</html>
