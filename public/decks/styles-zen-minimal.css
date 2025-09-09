@@ -4,12 +4,12 @@
 :root {
     --ink: #2c2c2c;
     --paper: #fafafa;
-    --mist: #e8e8e8;
-    --bamboo: #6b8e5a;
-    --stone: #a8a8a8;
-    --water: #b8d4e3;
+    --mist: #d0d0d0; /* Improved contrast for borders */
+    --bamboo: #5a7d48; /* Darker for better contrast */
+    --stone: #666666; /* Improved contrast: 5.74:1 ratio */
+    --water: #7fa9c2; /* Darker for better contrast */
     --sand: #f5f2ed;
-    --gold: #d4af37;
+    --gold: #b8941f; /* Darker gold for better contrast */
 }
 
 * {

@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Harmonious Habitats - Design Showcase</title>
     
+    <!-- Base UX Improvements (Always loaded) -->
+    <link rel="stylesheet" href="styles-base-ux.css">
+    
     <!-- CSS Design Switcher -->
     <!-- Uncomment the design you want to use -->
     
     <!-- Earth Tones Design (Natural & Grounding) -->
-    <link rel="stylesheet" href="styles-earth-tones.css">
+    <link rel="stylesheet" href="styles-earth-tones.css" id="theme-stylesheet">
     
     <!-- Zen Minimalist Design (Clean & Mindful) -->
     <!-- <link rel="stylesheet" href="styles-zen-minimal.css"> -->
@@ -91,10 +94,13 @@
     </style>
 </head>
 <body>
+    <!-- Skip to main content for screen readers -->
+    <a href="#main-content" class="skip-nav">Skip to main content</a>
+    
     <!-- Design Switcher -->
-    <div class="design-switcher">
+    <div class="design-switcher" role="region" aria-label="Design theme selector">
         <label for="design-select">Choose Design:</label>
-        <select id="design-select" onchange="switchDesign(this.value)">
+        <select id="design-select" onchange="switchDesign(this.value)" aria-label="Select a design theme">
             <option value="styles-earth-tones.css">Earth Tones</option>
             <option value="styles-zen-minimal.css">Zen Minimalist</option>
             <option value="styles-vibrant-community.css">Vibrant Community</option>
@@ -103,7 +109,7 @@
     </div>
 
     <!-- Hero Section -->
-    <div class="container">
+    <main id="main-content" class="container smooth-scroll">
         <div class="hero">
             <h1>Harmonious Habitats</h1>
             <p class="subtitle">Cultivating Wellness Communities Through Mindful Spaces</p>
@@ -209,24 +215,48 @@
                 <circle cx="85" cy="74" r="30" />
             </svg>
         </div>
-    </div>
+    </main>
 
     <script>
         function switchDesign(cssFile) {
-            // Remove all existing style links
-            const existingLinks = document.querySelectorAll('link[rel="stylesheet"]');
-            existingLinks.forEach(link => {
-                if (link.href.includes('styles-')) {
-                    link.remove();
-                }
-            });
+            const themeLink = document.getElementById('theme-stylesheet');
+            const container = document.querySelector('.container');
             
-            // Add new style link
+            // Add loading state
+            container.classList.add('loading');
+            
+            // Create new link element
             const newLink = document.createElement('link');
             newLink.rel = 'stylesheet';
             newLink.href = cssFile;
+            newLink.id = 'theme-stylesheet';
+            
+            // When new stylesheet loads, remove old one
+            newLink.onload = function() {
+                if (themeLink) {
+                    themeLink.remove();
+                }
+                // Remove loading state after transition
+                setTimeout(() => {
+                    container.classList.remove('loading');
+                }, 300);
+            };
+            
+            // Insert new link
             document.head.appendChild(newLink);
+            
+            // Save preference
+            localStorage.setItem('preferred-theme', cssFile);
         }
+        
+        // Load saved theme preference
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('preferred-theme');
+            if (savedTheme && savedTheme !== 'styles-earth-tones.css') {
+                switchDesign(savedTheme);
+                document.getElementById('design-select').value = savedTheme;
+            }
+        });
     </script>
 </body>
 </html>

@@ -7,7 +7,7 @@
     --terracotta: #b87333;
     --sand: #f4f1e8;
     --moss: #4a5d23;
-    --stone: #8b8680;
+    --stone: #666666; /* Improved contrast: 5.74:1 ratio */
     --cream: #faf8f3;
     --amber: #d4a574;
 }
