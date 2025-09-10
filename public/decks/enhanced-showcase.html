@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmonious Habitats - Enhanced Pitch Deck</title>
+    
+    <!-- Base styles -->
+    <link rel="stylesheet" href="styles-base-ux.css">
+    <link rel="stylesheet" href="styles-earth-tones.css" id="theme-stylesheet">
+    <link rel="stylesheet" href="styles-enhancements.css">
+    
+    <style>
+        /* Additional custom styles for this showcase */
+        body {
+            overflow-x: hidden;
+        }
+        
+        .hero-enhanced {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .logo-reveal {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+            width: 100%;
+            max-width: 1000px;
+        }
+        
+        .stat-box {
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+        }
+        
+        .feature-bento {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+        
+        .feature-bento .large {
+            grid-column: span 2;
+        }
+        
+        .activity-ticker {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 50px;
+            overflow: hidden;
+            white-space: nowrap;
+            margin: 2rem 0;
+        }
+        
+        .ticker-content {
+            display: inline-block;
+            animation: ticker 20s linear infinite;
+        }
+        
+        @keyframes ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        .ticker-item {
+            display: inline-block;
+            padding: 0 2rem;
+        }
+        
+        /* Particle container */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="gradient-mesh">
+    <!-- Particles Background -->
+    <div class="particles-container" id="particles"></div>
+    
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator"></div>
+    
+    <!-- Hero Section with Enhancements -->
+    <div class="hero-enhanced fade-in-up">
+        <div class="logo-reveal">🌿</div>
+        <h1 class="gradient-text-animated">Harmonious Habitats</h1>
+        <p class="shimmer-text" style="font-size: 1.5rem; margin: 1rem 0;">Cultivating Wellness Communities</p>
+        
+        <!-- Live Activity Ticker -->
+        <div class="activity-ticker glass-card">
+            <div class="ticker-content">
+                <span class="ticker-item">🎉 New event in Riverdale</span>
+                <span class="ticker-item">👥 15 neighbors joined today</span>
+                <span class="ticker-item">📍 3 new spaces shared</span>
+                <span class="ticker-item">✨ Community growing 23% monthly</span>
+                <span class="ticker-item">🌱 500+ wellness events this month</span>
+            </div>
+        </div>
+        
+        <!-- CTA Buttons with Effects -->
+        <div class="button-container" style="margin-top: 2rem;">
+            <button class="btn magnetic-btn pulse">
+                Get Started
+                <span class="pulse-ring"></span>
+            </button>
+            <button class="btn btn-secondary lift-hover glow">
+                Watch Demo
+            </button>
+        </div>
+    </div>
+    
+    <!-- Statistics Section with Counters -->
+    <section class="container stagger-in">
+        <h2 class="text-center reveal">Our Impact</h2>
+        <div class="stat-grid">
+            <div class="stat-box glass-card float">
+                <div class="stat-counter" data-target="4500" data-suffix="B+">$0</div>
+                <div class="stat-label">Global Wellness Market</div>
+            </div>
+            <div class="stat-box glass-card float" style="animation-delay: 0.2s;">
+                <div class="stat-counter" data-target="10000" data-suffix="+">0</div>
+                <div class="stat-label">Active Communities</div>
+            </div>
+            <div class="stat-box glass-card float" style="animation-delay: 0.4s;">
+                <div class="stat-counter" data-target="45000" data-suffix="+">0</div>
+                <div class="stat-label">Monthly Events</div>
+            </div>
+            <div class="stat-box glass-card float" style="animation-delay: 0.6s;">
+                <div class="stat-counter" data-target="89" data-suffix="%">0</div>
+                <div class="stat-label">Well-being Increase</div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Feature Bento Grid -->
+    <section class="container reveal">
+        <h2 class="text-center gradient-text-animated">Platform Features</h2>
+        <div class="feature-bento">
+            <div class="card glass-card tilt-hover large">
+                <h3>🏡 Space Sharing</h3>
+                <p>Transform everyday spaces into wellness sanctuaries. Connect space holders with facilitators.</p>
+                <div class="loading-dots" style="margin-top: 1rem;">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            <div class="card glass-card lift-hover">
+                <h3>🎯 Event Discovery</h3>
+                <p>Find local wellness events that resonate with your journey.</p>
+            </div>
+            <div class="card glass-card lift-hover">
+                <h3>👥 Community Building</h3>
+                <p>Connect with like-minded neighbors in your area.</p>
+            </div>
+            <div class="card glass-card lift-hover morph">
+                <h3>📊 Impact Tracking</h3>
+                <p>Measure and celebrate community wellness growth.</p>
+            </div>
+            <div class="card glass-card lift-hover">
+                <h3>💬 Real-time Chat</h3>
+                <p>Stay connected with your wellness community.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Testimonial Section -->
+    <section class="container reveal-left">
+        <h2 class="text-center">Success Stories</h2>
+        <div class="grid grid-3">
+            <div class="card glass-dark pulse">
+                <p style="font-style: italic;">"This platform transformed our neighborhood. We went from strangers to a thriving wellness community!"</p>
+                <div style="margin-top: 1rem;">
+                    <strong>- Sarah M.</strong><br>
+                    <small>Brooklyn, NY</small>
+                </div>
+            </div>
+            <div class="card glass-dark pulse" style="animation-delay: 0.3s;">
+                <p style="font-style: italic;">"I found my tribe through local meditation circles. Life-changing!"</p>
+                <div style="margin-top: 1rem;">
+                    <strong>- David L.</strong><br>
+                    <small>Austin, TX</small>
+                </div>
+            </div>
+            <div class="card glass-dark pulse" style="animation-delay: 0.6s;">
+                <p style="font-style: italic;">"As a yoga instructor, this gave me the perfect platform to serve my community."</p>
+                <div style="margin-top: 1rem;">
+                    <strong>- Maria G.</strong><br>
+                    <small>Portland, OR</small>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Call to Action -->
+    <section class="container" style="text-align: center; padding: 4rem 0;">
+        <div class="card glass-card glow" style="padding: 3rem;">
+            <h2 class="gradient-text-animated">Ready to Transform Your Community?</h2>
+            <p class="typewriter" style="font-size: 1.25rem; margin: 2rem auto; max-width: 600px;">
+                Join thousands of neighborhoods building wellness together.
+            </p>
+            <button class="btn magnetic-btn" onclick="launchConfetti()">
+                Start Your Journey
+                <span class="pulse-ring"></span>
+            </button>
+        </div>
+    </section>
+
+    <script>
+        // Animated Counter
+        function animateCounter(element) {
+            const target = parseInt(element.dataset.target);
+            const suffix = element.dataset.suffix || '';
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+            
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                
+                if (target >= 1000) {
+                    element.textContent = (current / 1000).toFixed(1) + suffix;
+                } else {
+                    element.textContent = Math.floor(current) + suffix;
+                }
+            }, 16);
+        }
+        
+        // Scroll Animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible', 'active');
+                    
+                    // Trigger counters
+                    const counters = entry.target.querySelectorAll('.stat-counter');
+                    counters.forEach(counter => {
+                        if (!counter.classList.contains('counted')) {
+                            counter.classList.add('counted');
+                            animateCounter(counter);
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all animated elements
+        document.querySelectorAll('.fade-in-up, .stagger-in, .reveal, .reveal-left, .reveal-right').forEach(el => {
+            observer.observe(el);
+        });
+        
+        // Create particles
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+            document.getElementById('particles').appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 25000);
+        }
+        
+        // Generate particles periodically
+        setInterval(createParticle, 1000);
+        
+        // Initial particles
+        for (let i = 0; i < 10; i++) {
+            setTimeout(createParticle, i * 100);
+        }
+        
+        // Confetti effect
+        function launchConfetti() {
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4d7c2a'];
+            const confettiCount = 100;
+            
+            for (let i = 0; i < confettiCount; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 10);
+            }
+        }
+        
+        // Smooth scroll for indicator
+        document.querySelector('.scroll-indicator')?.addEventListener('click', () => {
+            window.scrollTo({
+                top: window.innerHeight,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Hide scroll indicator when scrolled
+        window.addEventListener('scroll', () => {
+            const indicator = document.querySelector('.scroll-indicator');
+            if (indicator) {
+                indicator.style.opacity = window.scrollY > 100 ? '0' : '0.5';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,495 @@
+/* Premium Visual Enhancements - Make Your Pitch Deck Pop! */
+/* Apply these to any pitch deck for maximum impact */
+
+/* ========================================
+   1. GLASS MORPHISM EFFECTS
+   ======================================== */
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 
+        0 8px 32px rgba(31, 38, 135, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.glass-card:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 
+        0 12px 48px rgba(31, 38, 135, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.glass-dark {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ========================================
+   2. GRADIENT MESH BACKGROUNDS
+   ======================================== */
+
+.gradient-mesh {
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(135, 169, 107, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(184, 115, 51, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(37, 99, 235, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, #f4f1e8 0%, #faf8f3 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.gradient-mesh::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+        radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 80% 50%, rgba(135, 169, 107, 0.1) 0%, transparent 40%);
+    animation: mesh-float 20s ease-in-out infinite;
+}
+
+@keyframes mesh-float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(30px, -30px) rotate(120deg); }
+    66% { transform: translate(-20px, 20px) rotate(240deg); }
+}
+
+/* ========================================
+   3. ANIMATED COUNTERS & STATISTICS
+   ======================================== */
+
+.stat-counter {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+    display: inline-block;
+}
+
+.stat-counter[data-count]::after {
+    content: attr(data-suffix);
+    font-size: 1.5rem;
+    position: absolute;
+    top: 0;
+    right: -1.5em;
+}
+
+/* Animated number effect */
+@keyframes count-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.counting {
+    animation: count-up 0.6s ease-out forwards;
+}
+
+/* ========================================
+   4. FLOATING & PULSING ANIMATIONS
+   ======================================== */
+
+.float {
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+.pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.pulse-ring {
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+    }
+}
+
+/* ========================================
+   5. GRADIENT TEXT EFFECTS
+   ======================================== */
+
+.gradient-text-animated {
+    background: linear-gradient(
+        135deg,
+        #667eea 0%,
+        #764ba2 25%,
+        #f093fb 50%,
+        #f5576c 75%,
+        #667eea 100%
+    );
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradient-shift 8s ease infinite;
+}
+
+@keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.shimmer-text {
+    background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.7) 50%,
+        transparent 60%
+    );
+    background-size: 200% 100%;
+    background-position: -100% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -100% 0; }
+    100% { background-position: 100% 0; }
+}
+
+/* ========================================
+   6. SCROLL-TRIGGERED ANIMATIONS
+   ======================================== */
+
+.fade-in-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.fade-in-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.stagger-in > * {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.stagger-in.visible > * {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.stagger-in.visible > *:nth-child(1) { transition-delay: 0.1s; }
+.stagger-in.visible > *:nth-child(2) { transition-delay: 0.2s; }
+.stagger-in.visible > *:nth-child(3) { transition-delay: 0.3s; }
+.stagger-in.visible > *:nth-child(4) { transition-delay: 0.4s; }
+
+/* ========================================
+   7. MAGNETIC BUTTONS
+   ======================================== */
+
+.magnetic-btn {
+    position: relative;
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: pointer;
+}
+
+.magnetic-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.magnetic-btn:hover::before {
+    width: 300%;
+    height: 300%;
+}
+
+.magnetic-btn:hover {
+    transform: scale(1.05);
+}
+
+/* ========================================
+   8. GLOWING EFFECTS
+   ======================================== */
+
+.glow {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+    animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.5); }
+    50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.8), 0 0 60px rgba(102, 126, 234, 0.4); }
+}
+
+.text-glow {
+    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+    animation: text-glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes text-glow-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* ========================================
+   9. PARTICLE EFFECTS
+   ======================================== */
+
+.particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.8) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: particle-float 15s infinite linear;
+}
+
+@keyframes particle-float {
+    0% {
+        transform: translateY(100vh) translateX(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-10vh) translateX(100px);
+        opacity: 0;
+    }
+}
+
+/* ========================================
+   10. REVEAL ON SCROLL
+   ======================================== */
+
+.reveal {
+    position: relative;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.reveal.active {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.reveal-left {
+    transform: translateX(-100px);
+}
+
+.reveal-right {
+    transform: translateX(100px);
+}
+
+/* ========================================
+   11. MORPHING SHAPES
+   ======================================== */
+
+.morph {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    animation: morph 8s ease-in-out infinite;
+}
+
+@keyframes morph {
+    0%, 100% {
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+    50% {
+        border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+    }
+}
+
+/* ========================================
+   12. PREMIUM HOVER STATES
+   ======================================== */
+
+.lift-hover {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.lift-hover:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.1),
+        0 10px 20px rgba(0, 0, 0, 0.06);
+}
+
+.tilt-hover {
+    transition: transform 0.3s ease;
+    transform-style: preserve-3d;
+}
+
+.tilt-hover:hover {
+    transform: perspective(1000px) rotateX(-10deg) rotateY(10deg) scale(1.05);
+}
+
+/* ========================================
+   13. LOADING ANIMATIONS
+   ======================================== */
+
+.loading-dots {
+    display: inline-flex;
+    gap: 4px;
+}
+
+.loading-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: loading-dot 1.4s ease-in-out infinite;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes loading-dot {
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* ========================================
+   14. CONFETTI BURST
+   ======================================== */
+
+.confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    background: #f0f;
+    position: absolute;
+    animation: confetti-fall 3s ease-out forwards;
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* ========================================
+   15. SMOOTH SCROLL INDICATOR
+   ======================================== */
+
+.scroll-indicator {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 50px;
+    border: 2px solid currentColor;
+    border-radius: 25px;
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+.scroll-indicator::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: 6px;
+    height: 10px;
+    background: currentColor;
+    border-radius: 3px;
+    transform: translateX(-50%);
+    animation: scroll-down 2s infinite;
+}
+
+@keyframes scroll-down {
+    0% { transform: translateX(-50%) translateY(0); opacity: 0; }
+    40% { opacity: 1; }
+    80% { transform: translateX(-50%) translateY(20px); opacity: 0; }
+    100% { opacity: 0; }
+}
+
+/* ========================================
+   16. TYPEWRITER EFFECT
+   ======================================== */
+
+.typewriter {
+    overflow: hidden;
+    border-right: 3px solid currentColor;
+    white-space: nowrap;
+    animation: 
+        typing 3.5s steps(40, end),
+        blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+@keyframes blink-caret {
+    from, to { border-color: transparent; }
+    50% { border-color: currentColor; }
+}
