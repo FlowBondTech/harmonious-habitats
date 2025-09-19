@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony Spaces - Pitch Deck Collection</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 60px;
+        }
+        
+        .logo {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        .title {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+        
+        .decks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .deck-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+        
+        .deck-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+        }
+        
+        .deck-preview {
+            height: 200px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .deck-preview.one-pager {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f3f4f6 100%);
+        }
+        
+        .deck-preview.two-pager {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .deck-preview.investor {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        }
+        
+        .deck-preview.community {
+            background: linear-gradient(135deg, #ffeaa7 0%, #dfe6e9 100%);
+        }
+        
+        .deck-label {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .deck-info {
+            padding: 30px;
+        }
+        
+        .deck-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .deck-description {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        
+        .deck-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .feature-tag {
+            background: #f0f0f0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .deck-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 60px;
+        }
+        
+        .footer p {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        
+        .footer-link:hover {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .decks-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .title {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🌿</div>
+            <h1 class="title">Harmony Spaces</h1>
+            <p class="subtitle">Pitch Deck Collection</p>
+        </div>
+
+        <!-- Featured: New Multi-Deck System -->
+        <div class="deck-card" style="margin-bottom: 40px; background: linear-gradient(135deg, #10B981, #8B5CF6); color: white;">
+            <div class="deck-preview" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(139, 92, 246, 0.2)); height: 250px;">
+                <span style="font-size: 80px;">✨</span>
+                <span class="deck-label" style="background: rgba(255, 255, 255, 0.2);">NEW - ALL DECKS</span>
+            </div>
+            <div class="deck-info" style="background: rgba(0, 0, 0, 0.1);">
+                <h3 class="deck-title" style="color: white; font-size: 32px;">🚀 Interactive Presentation Suite</h3>
+                <p class="deck-description" style="color: white; font-size: 18px; margin: 20px 0;">
+                    Experience our new professional presentation system with all 4 decks in one beautiful interface.
+                    Features animated backgrounds, keyboard navigation, fullscreen mode, and smooth transitions.
+                </p>
+                <div class="deck-features" style="margin: 20px 0;">
+                    <span class="feature-tag" style="background: rgba(255, 255, 255, 0.2); color: white;">4 Presentations</span>
+                    <span class="feature-tag" style="background: rgba(255, 255, 255, 0.2); color: white;">Interactive</span>
+                    <span class="feature-tag" style="background: rgba(255, 255, 255, 0.2); color: white;">Fullscreen</span>
+                    <span class="feature-tag" style="background: rgba(255, 255, 255, 0.2); color: white;">Mobile Ready</span>
+                    <span class="feature-tag" style="background: rgba(255, 255, 255, 0.2); color: white;">Keyboard Controls</span>
+                </div>
+                <div class="deck-actions">
+                    <a href="harmony-spaces-decks.html" class="btn" style="background: white; color: #10B981; font-size: 18px; padding: 16px 32px;">
+                        ✨ Launch Presentation Suite
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <h2 style="text-align: center; color: white; margin-bottom: 30px; opacity: 0.9;">Individual Classic Decks</h2>
+
+        <div class="decks-grid">
+            <!-- One Pager -->
+            <div class="deck-card">
+                <div class="deck-preview one-pager">
+                    <span>📄</span>
+                    <span class="deck-label">One Pager</span>
+                </div>
+                <div class="deck-info">
+                    <h3 class="deck-title">Executive Summary</h3>
+                    <p class="deck-description">Concise one-page overview perfect for initial introductions and quick reviews. All key metrics and value propositions at a glance.</p>
+                    <div class="deck-features">
+                        <span class="feature-tag">Quick Read</span>
+                        <span class="feature-tag">Print-Ready</span>
+                        <span class="feature-tag">Investor Focus</span>
+                    </div>
+                    <div class="deck-actions">
+                        <a href="one-pager.html" class="btn btn-primary">View Deck</a>
+                        <a href="one-pager.html" download class="btn btn-secondary">Download</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Two Pager -->
+            <div class="deck-card">
+                <div class="deck-preview two-pager">
+                    <span>📑</span>
+                    <span class="deck-label">Two Pager</span>
+                </div>
+                <div class="deck-info">
+                    <h3 class="deck-title">Detailed Overview</h3>
+                    <p class="deck-description">Comprehensive two-page presentation with expanded details on market opportunity, business model, and growth strategy.</p>
+                    <div class="deck-features">
+                        <span class="feature-tag">Detailed</span>
+                        <span class="feature-tag">Metrics</span>
+                        <span class="feature-tag">Roadmap</span>
+                    </div>
+                    <div class="deck-actions">
+                        <a href="two-pager.html" class="btn btn-primary">View Deck</a>
+                        <a href="two-pager.html" download class="btn btn-secondary">Download</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Investor Deck -->
+            <div class="deck-card">
+                <div class="deck-preview investor">
+                    <span>💼</span>
+                    <span class="deck-label">Investor</span>
+                </div>
+                <div class="deck-info">
+                    <h3 class="deck-title">Investor Presentation</h3>
+                    <p class="deck-description">Professional multi-slide presentation designed for investor meetings. Full financial projections and market analysis.</p>
+                    <div class="deck-features">
+                        <span class="feature-tag">Professional</span>
+                        <span class="feature-tag">Financials</span>
+                        <span class="feature-tag">8 Slides</span>
+                    </div>
+                    <div class="deck-actions">
+                        <a href="investor-deck.html" class="btn btn-primary">View Deck</a>
+                        <a href="investor-deck.html" download class="btn btn-secondary">Download</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Community Deck -->
+            <div class="deck-card">
+                <div class="deck-preview community">
+                    <span>🤝</span>
+                    <span class="deck-label">Community</span>
+                </div>
+                <div class="deck-info">
+                    <h3 class="deck-title">Community Presentation</h3>
+                    <p class="deck-description">Warm, engaging presentation for potential users and community partners. Focus on impact and user benefits.</p>
+                    <div class="deck-features">
+                        <span class="feature-tag">User-Friendly</span>
+                        <span class="feature-tag">Story-Driven</span>
+                        <span class="feature-tag">Testimonials</span>
+                    </div>
+                    <div class="deck-actions">
+                        <a href="community-deck.html" class="btn btn-primary">View Deck</a>
+                        <a href="community-deck.html" download class="btn btn-secondary">Download</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Transform neighborhoods into wellness communities</p>
+            <p style="font-size: 14px; opacity: 0.8;">© 2025 Harmony Spaces. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="https://harmony-spaces.com" class="footer-link">Website</a>
+                <a href="mailto:invest@harmony-spaces.com" class="footer-link">Contact</a>
+                <a href="#" class="footer-link">LinkedIn</a>
+                <a href="#" class="footer-link">Twitter</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

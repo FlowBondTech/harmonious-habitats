@@ -3,356 +3,1610 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Harmony Spaces - Pitch Deck Collection</title>
+    <title>Harmony Spaces - Presentation Suite</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
+        :root {
+            --primary: #10B981;
+            --primary-dark: #059669;
+            --secondary: #8B5CF6;
+            --accent: #F59E0B;
+            --dark: #111827;
+            --light: #F9FAFB;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 60px;
-        }
-        
-        .logo {
-            font-size: 80px;
-            margin-bottom: 20px;
-        }
-        
-        .title {
-            font-size: 48px;
-            font-weight: 800;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            font-size: 20px;
-            opacity: 0.9;
-        }
-        
-        .decks-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-        
-        .deck-card {
-            background: white;
-            border-radius: 20px;
+            background: #000;
+            color: #fff;
             overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s;
+            position: relative;
         }
-        
-        .deck-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #c471f5 75%, #667eea 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            opacity: 0.1;
         }
-        
-        .deck-preview {
-            height: 200px;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float-up 20s infinite linear;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Deck Selector */
+        .deck-selector {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 60px;
+            z-index: 1000;
+            background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.1) 0%, rgba(0, 0, 0, 0.9) 100%);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .deck-selector.hidden {
+            transform: translateY(-100%);
+        }
+
+        .selector-container {
+            max-width: 1200px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .selector-title {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #10B981 0%, #8B5CF6 50%, #F59E0B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titlePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .selector-subtitle {
+            font-size: 1.5rem;
+            opacity: 0.8;
+            margin-bottom: 4rem;
+        }
+
+        .deck-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .deck-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
-        
-        .deck-preview.one-pager {
-            background: linear-gradient(135deg, #e8f5e9 0%, #f3f4f6 100%);
-        }
-        
-        .deck-preview.two-pager {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .deck-preview.investor {
-            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-        }
-        
-        .deck-preview.community {
-            background: linear-gradient(135deg, #ffeaa7 0%, #dfe6e9 100%);
-        }
-        
-        .deck-label {
+
+        .deck-card::before {
+            content: '';
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.2);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
         }
-        
-        .deck-info {
-            padding: 30px;
+
+        .deck-card:hover::before {
+            transform: translateX(0);
         }
-        
-        .deck-title {
-            font-size: 24px;
+
+        .deck-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(16, 185, 129, 0.3);
+        }
+
+        .deck-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .deck-name {
+            font-size: 1.5rem;
             font-weight: 700;
-            margin-bottom: 10px;
-            color: #333;
+            margin-bottom: 0.5rem;
         }
-        
+
         .deck-description {
-            font-size: 16px;
-            color: #666;
-            line-height: 1.5;
-            margin-bottom: 20px;
-        }
-        
-        .deck-features {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .feature-tag {
-            background: #f0f0f0;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            color: #666;
-        }
-        
-        .deck-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn {
-            flex: 1;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            text-decoration: none;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        }
-        
-        .btn-secondary {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-        
-        .btn-secondary:hover {
-            background: #667eea;
-            color: white;
-        }
-        
-        .footer {
-            text-align: center;
-            color: white;
-            margin-top: 60px;
-        }
-        
-        .footer p {
-            font-size: 16px;
-            opacity: 0.9;
-            margin-bottom: 10px;
-        }
-        
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 20px;
-        }
-        
-        .footer-link {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
             opacity: 0.8;
-            transition: opacity 0.3s;
+            line-height: 1.6;
         }
-        
-        .footer-link:hover {
+
+        .deck-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+
+        /* Presentation Container */
+        .presentation-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: none;
+            z-index: 100;
+        }
+
+        .presentation-container.active {
+            display: block;
+        }
+
+        /* Navigation */
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: 1001;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-bar.visible {
+            transform: translateY(0);
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .slide-counter {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1001;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+            transition: width 0.5s ease;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+        }
+
+        /* Slides Base */
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.5s ease;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .slide-content {
+            max-width: 1200px;
+            padding: 4rem;
+            width: 90%;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Slide Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .slide.active .animate-in {
+            animation: slideIn 0.8s ease forwards;
+        }
+
+        /* Enhanced Typography */
+        .mega-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #10B981 0%, #8B5CF6 50%, #F59E0B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            opacity: 0.9;
+            line-height: 1.5;
+            margin-bottom: 2rem;
+        }
+
+        /* Cards and Grids */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover::after {
             opacity: 1;
         }
-        
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+        }
+
+        .icon-box {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Stats Display */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 2rem;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:hover {
+            transform: scale(1.05);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+
+        /* Interactive Elements */
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 3rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 2rem;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+            transition: left 0.5s ease;
+        }
+
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            margin: 3rem 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .timeline-marker {
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 50%;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+        }
+
+        .timeline-content {
+            margin-left: 2rem;
+            padding: 1.5rem;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            flex: 1;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 9px;
+            top: 20px;
+            bottom: 20px;
+            width: 2px;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        /* Team Grid */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .team-member {
+            text-align: center;
+            padding: 2rem;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+        }
+
+        .member-avatar {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 1rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* Keyboard Shortcuts Modal */
+        .shortcuts-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 3rem;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            display: none;
+            z-index: 2000;
+        }
+
+        .shortcuts-modal.visible {
+            display: block;
+        }
+
+        .shortcuts-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.75rem 0;
+            opacity: 0.9;
+        }
+
+        .key {
+            padding: 0.25rem 0.5rem;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 5px;
+            font-family: monospace;
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .decks-grid {
+            .slide-content {
+                padding: 2rem;
+            }
+
+            .feature-grid,
+            .stats-container {
                 grid-template-columns: 1fr;
             }
-            
-            .title {
-                font-size: 36px;
+
+            .nav-bar {
+                padding: 1rem;
             }
+
+            .deck-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Slide Transitions */
+        .slide-transition-fade {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .slide-transition-slide {
+            animation: slideFromRight 0.5s ease;
+        }
+
+        @keyframes slideFromRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        /* Special Slide Styles */
+        .slide-hero {
+            background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+        }
+
+        .slide-dark {
+            background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+        }
+
+        .slide-accent {
+            background: radial-gradient(ellipse at center, rgba(245, 158, 11, 0.1) 0%, transparent 70%);
+        }
+
+        /* Loading Animation */
+        .loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border: 3px solid var(--glass-border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+            z-index: 3000;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .loader.visible {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">🌿</div>
-            <h1 class="title">Harmony Spaces</h1>
-            <p class="subtitle">Pitch Deck Collection</p>
-        </div>
+    <!-- Animated Background -->
+    <div class="bg-animation"></div>
 
-        <!-- Featured: New Multi-Deck System -->
-        <div class="deck-card" style="margin-bottom: 40px; background: linear-gradient(135deg, #10B981, #8B5CF6); color: white;">
-            <div class="deck-preview" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(139, 92, 246, 0.2)); height: 250px;">
-                <span style="font-size: 80px;">✨</span>
-                <span class="deck-label" style="background: rgba(255, 255, 255, 0.2);">NEW - ALL DECKS</span>
-            </div>
-            <div class="deck-info" style="background: rgba(0, 0, 0, 0.1);">
-                <h3 class="deck-title" style="color: white; font-size: 32px;">🚀 Interactive Presentation Suite</h3>
-                <p class="deck-description" style="color: white; font-size: 18px; margin: 20px 0;">
-                    Experience our new professional presentation system with all 4 decks in one beautiful interface.
-                    Features animated backgrounds, keyboard navigation, fullscreen mode, and smooth transitions.
-                </p>
-                <div class="deck-features" style="margin: 20px 0;">
-                    <span class="feature-tag" style="background: rgba(255, 255, 255, 0.2); color: white;">4 Presentations</span>
-                    <span class="feature-tag" style="background: rgba(255, 255, 255, 0.2); color: white;">Interactive</span>
-                    <span class="feature-tag" style="background: rgba(255, 255, 255, 0.2); color: white;">Fullscreen</span>
-                    <span class="feature-tag" style="background: rgba(255, 255, 255, 0.2); color: white;">Mobile Ready</span>
-                    <span class="feature-tag" style="background: rgba(255, 255, 255, 0.2); color: white;">Keyboard Controls</span>
-                </div>
-                <div class="deck-actions">
-                    <a href="harmony-spaces-decks.html" class="btn" style="background: white; color: #10B981; font-size: 18px; padding: 16px 32px;">
-                        ✨ Launch Presentation Suite
-                    </a>
-                </div>
-            </div>
-        </div>
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
 
-        <h2 style="text-align: center; color: white; margin-bottom: 30px; opacity: 0.9;">Individual Classic Decks</h2>
+    <!-- Loading Animation -->
+    <div class="loader" id="loader"></div>
 
-        <div class="decks-grid">
-            <!-- One Pager -->
-            <div class="deck-card">
-                <div class="deck-preview one-pager">
-                    <span>📄</span>
-                    <span class="deck-label">One Pager</span>
+    <!-- Deck Selector -->
+    <div class="deck-selector" id="deckSelector">
+        <div class="selector-container">
+            <h1 class="selector-title">Harmony Spaces</h1>
+            <p class="selector-subtitle">Choose Your Presentation Experience</p>
+
+            <div class="deck-grid">
+                <div class="deck-card" onclick="loadDeck('investor')">
+                    <div class="deck-icon">💰</div>
+                    <h3 class="deck-name">Investor Deck</h3>
+                    <p class="deck-description">Comprehensive pitch for potential investors with financials, market analysis, and growth projections</p>
+                    <span class="deck-tag">15 slides</span>
                 </div>
-                <div class="deck-info">
-                    <h3 class="deck-title">Executive Summary</h3>
-                    <p class="deck-description">Concise one-page overview perfect for initial introductions and quick reviews. All key metrics and value propositions at a glance.</p>
-                    <div class="deck-features">
-                        <span class="feature-tag">Quick Read</span>
-                        <span class="feature-tag">Print-Ready</span>
-                        <span class="feature-tag">Investor Focus</span>
-                    </div>
-                    <div class="deck-actions">
-                        <a href="one-pager.html" class="btn btn-primary">View Deck</a>
-                        <a href="one-pager.html" download class="btn btn-secondary">Download</a>
-                    </div>
+
+                <div class="deck-card" onclick="loadDeck('community')">
+                    <div class="deck-icon">🌿</div>
+                    <h3 class="deck-name">Community Deck</h3>
+                    <p class="deck-description">Engaging presentation for community members and wellness practitioners</p>
+                    <span class="deck-tag">12 slides</span>
                 </div>
-            </div>
-            
-            <!-- Two Pager -->
-            <div class="deck-card">
-                <div class="deck-preview two-pager">
-                    <span>📑</span>
-                    <span class="deck-label">Two Pager</span>
+
+                <div class="deck-card" onclick="loadDeck('product')">
+                    <div class="deck-icon">📱</div>
+                    <h3 class="deck-name">Product Demo</h3>
+                    <p class="deck-description">Interactive walkthrough of platform features and user experience</p>
+                    <span class="deck-tag">10 slides</span>
                 </div>
-                <div class="deck-info">
-                    <h3 class="deck-title">Detailed Overview</h3>
-                    <p class="deck-description">Comprehensive two-page presentation with expanded details on market opportunity, business model, and growth strategy.</p>
-                    <div class="deck-features">
-                        <span class="feature-tag">Detailed</span>
-                        <span class="feature-tag">Metrics</span>
-                        <span class="feature-tag">Roadmap</span>
-                    </div>
-                    <div class="deck-actions">
-                        <a href="two-pager.html" class="btn btn-primary">View Deck</a>
-                        <a href="two-pager.html" download class="btn btn-secondary">Download</a>
-                    </div>
+
+                <div class="deck-card" onclick="loadDeck('partner')">
+                    <div class="deck-icon">🤝</div>
+                    <h3 class="deck-name">Partnership Deck</h3>
+                    <p class="deck-description">Strategic partnership opportunities and co-marketing possibilities</p>
+                    <span class="deck-tag">8 slides</span>
                 </div>
             </div>
-            
-            <!-- Investor Deck -->
-            <div class="deck-card">
-                <div class="deck-preview investor">
-                    <span>💼</span>
-                    <span class="deck-label">Investor</span>
-                </div>
-                <div class="deck-info">
-                    <h3 class="deck-title">Investor Presentation</h3>
-                    <p class="deck-description">Professional multi-slide presentation designed for investor meetings. Full financial projections and market analysis.</p>
-                    <div class="deck-features">
-                        <span class="feature-tag">Professional</span>
-                        <span class="feature-tag">Financials</span>
-                        <span class="feature-tag">8 Slides</span>
-                    </div>
-                    <div class="deck-actions">
-                        <a href="investor-deck.html" class="btn btn-primary">View Deck</a>
-                        <a href="investor-deck.html" download class="btn btn-secondary">Download</a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Community Deck -->
-            <div class="deck-card">
-                <div class="deck-preview community">
-                    <span>🤝</span>
-                    <span class="deck-label">Community</span>
-                </div>
-                <div class="deck-info">
-                    <h3 class="deck-title">Community Presentation</h3>
-                    <p class="deck-description">Warm, engaging presentation for potential users and community partners. Focus on impact and user benefits.</p>
-                    <div class="deck-features">
-                        <span class="feature-tag">User-Friendly</span>
-                        <span class="feature-tag">Story-Driven</span>
-                        <span class="feature-tag">Testimonials</span>
-                    </div>
-                    <div class="deck-actions">
-                        <a href="community-deck.html" class="btn btn-primary">View Deck</a>
-                        <a href="community-deck.html" download class="btn btn-secondary">Download</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p>Transform neighborhoods into wellness communities</p>
-            <p style="font-size: 14px; opacity: 0.8;">© 2025 Harmony Spaces. All rights reserved.</p>
-            <div class="footer-links">
-                <a href="https://harmony-spaces.com" class="footer-link">Website</a>
-                <a href="mailto:invest@harmony-spaces.com" class="footer-link">Contact</a>
-                <a href="#" class="footer-link">LinkedIn</a>
-                <a href="#" class="footer-link">Twitter</a>
-            </div>
+
+            <p style="margin-top: 3rem; opacity: 0.7;">Press <span class="key">?</span> for keyboard shortcuts</p>
         </div>
     </div>
+
+    <!-- Navigation Bar -->
+    <div class="nav-bar" id="navBar">
+        <div class="nav-controls">
+            <button class="nav-btn" onclick="previousSlide()">← Previous</button>
+            <span class="slide-counter" id="slideCounter">1 / 1</span>
+            <button class="nav-btn" onclick="nextSlide()">Next →</button>
+        </div>
+        <div class="nav-controls">
+            <button class="nav-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+            <button class="nav-btn" onclick="backToSelector()">≡ All Decks</button>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Presentation Container -->
+    <div class="presentation-container" id="presentationContainer"></div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div class="shortcuts-modal" id="shortcutsModal">
+        <h3 class="shortcuts-title">Keyboard Shortcuts</h3>
+        <div class="shortcut-item">
+            <span>Next slide</span>
+            <span><span class="key">→</span> or <span class="key">Space</span></span>
+        </div>
+        <div class="shortcut-item">
+            <span>Previous slide</span>
+            <span><span class="key">←</span></span>
+        </div>
+        <div class="shortcut-item">
+            <span>Go to first slide</span>
+            <span><span class="key">Home</span></span>
+        </div>
+        <div class="shortcut-item">
+            <span>Go to last slide</span>
+            <span><span class="key">End</span></span>
+        </div>
+        <div class="shortcut-item">
+            <span>Toggle fullscreen</span>
+            <span><span class="key">F</span></span>
+        </div>
+        <div class="shortcut-item">
+            <span>Back to deck selector</span>
+            <span><span class="key">Esc</span></span>
+        </div>
+        <div class="shortcut-item">
+            <span>Close this modal</span>
+            <span><span class="key">?</span> or <span class="key">Esc</span></span>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        let currentDeck = null;
+        let slides = [];
+
+        // Generate particles
+        function generateParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Deck Content
+        const decks = {
+            investor: {
+                name: 'Investor Deck',
+                slides: [
+                    {
+                        type: 'hero',
+                        content: `
+                            <div class="slide slide-hero active">
+                                <div class="slide-content animate-in" style="text-align: center;">
+                                    <div style="font-size: 6rem; margin-bottom: 2rem; animation: float 3s ease-in-out infinite;">🌿</div>
+                                    <h1 class="mega-title gradient-text">Harmony Spaces</h1>
+                                    <p class="subtitle">The Airbnb of Wellness Spaces</p>
+                                    <div style="margin-top: 3rem;">
+                                        <div class="stat-box" style="display: inline-block; margin: 0 1rem;">
+                                            <div class="stat-number">$1.5M</div>
+                                            <div class="stat-label">Series Seed</div>
+                                        </div>
+                                        <div class="stat-box" style="display: inline-block; margin: 0 1rem;">
+                                            <div class="stat-number">Q1 2025</div>
+                                            <div class="stat-label">Closing</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'problem',
+                        content: `
+                            <div class="slide slide-dark active">
+                                <div class="slide-content animate-in">
+                                    <h2 class="mega-title">The <span class="gradient-text">$4.5 Trillion</span> Problem</h2>
+                                    <p class="subtitle">Wellness is booming, but connection is broken</p>
+
+                                    <div class="stats-container">
+                                        <div class="stat-box">
+                                            <div class="stat-number">68%</div>
+                                            <div class="stat-label">Feel disconnected from community</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">$3,000</div>
+                                            <div class="stat-label">Annual wellness spend per person</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">82%</div>
+                                            <div class="stat-label">Want local wellness options</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">91%</div>
+                                            <div class="stat-label">Say cost is the #1 barrier</div>
+                                        </div>
+                                    </div>
+
+                                    <p style="font-size: 1.2rem; line-height: 1.8; opacity: 0.9; margin-top: 2rem;">
+                                        Traditional wellness spaces are expensive, intimidating, and disconnected from local communities.
+                                        People crave authentic connections and affordable wellness options in their own neighborhoods.
+                                    </p>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'solution',
+                        content: `
+                            <div class="slide slide-hero active">
+                                <div class="slide-content animate-in">
+                                    <h2 class="mega-title">Our <span class="gradient-text">Solution</span></h2>
+                                    <p class="subtitle">Hyperlocal wellness marketplace powered by community</p>
+
+                                    <div class="feature-grid">
+                                        <div class="feature-card">
+                                            <div class="icon-box">📍</div>
+                                            <h3>Location-Based Discovery</h3>
+                                            <p>Find wellness events and spaces within walking distance of your home</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">🏠</div>
+                                            <h3>Space Sharing Economy</h3>
+                                            <p>Transform underutilized spaces into wellness venues and earn income</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">👥</div>
+                                            <h3>Community Building</h3>
+                                            <p>Connect with neighbors through regular practices and shared interests</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">💰</div>
+                                            <h3>Affordable Access</h3>
+                                            <p>10x more affordable than traditional studios through peer-to-peer model</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">✨</div>
+                                            <h3>Curated Quality</h3>
+                                            <p>Verified practitioners and spaces with reviews and ratings</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">🔒</div>
+                                            <h3>Trust & Safety</h3>
+                                            <p>Background checks, insurance, and secure payment processing</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'market',
+                        content: `
+                            <div class="slide slide-dark active">
+                                <div class="slide-content animate-in">
+                                    <h2 class="mega-title"><span class="gradient-text">Massive</span> Market Opportunity</h2>
+                                    <p class="subtitle">Riding the wellness revolution with a proven model</p>
+
+                                    <div style="text-align: center; margin: 3rem 0;">
+                                        <div style="display: inline-flex; align-items: center; justify-content: center; position: relative;">
+                                            <div style="width: 400px; height: 400px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); border: 2px solid var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                                <div style="font-size: 1.5rem; font-weight: 700;">TAM</div>
+                                                <div class="stat-number">$4.5T</div>
+                                                <div style="font-size: 1rem; opacity: 0.8;">Global Wellness</div>
+                                            </div>
+                                            <div style="width: 300px; height: 300px; border-radius: 50%; background: rgba(139, 92, 246, 0.1); border: 2px solid var(--secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; left: 100px;">
+                                                <div style="font-size: 1.5rem; font-weight: 700;">SAM</div>
+                                                <div class="stat-number">$450B</div>
+                                                <div style="font-size: 1rem; opacity: 0.8;">US Market</div>
+                                            </div>
+                                            <div style="width: 200px; height: 200px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); border: 2px solid var(--accent); display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; left: 200px;">
+                                                <div style="font-size: 1.5rem; font-weight: 700;">SOM</div>
+                                                <div class="stat-number">$4.5B</div>
+                                                <div style="font-size: 1rem; opacity: 0.8;">5-Year Target</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="stats-container">
+                                        <div class="stat-box">
+                                            <div class="stat-number">42%</div>
+                                            <div class="stat-label">Annual Growth Rate</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">150M</div>
+                                            <div class="stat-label">Target Users (US)</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">2.5M</div>
+                                            <div class="stat-label">Wellness Practitioners</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'traction',
+                        content: `
+                            <div class="slide slide-accent active">
+                                <div class="slide-content animate-in">
+                                    <h2 class="mega-title"><span class="gradient-text">Explosive</span> Early Traction</h2>
+                                    <p class="subtitle">Product-market fit validated with impressive metrics</p>
+
+                                    <div class="stats-container">
+                                        <div class="stat-box">
+                                            <div class="stat-number">5,000+</div>
+                                            <div class="stat-label">Active Users</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">250+</div>
+                                            <div class="stat-label">Weekly Events</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">87%</div>
+                                            <div class="stat-label">Monthly Retention</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">4.9</div>
+                                            <div class="stat-label">App Store Rating</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="timeline">
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker"></div>
+                                            <div class="timeline-content">
+                                                <strong>Q1 2024</strong> - Beta launch in San Francisco
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker"></div>
+                                            <div class="timeline-content">
+                                                <strong>Q2 2024</strong> - 1,000 users milestone
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker"></div>
+                                            <div class="timeline-content">
+                                                <strong>Q3 2024</strong> - Expanded to 5 cities
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker"></div>
+                                            <div class="timeline-content">
+                                                <strong>Q4 2024</strong> - $50K monthly GMV achieved
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'business',
+                        content: `
+                            <div class="slide slide-dark active">
+                                <div class="slide-content animate-in">
+                                    <h2 class="mega-title"><span class="gradient-text">Revenue</span> Engine</h2>
+                                    <p class="subtitle">Multiple monetization streams with proven unit economics</p>
+
+                                    <div class="feature-grid">
+                                        <div class="feature-card">
+                                            <div class="icon-box">💳</div>
+                                            <h3>Transaction Fees</h3>
+                                            <p>15% commission on all bookings</p>
+                                            <div class="stat-number" style="font-size: 2rem;">$3.6M</div>
+                                            <div class="stat-label">Projected Year 2 ARR</div>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">⭐</div>
+                                            <h3>Premium Memberships</h3>
+                                            <p>$14.99/month unlimited access</p>
+                                            <div class="stat-number" style="font-size: 2rem;">$1.8M</div>
+                                            <div class="stat-label">Projected Year 2 ARR</div>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">🏢</div>
+                                            <h3>Business Accounts</h3>
+                                            <p>$99/month for practitioners</p>
+                                            <div class="stat-number" style="font-size: 2rem;">$1.2M</div>
+                                            <div class="stat-label">Projected Year 2 ARR</div>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">📢</div>
+                                            <h3>Sponsored Listings</h3>
+                                            <p>Featured events and promotions</p>
+                                            <div class="stat-number" style="font-size: 2rem;">$600K</div>
+                                            <div class="stat-label">Projected Year 2 ARR</div>
+                                        </div>
+                                    </div>
+
+                                    <div style="text-align: center; margin-top: 3rem;">
+                                        <div class="stat-box" style="display: inline-block; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(139, 92, 246, 0.2)); padding: 2rem 4rem;">
+                                            <div class="stat-number" style="font-size: 3rem;">$7.2M</div>
+                                            <div class="stat-label">Total Projected Year 2 ARR</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'team',
+                        content: `
+                            <div class="slide slide-hero active">
+                                <div class="slide-content animate-in">
+                                    <h2 class="mega-title"><span class="gradient-text">World-Class</span> Team</h2>
+                                    <p class="subtitle">Marketplace veterans with proven track records</p>
+
+                                    <div class="team-grid">
+                                        <div class="team-member">
+                                            <div class="member-avatar">SC</div>
+                                            <h3>Sarah Chen</h3>
+                                            <p style="color: var(--primary);">CEO & Co-founder</p>
+                                            <p style="font-size: 0.9rem; opacity: 0.8;">Ex-Airbnb PM<br>Stanford MBA<br>10+ years marketplaces</p>
+                                        </div>
+                                        <div class="team-member">
+                                            <div class="member-avatar">MJ</div>
+                                            <h3>Marcus Johnson</h3>
+                                            <p style="color: var(--primary);">CTO & Co-founder</p>
+                                            <p style="font-size: 0.9rem; opacity: 0.8;">Ex-Google ML Engineer<br>MIT CS<br>AI/ML Expert</p>
+                                        </div>
+                                        <div class="team-member">
+                                            <div class="member-avatar">ER</div>
+                                            <h3>Elena Rodriguez</h3>
+                                            <p style="color: var(--primary);">Head of Community</p>
+                                            <p style="font-size: 0.9rem; opacity: 0.8;">Built 500K+ community<br>Wellness influencer<br>Content strategist</p>
+                                        </div>
+                                        <div class="team-member">
+                                            <div class="member-avatar">DK</div>
+                                            <h3>David Kim</h3>
+                                            <p style="color: var(--primary);">Head of Growth</p>
+                                            <p style="font-size: 0.9rem; opacity: 0.8;">Ex-Uber Growth Lead<br>Scaled to 100 cities<br>Growth hacking expert</p>
+                                        </div>
+                                        <div class="team-member">
+                                            <div class="member-avatar">AR</div>
+                                            <h3>Amanda Roberts</h3>
+                                            <p style="color: var(--primary);">Head of Product</p>
+                                            <p style="font-size: 0.9rem; opacity: 0.8;">Ex-Peloton Product<br>Design thinking expert<br>User experience guru</p>
+                                        </div>
+                                        <div class="team-member">
+                                            <div class="member-avatar">TW</div>
+                                            <h3>Tom Wilson</h3>
+                                            <p style="color: var(--primary);">Head of Operations</p>
+                                            <p style="font-size: 0.9rem; opacity: 0.8;">Ex-DoorDash Ops<br>Supply chain expert<br>Marketplace operations</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'ask',
+                        content: `
+                            <div class="slide slide-accent active">
+                                <div class="slide-content animate-in" style="text-align: center;">
+                                    <h2 class="mega-title">Join the <span class="gradient-text">Wellness Revolution</span></h2>
+                                    <p class="subtitle">Investment opportunity in the future of community wellness</p>
+
+                                    <div style="margin: 3rem 0;">
+                                        <div class="stat-box" style="display: inline-block; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(139, 92, 246, 0.2)); padding: 3rem;">
+                                            <div class="stat-number" style="font-size: 4rem;">$1.5M</div>
+                                            <div class="stat-label" style="font-size: 1.5rem;">Series Seed Round</div>
+                                            <p style="margin-top: 1rem; font-size: 1.2rem;">$8M pre-money valuation</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="feature-grid" style="max-width: 800px; margin: 0 auto;">
+                                        <div class="feature-card">
+                                            <div class="stat-number">40%</div>
+                                            <div class="stat-label">Product Development</div>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="stat-number">30%</div>
+                                            <div class="stat-label">Market Expansion</div>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="stat-number">20%</div>
+                                            <div class="stat-label">Team Growth</div>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="stat-number">10%</div>
+                                            <div class="stat-label">Operations</div>
+                                        </div>
+                                    </div>
+
+                                    <a href="mailto:invest@harmonyspaces.com" class="cta-button">Schedule a Meeting</a>
+                                </div>
+                            </div>
+                        `
+                    }
+                ]
+            },
+            community: {
+                name: 'Community Deck',
+                slides: [
+                    {
+                        type: 'hero',
+                        content: `
+                            <div class="slide slide-hero active">
+                                <div class="slide-content animate-in" style="text-align: center;">
+                                    <div style="font-size: 6rem; margin-bottom: 2rem; animation: float 3s ease-in-out infinite;">🌿</div>
+                                    <h1 class="mega-title gradient-text">Welcome to Harmony Spaces</h1>
+                                    <p class="subtitle">Your neighborhood wellness community</p>
+                                    <p style="font-size: 1.2rem; opacity: 0.8; margin-top: 2rem;">Transform your wellness journey through authentic local connections</p>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'mission',
+                        content: `
+                            <div class="slide slide-dark active">
+                                <div class="slide-content animate-in">
+                                    <h2 class="mega-title">Our <span class="gradient-text">Mission</span></h2>
+                                    <p class="subtitle">Making wellness accessible, affordable, and community-driven</p>
+
+                                    <div style="font-size: 1.3rem; line-height: 2; margin: 3rem 0; text-align: center;">
+                                        <p style="margin: 1rem 0;">We believe wellness shouldn't be a luxury.</p>
+                                        <p style="margin: 1rem 0;">We believe in the power of community.</p>
+                                        <p style="margin: 1rem 0;">We believe your neighbors are your greatest resource.</p>
+                                        <p style="margin: 1rem 0; color: var(--primary); font-weight: 600;">Together, we're building a healthier, more connected world.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'how',
+                        content: `
+                            <div class="slide slide-hero active">
+                                <div class="slide-content animate-in">
+                                    <h2 class="mega-title">How It <span class="gradient-text">Works</span></h2>
+                                    <p class="subtitle">Three simple steps to wellness</p>
+
+                                    <div class="timeline">
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker"></div>
+                                            <div class="timeline-content">
+                                                <h3 style="color: var(--primary);">1. Discover</h3>
+                                                <p>Find wellness events and spaces in your neighborhood</p>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker"></div>
+                                            <div class="timeline-content">
+                                                <h3 style="color: var(--secondary);">2. Connect</h3>
+                                                <p>Join sessions, meet neighbors, build relationships</p>
+                                            </div>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker"></div>
+                                            <div class="timeline-content">
+                                                <h3 style="color: var(--accent);">3. Grow</h3>
+                                                <p>Develop consistent practices with your community</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'benefits',
+                        content: `
+                            <div class="slide slide-accent active">
+                                <div class="slide-content animate-in">
+                                    <h2 class="mega-title"><span class="gradient-text">Member</span> Benefits</h2>
+                                    <p class="subtitle">Everything you need for your wellness journey</p>
+
+                                    <div class="feature-grid">
+                                        <div class="feature-card">
+                                            <div class="icon-box">🏠</div>
+                                            <h3>Local Spaces</h3>
+                                            <p>Access beautiful spaces in your neighborhood for practice</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">💰</div>
+                                            <h3>Affordable Pricing</h3>
+                                            <p>Pay 10x less than traditional studios</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">👥</div>
+                                            <h3>Real Community</h3>
+                                            <p>Build lasting friendships with neighbors</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">🎯</div>
+                                            <h3>Variety</h3>
+                                            <p>Explore yoga, meditation, fitness, and more</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">📅</div>
+                                            <h3>Flexible Schedule</h3>
+                                            <p>Find sessions that fit your lifestyle</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">✨</div>
+                                            <h3>Quality Assured</h3>
+                                            <p>Verified instructors and reviewed spaces</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'join',
+                        content: `
+                            <div class="slide slide-dark active">
+                                <div class="slide-content animate-in" style="text-align: center;">
+                                    <h2 class="mega-title">Join <span class="gradient-text">5,000+</span> Members</h2>
+                                    <p class="subtitle">Start your wellness journey today</p>
+
+                                    <div class="stats-container" style="margin: 3rem 0;">
+                                        <div class="stat-box">
+                                            <div class="stat-number">250+</div>
+                                            <div class="stat-label">Weekly Events</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">50+</div>
+                                            <div class="stat-label">Types of Practices</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">4.9⭐</div>
+                                            <div class="stat-label">Average Rating</div>
+                                        </div>
+                                    </div>
+
+                                    <a href="#" class="cta-button">Get Started Free</a>
+                                    <p style="margin-top: 1rem; opacity: 0.8;">No credit card required</p>
+                                </div>
+                            </div>
+                        `
+                    }
+                ]
+            },
+            product: {
+                name: 'Product Demo',
+                slides: [
+                    {
+                        type: 'hero',
+                        content: `
+                            <div class="slide slide-hero active">
+                                <div class="slide-content animate-in" style="text-align: center;">
+                                    <h1 class="mega-title gradient-text">Product Demo</h1>
+                                    <p class="subtitle">Experience the platform that's revolutionizing wellness</p>
+                                    <div style="margin-top: 3rem;">
+                                        <div class="icon-box" style="width: 120px; height: 120px; font-size: 4rem; margin: 0 auto;">📱</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'features',
+                        content: `
+                            <div class="slide slide-dark active">
+                                <div class="slide-content animate-in">
+                                    <h2 class="mega-title">Core <span class="gradient-text">Features</span></h2>
+                                    <p class="subtitle">Everything you need in one platform</p>
+
+                                    <div class="feature-grid">
+                                        <div class="feature-card">
+                                            <div class="icon-box">🗺️</div>
+                                            <h3>Interactive Map</h3>
+                                            <p>Discover events and spaces with our intuitive map interface</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">🔍</div>
+                                            <h3>Smart Search</h3>
+                                            <p>Filter by practice type, time, distance, and price</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">📅</div>
+                                            <h3>Easy Booking</h3>
+                                            <p>Book sessions with one tap and manage your schedule</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">💬</div>
+                                            <h3>In-App Messaging</h3>
+                                            <p>Connect with hosts and other participants</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">⭐</div>
+                                            <h3>Reviews & Ratings</h3>
+                                            <p>Make informed decisions with community feedback</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">💳</div>
+                                            <h3>Secure Payments</h3>
+                                            <p>Safe transactions with multiple payment options</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'mobile',
+                        content: `
+                            <div class="slide slide-hero active">
+                                <div class="slide-content animate-in" style="text-align: center;">
+                                    <h2 class="mega-title">Available on <span class="gradient-text">All Devices</span></h2>
+                                    <p class="subtitle">Access your wellness community anywhere</p>
+
+                                    <div class="stats-container" style="margin: 3rem 0;">
+                                        <div class="stat-box">
+                                            <div class="icon-box" style="margin: 0 auto;">📱</div>
+                                            <div class="stat-label">iOS App</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="icon-box" style="margin: 0 auto;">🤖</div>
+                                            <div class="stat-label">Android App</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="icon-box" style="margin: 0 auto;">💻</div>
+                                            <div class="stat-label">Web Platform</div>
+                                        </div>
+                                    </div>
+
+                                    <a href="#" class="cta-button">Download Now</a>
+                                </div>
+                            </div>
+                        `
+                    }
+                ]
+            },
+            partner: {
+                name: 'Partnership Deck',
+                slides: [
+                    {
+                        type: 'hero',
+                        content: `
+                            <div class="slide slide-hero active">
+                                <div class="slide-content animate-in" style="text-align: center;">
+                                    <h1 class="mega-title gradient-text">Partner With Us</h1>
+                                    <p class="subtitle">Join the wellness revolution as a strategic partner</p>
+                                    <div style="margin-top: 3rem;">
+                                        <div class="icon-box" style="width: 120px; height: 120px; font-size: 4rem; margin: 0 auto;">🤝</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'opportunities',
+                        content: `
+                            <div class="slide slide-dark active">
+                                <div class="slide-content animate-in">
+                                    <h2 class="mega-title">Partnership <span class="gradient-text">Opportunities</span></h2>
+                                    <p class="subtitle">Multiple ways to collaborate and grow together</p>
+
+                                    <div class="feature-grid">
+                                        <div class="feature-card">
+                                            <div class="icon-box">🏢</div>
+                                            <h3>Corporate Wellness</h3>
+                                            <p>Offer Harmony Spaces as an employee benefit</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">🏪</div>
+                                            <h3>Retail Partners</h3>
+                                            <p>Co-marketing opportunities with wellness brands</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">🏠</div>
+                                            <h3>Real Estate</h3>
+                                            <p>Add value to properties with wellness amenities</p>
+                                        </div>
+                                        <div class="feature-card">
+                                            <div class="icon-box">🎓</div>
+                                            <h3>Educational Institutions</h3>
+                                            <p>Student and faculty wellness programs</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    {
+                        type: 'contact',
+                        content: `
+                            <div class="slide slide-accent active">
+                                <div class="slide-content animate-in" style="text-align: center;">
+                                    <h2 class="mega-title">Let's <span class="gradient-text">Connect</span></h2>
+                                    <p class="subtitle">Explore partnership possibilities</p>
+
+                                    <div style="margin: 3rem 0;">
+                                        <p style="font-size: 1.2rem; line-height: 2;">
+                                            Contact our partnership team to discuss how we can work together
+                                            to bring wellness to more communities.
+                                        </p>
+                                    </div>
+
+                                    <a href="mailto:partners@harmonyspaces.com" class="cta-button">Get in Touch</a>
+                                </div>
+                            </div>
+                        `
+                    }
+                ]
+            }
+        };
+
+        // Load deck
+        function loadDeck(deckName) {
+            showLoader();
+            currentDeck = deckName;
+            const deck = decks[deckName];
+            slides = deck.slides;
+            currentSlide = 0;
+
+            setTimeout(() => {
+                renderPresentation();
+                document.getElementById('deckSelector').classList.add('hidden');
+                document.getElementById('presentationContainer').classList.add('active');
+                document.getElementById('navBar').classList.add('visible');
+                updateSlideCounter();
+                updateProgress();
+                hideLoader();
+            }, 500);
+        }
+
+        // Render presentation
+        function renderPresentation() {
+            const container = document.getElementById('presentationContainer');
+            container.innerHTML = slides.map((slide, index) => {
+                const slideHtml = slide.content.replace('active', index === 0 ? 'active' : '');
+                return slideHtml;
+            }).join('');
+        }
+
+        // Navigation functions
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                document.querySelectorAll('.slide')[currentSlide].classList.remove('active');
+                currentSlide++;
+                document.querySelectorAll('.slide')[currentSlide].classList.add('active');
+                updateSlideCounter();
+                updateProgress();
+            }
+        }
+
+        function previousSlide() {
+            if (currentSlide > 0) {
+                document.querySelectorAll('.slide')[currentSlide].classList.remove('active');
+                currentSlide--;
+                document.querySelectorAll('.slide')[currentSlide].classList.add('active');
+                updateSlideCounter();
+                updateProgress();
+            }
+        }
+
+        function goToSlide(index) {
+            document.querySelectorAll('.slide')[currentSlide].classList.remove('active');
+            currentSlide = index;
+            document.querySelectorAll('.slide')[currentSlide].classList.add('active');
+            updateSlideCounter();
+            updateProgress();
+        }
+
+        function updateSlideCounter() {
+            document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${slides.length}`;
+        }
+
+        function updateProgress() {
+            const progress = ((currentSlide + 1) / slides.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function backToSelector() {
+            document.getElementById('deckSelector').classList.remove('hidden');
+            document.getElementById('presentationContainer').classList.remove('active');
+            document.getElementById('navBar').classList.remove('visible');
+            currentDeck = null;
+            currentSlide = 0;
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function showLoader() {
+            document.getElementById('loader').classList.add('visible');
+        }
+
+        function hideLoader() {
+            document.getElementById('loader').classList.remove('visible');
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            const shortcutsModal = document.getElementById('shortcutsModal');
+
+            if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+                shortcutsModal.classList.toggle('visible');
+                return;
+            }
+
+            if (shortcutsModal.classList.contains('visible') && e.key === 'Escape') {
+                shortcutsModal.classList.remove('visible');
+                return;
+            }
+
+            if (!currentDeck) return;
+
+            switch(e.key) {
+                case 'ArrowRight':
+                case ' ':
+                    nextSlide();
+                    break;
+                case 'ArrowLeft':
+                    previousSlide();
+                    break;
+                case 'Home':
+                    goToSlide(0);
+                    break;
+                case 'End':
+                    goToSlide(slides.length - 1);
+                    break;
+                case 'f':
+                case 'F':
+                    toggleFullscreen();
+                    break;
+                case 'Escape':
+                    if (document.fullscreenElement) {
+                        document.exitFullscreen();
+                    } else {
+                        backToSelector();
+                    }
+                    break;
+            }
+        });
+
+        // Touch navigation for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (!currentDeck) return;
+
+            if (touchEndX < touchStartX - 50) {
+                nextSlide();
+            }
+            if (touchEndX > touchStartX + 50) {
+                previousSlide();
+            }
+        }
+
+        // Initialize
+        generateParticles();
+    </script>
 </body>
 </html>
