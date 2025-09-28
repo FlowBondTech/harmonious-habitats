@@ -111,14 +111,8 @@ const AppRouter = ({
     <MobileOptimization>
       <ScrollToTop />
       <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-earth-50/30 relative">
-        {/* Demo Mode Indicator */}
-        {DEMO_MODE && (
-          <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-sage to-forest text-white text-center py-2 px-4 text-sm font-medium shadow-md">
-            🌿 Demo Mode - Experience Harmonious Habitats with sample holistic events and community spaces
-          </div>
-        )}
         {/* Desktop Header - Always show on desktop */}
-        <div className={`hidden lg:block ${DEMO_MODE ? 'pt-9' : ''}`}>
+        <div className="hidden lg:block">
           <DesktopHeader onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} isSidebarOpen={isSidebarOpen} />
         </div>
         

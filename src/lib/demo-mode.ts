@@ -961,152 +961,472 @@ export const DEMO_SPACES = [
   {
     id: 'space-001',
     name: 'Springdale Farm Community Pavilion',
-    description: 'Historic urban farm pavilion surrounded by organic gardens. Perfect for farm-to-table dinners, workshops, and healing ceremonies.',
+    description: 'Historic urban farm pavilion surrounded by organic gardens. Perfect for farm-to-table dinners, workshops, and healing ceremonies. This beautiful 1920s pavilion has hosted countless community gatherings and features exposed beam ceilings, natural wood floors, and panoramic views of our organic gardens.',
     type: 'outdoor_pavilion',
     capacity: 30,
     address: '755 Springdale Rd, Austin, TX 78702',
     neighborhood: 'East Austin',
-    amenities: ['Electricity', 'Restrooms', 'Garden Access', 'Sound System'],
+    amenities: [
+      { amenity: 'Electricity' },
+      { amenity: 'Restrooms' },
+      { amenity: 'Garden Access' },
+      { amenity: 'Sound System' },
+      { amenity: 'WiFi' },
+      { amenity: 'Kitchen Access' },
+      { amenity: 'Tables & Chairs' }
+    ],
     availability: 'Weekends and evenings',
     is_free: false,
     price_per_hour: 25,
     currency: 'Time Credits',
+    donation_suggested: '25 Time Credits per hour or sliding scale',
     created_by: 'profile-003',
     host_name: 'Rainbow Moss',
+    owner: {
+      full_name: 'Rainbow Moss',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Rainbow',
+      verified: true
+    },
+    image_urls: [
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+      'https://images.unsplash.com/photo-1464207687429-7505649dae38?w=800'
+    ],
     image_url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+    guidelines: 'Please respect the land and leave no trace. Set up and clean up time is included in your booking. Composting and recycling stations are available. No amplified music after 9pm on weeknights. We encourage sustainable practices and ask that you minimize single-use items.',
+    accessibility_features: [
+      { feature: 'Wheelchair accessible pathways' },
+      { feature: 'Accessible restroom' },
+      { feature: 'Level ground surfaces' },
+      { feature: 'Designated parking' }
+    ],
+    animals_allowed: true,
+    animal_types: [
+      { animal_type: 'dogs' },
+      { animal_type: 'cats' }
+    ],
+    owner_has_pets: false,
+    holistic_categories: [
+      { category: 'Farm-to-Table Events' },
+      { category: 'Permaculture Workshops' },
+      { category: 'Sound Healing' },
+      { category: 'Community Gatherings' },
+      { category: 'Herbalism Classes' }
+    ],
+    list_publicly: true,
+    status: 'available',
+    verified: true,
     rating: 4.9,
     total_bookings: 156
   },
   {
     id: 'space-002',
     name: 'Casa de Luz Healing Studio',
-    description: 'Intimate studio at Casa de Luz wellness center designed for healing work, small circles, and spiritual practices. Features altar space and natural lighting.',
+    description: 'Intimate studio at Casa de Luz wellness center designed for healing work, small circles, and spiritual practices. This serene space features beautiful natural lighting, handcrafted altar with crystals and sacred objects, bamboo floors, and energy-clearing performed between each use. The studio maintains a peaceful vibration perfect for deep healing work.',
     type: 'studio',
     capacity: 12,
     address: '1701 Toomey Rd, Austin, TX 78704',
     neighborhood: 'South Congress',
-    amenities: ['Yoga Props', 'Sound Equipment', 'Altar Space', 'Tea Kitchen'],
+    amenities: [
+      { amenity: 'Yoga Props & Mats' },
+      { amenity: 'Sound Healing Instruments' },
+      { amenity: 'Sacred Altar Space' },
+      { amenity: 'Tea Kitchen' },
+      { amenity: 'Essential Oil Diffuser' },
+      { amenity: 'Meditation Cushions' },
+      { amenity: 'Blankets & Bolsters' }
+    ],
     availability: 'Daily 8am-9pm',
     is_free: false,
     price_per_hour: 15,
     currency: 'Time Credits',
+    donation_suggested: '15 Time Credits per hour or energy exchange',
     created_by: 'profile-005',
     host_name: 'Forest Oak',
+    owner: {
+      full_name: 'Forest Oak',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Forest',
+      verified: true
+    },
+    image_urls: [
+      'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800',
+      'https://images.unsplash.com/photo-1600618528240-fb9fc964b853?w=800'
+    ],
     image_url: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800',
+    guidelines: 'Please maintain sacred silence in common areas. Remove shoes before entering. Light cleansing incense or sage is welcome. Please arrive 10 minutes early to settle in. We ask that you help maintain the peaceful energy of the space.',
+    accessibility_features: [
+      { feature: 'Ground floor location' },
+      { feature: 'Wide doorways' },
+      { feature: 'Accessible restroom nearby' }
+    ],
+    animals_allowed: false,
+    owner_has_pets: true,
+    owner_pet_types: ['Therapy Cat'],
+    holistic_categories: [
+      { category: 'Reiki & Energy Work' },
+      { category: 'Sound Healing' },
+      { category: 'Meditation Circles' },
+      { category: 'Breathwork' },
+      { category: 'Sacred Ceremonies' }
+    ],
+    list_publicly: true,
+    status: 'available',
+    verified: true,
     rating: 5.0,
     total_bookings: 89
   },
   {
     id: 'space-003',
     name: 'Mueller Community Garden Greenhouse',
-    description: 'Year-round growing space with workshop area in the sustainable Mueller development. Great for permaculture education and hands-on learning.',
+    description: 'Year-round growing space with workshop area in the sustainable Mueller development. This solar-powered greenhouse features raised beds, potting stations, seed library, and demonstration gardens. Perfect for teaching permaculture, herbalism, and sustainable living practices. The space includes rainwater harvesting systems and composting demonstrations.',
     type: 'greenhouse',
     capacity: 20,
     address: '4550 Mueller Blvd, Austin, TX 78723',
     neighborhood: 'Mueller',
-    amenities: ['Water Access', 'Tools', 'Seating', 'Whiteboard'],
+    amenities: [
+      { amenity: 'Water Access & Hoses' },
+      { amenity: 'Garden Tools Library' },
+      { amenity: 'Workshop Seating' },
+      { amenity: 'Teaching Whiteboard' },
+      { amenity: 'Seed Starting Station' },
+      { amenity: 'Compost Bins' },
+      { amenity: 'Shade Cloth Areas' }
+    ],
     availability: 'Weekdays and Saturday mornings',
     is_free: true,
     price_per_hour: 0,
     currency: 'Free',
+    donation_suggested: 'Volunteer hours or plant donations welcome',
     created_by: 'profile-002',
     host_name: 'Cedar Sage',
+    owner: {
+      full_name: 'Cedar Sage',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Cedar',
+      verified: true
+    },
+    image_urls: [
+      'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800',
+      'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=800'
+    ],
     image_url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800',
+    guidelines: 'This is a chemical-free space - only organic practices allowed. Please return tools clean and in their designated spots. Water conservation is important - use drip irrigation when possible. Children must be supervised at all times. Take only what you need from the harvest share.',
+    accessibility_features: [
+      { feature: 'Wide pathways between beds' },
+      { feature: 'Raised beds at various heights' },
+      { feature: 'Wheelchair accessible entrance' },
+      { feature: 'Accessible tool storage' }
+    ],
+    animals_allowed: true,
+    animal_types: [
+      { animal_type: 'dogs' }
+    ],
+    owner_has_pets: false,
+    holistic_categories: [
+      { category: 'Permaculture Classes' },
+      { category: 'Herbalism Workshops' },
+      { category: 'Seed Saving' },
+      { category: 'Composting Education' },
+      { category: 'Children\'s Garden Programs' }
+    ],
+    list_publicly: true,
+    status: 'available',
+    verified: true,
     rating: 4.7,
     total_bookings: 234
   },
   {
     id: 'space-004',
     name: 'Zilker Botanical Garden Pavilion',
-    description: 'Beautiful garden venue within Zilker Park featuring native Texas plants and peaceful meditation spaces for workshops and ceremonies.',
+    description: 'Beautiful garden venue within Zilker Park featuring native Texas plants and peaceful meditation spaces. Surrounded by butterfly gardens, herb spirals, and a tranquil koi pond. The covered pavilion offers shade while maintaining connection to nature. Perfect for ceremonies, workshops, and mindful gatherings.',
     type: 'garden_pavilion',
     capacity: 40,
     address: '2220 Barton Springs Rd, Austin, TX 78746',
     neighborhood: 'Zilker',
-    amenities: ['Garden Access', 'Covered Pavilion', 'Water Features', 'Restrooms'],
+    amenities: [
+      { amenity: 'Garden Access' },
+      { amenity: 'Covered Pavilion' },
+      { amenity: 'Water Features' },
+      { amenity: 'Restrooms' },
+      { amenity: 'Picnic Tables' },
+      { amenity: 'Nature Trails' },
+      { amenity: 'Meditation Benches' }
+    ],
     availability: 'Daily with reservation',
     is_free: false,
     price_per_hour: 20,
     currency: 'Time Credits',
+    donation_suggested: '20 Time Credits per hour or plant donations',
     created_by: 'profile-004',
     host_name: 'Willow Moon',
+    owner: {
+      full_name: 'Willow Moon',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Willow',
+      verified: true
+    },
+    image_urls: [
+      'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800',
+      'https://images.unsplash.com/photo-1588392382834-a891154bca4d?w=800'
+    ],
     image_url: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800',
+    guidelines: 'Please respect all plant life - stay on marked paths. No picking flowers or disturbing wildlife. Quiet hours after sunset. Leave no trace principles apply. Consider the sacred nature of this space in your activities.',
+    accessibility_features: [
+      { feature: 'Paved pathways' },
+      { feature: 'Accessible parking nearby' },
+      { feature: 'Ramps to pavilion' },
+      { feature: 'Accessible restrooms' }
+    ],
+    animals_allowed: true,
+    animal_types: [
+      { animal_type: 'dogs' },
+      { animal_type: 'small_pets' }
+    ],
+    owner_has_pets: false,
+    holistic_categories: [
+      { category: 'Garden Ceremonies' },
+      { category: 'Nature Meditation' },
+      { category: 'Herbalism Classes' },
+      { category: 'Moon Circles' },
+      { category: 'Earth-Based Rituals' }
+    ],
+    list_publicly: true,
+    status: 'available',
+    verified: true,
     rating: 4.9,
     total_bookings: 167
   },
   {
     id: 'space-005',
     name: 'Hyde Park Community Center',
-    description: 'Historic community center with meeting rooms and outdoor courtyard. Perfect for workshops, potlucks, and neighborhood gatherings.',
+    description: 'Historic 1930s community center with original hardwood floors and vintage charm. Features multiple meeting rooms, a full commercial kitchen, and a beautiful tree-shaded courtyard with string lights. This beloved neighborhood hub has hosted countless potlucks, workshops, and celebrations. The space embodies community spirit and mutual aid.',
     type: 'community_center',
     capacity: 60,
     address: '4102 Ave G, Austin, TX 78751',
     neighborhood: 'Hyde Park',
-    amenities: ['Meeting Rooms', 'Kitchen', 'Courtyard', 'AV Equipment', 'Parking'],
+    amenities: [
+      { amenity: 'Multiple Meeting Rooms' },
+      { amenity: 'Commercial Kitchen' },
+      { amenity: 'Shaded Courtyard' },
+      { amenity: 'AV Equipment' },
+      { amenity: 'Free Parking' },
+      { amenity: 'WiFi' },
+      { amenity: 'Stage Area' },
+      { amenity: 'Piano' }
+    ],
     availability: 'All week',
     is_free: true,
     price_per_hour: 0,
     currency: 'Community Service',
+    donation_suggested: 'Volunteer hours or community service appreciated',
     created_by: 'profile-006',
     host_name: 'Meadow Sky',
+    owner: {
+      full_name: 'Meadow Sky',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Meadow',
+      verified: true
+    },
+    image_urls: [
+      'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800',
+      'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800'
+    ],
     image_url: 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800',
+    guidelines: 'This is a community-supported space - please help with setup and cleanup. Kitchen use requires food handler certification. Respect quiet hours after 10pm. We operate on gift economy principles - take what you need, give what you can.',
+    accessibility_features: [
+      { feature: 'Full wheelchair accessibility' },
+      { feature: 'Automatic doors' },
+      { feature: 'Accessible restrooms' },
+      { feature: 'Hearing loop system' },
+      { feature: 'Large print materials available' }
+    ],
+    animals_allowed: true,
+    animal_types: [
+      { animal_type: 'dogs' },
+      { animal_type: 'cats' }
+    ],
+    owner_has_pets: false,
+    holistic_categories: [
+      { category: 'Community Potlucks' },
+      { category: 'Skill Shares' },
+      { category: 'Support Groups' },
+      { category: 'Movement Classes' },
+      { category: 'Neighborhood Meetings' }
+    ],
+    list_publicly: true,
+    status: 'available',
+    verified: true,
     rating: 4.8,
     total_bookings: 312
   },
   {
     id: 'space-006',
     name: 'Crestview Urban Farm',
-    description: 'Working urban farm with teaching pavilion and demonstration gardens. Hosts permaculture workshops and community harvest days.',
+    description: 'Working 2-acre urban farm with teaching pavilion, food forest, and demonstration gardens. Features aquaponics systems, chicken coops, bee hives, and seasonal vegetable production. Our mission is teaching sustainable living and building food security. Monthly harvest shares available for regular users.',
     type: 'urban_farm',
     capacity: 35,
     address: '7601 N Lamar Blvd, Austin, TX 78752',
     neighborhood: 'Crestview',
-    amenities: ['Teaching Pavilion', 'Tool Library', 'Composting', 'Garden Beds'],
+    amenities: [
+      { amenity: 'Teaching Pavilion' },
+      { amenity: 'Tool Library' },
+      { amenity: 'Composting Systems' },
+      { amenity: 'Garden Beds' },
+      { amenity: 'Greenhouse' },
+      { amenity: 'Rainwater Collection' },
+      { amenity: 'Solar Power' }
+    ],
     availability: 'Weekends and evenings',
     is_free: false,
     price_per_hour: 15,
     currency: 'Time Credits',
+    donation_suggested: '15 Time Credits or work trade',
     created_by: 'profile-007',
     host_name: 'Jasper Rain',
+    owner: {
+      full_name: 'Jasper Rain',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jasper',
+      verified: true
+    },
+    image_urls: [
+      'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800',
+      'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800'
+    ],
     image_url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800',
+    guidelines: 'This is a working farm - please respect crops and livestock. Children must be supervised around animals. Closed-toe shoes required. We practice regenerative agriculture - no chemicals. Help yourself to herbs from the community spiral garden.',
+    accessibility_features: [
+      { feature: 'Gravel pathways' },
+      { feature: 'Accessible pavilion' },
+      { feature: 'Raised beds at varying heights' }
+    ],
+    animals_allowed: true,
+    animal_types: [
+      { animal_type: 'dogs' }
+    ],
+    owner_has_pets: true,
+    owner_pet_types: ['Farm Animals', 'Chickens', 'Goats'],
+    holistic_categories: [
+      { category: 'Permaculture Design' },
+      { category: 'Farm-to-Table Cooking' },
+      { category: 'Beekeeping' },
+      { category: 'Composting Workshops' },
+      { category: 'Seed Saving' }
+    ],
+    list_publicly: true,
+    status: 'available',
+    verified: true,
     rating: 5.0,
     total_bookings: 189
   },
   {
     id: 'space-007',
     name: 'Domain NORTHSIDE Rooftop Garden',
-    description: 'Modern rooftop space with city views and garden beds. Perfect for sunset meditations, yoga, and community gatherings.',
+    description: 'Modern 5th floor rooftop garden with panoramic city views and raised garden beds growing herbs and vegetables. Features shade sails, misting system, and comfortable seating areas. The sunset views are spectacular, making it perfect for evening meditation, rooftop yoga, or stargazing gatherings.',
     type: 'rooftop_garden',
     capacity: 45,
     address: '11410 Century Oaks Terrace, Austin, TX 78758',
     neighborhood: 'Domain',
-    amenities: ['City Views', 'Garden Beds', 'Shade Structures', 'Elevator Access'],
+    amenities: [
+      { amenity: '360° City Views' },
+      { amenity: 'Organic Garden Beds' },
+      { amenity: 'Shade Structures' },
+      { amenity: 'Elevator Access' },
+      { amenity: 'LED String Lights' },
+      { amenity: 'Misting System' },
+      { amenity: 'Yoga Deck' }
+    ],
     availability: 'Daily 7am-9pm',
     is_free: false,
     price_per_hour: 25,
     currency: 'Time Credits',
+    donation_suggested: '25 Time Credits or sliding scale',
     created_by: 'profile-008',
     host_name: 'Sage Blossom',
+    owner: {
+      full_name: 'Sage Blossom',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sage',
+      verified: true
+    },
+    image_urls: [
+      'https://images.unsplash.com/photo-1600618528240-fb9fc964b853?w=800',
+      'https://images.unsplash.com/photo-1506184155123-73f3f63c4527?w=800'
+    ],
     image_url: 'https://images.unsplash.com/photo-1600618528240-fb9fc964b853?w=800',
+    guidelines: 'Wind can be strong - secure all items. No glass containers. Quiet hours after 9pm to respect residents below. Please water the garden beds if you use herbs. Best sunrise views are from the east corner.',
+    accessibility_features: [
+      { feature: 'Elevator to rooftop' },
+      { feature: 'Level surfaces' },
+      { feature: 'Accessible seating areas' },
+      { feature: 'Wide pathways' }
+    ],
+    animals_allowed: false,
+    owner_has_pets: false,
+    holistic_categories: [
+      { category: 'Sunrise/Sunset Yoga' },
+      { category: 'Meditation Groups' },
+      { category: 'Stargazing Circles' },
+      { category: 'Urban Gardening' },
+      { category: 'Breathwork Sessions' }
+    ],
+    list_publicly: true,
+    status: 'available',
+    verified: true,
     rating: 4.7,
     total_bookings: 145
   },
   {
     id: 'space-008',
     name: 'West Lake Hills Forest Sanctuary',
-    description: 'Private forest retreat with meditation platforms, labyrinth, and ceremonial fire circle overlooking the hills.',
+    description: 'Private 5-acre forest retreat with ancient oak groves, meditation platforms built around trees, stone labyrinth, and ceremonial fire circle with hill country views. This sacred land has been tended with love for decades. Features natural spring, crystal grid, and multiple quiet spaces for solitary practice.',
     type: 'forest_sanctuary',
     capacity: 25,
     address: '3800 Bee Cave Rd, West Lake Hills, TX 78746',
     neighborhood: 'West Lake Hills',
-    amenities: ['Fire Circle', 'Labyrinth', 'Meditation Platforms', 'Nature Trails'],
+    amenities: [
+      { amenity: 'Sacred Fire Circle' },
+      { amenity: 'Stone Labyrinth' },
+      { amenity: 'Tree Platforms' },
+      { amenity: 'Nature Trails' },
+      { amenity: 'Natural Spring' },
+      { amenity: 'Medicine Wheel' },
+      { amenity: 'Camping Areas' }
+    ],
     availability: 'By special arrangement',
     is_free: false,
     price_per_hour: 35,
     currency: 'Time Credits',
+    donation_suggested: '35 Time Credits or sacred reciprocity',
     created_by: 'profile-009',
     host_name: 'Aurora Dawn',
+    owner: {
+      full_name: 'Aurora Dawn',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aurora',
+      verified: true
+    },
+    image_urls: [
+      'https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=800',
+      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800'
+    ],
     image_url: 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=800',
+    guidelines: 'This is sacred land - please enter with reverence. Leave all offerings biodegradable. Fire circle requires fire tender certification. No drugs or alcohol. Take only pictures, leave only footprints. The land speaks to those who listen.',
+    accessibility_features: [
+      { feature: 'Some accessible trails' },
+      { feature: 'Accessible parking area' },
+      { feature: 'Natural terrain - limited accessibility' }
+    ],
+    animals_allowed: true,
+    animal_types: [
+      { animal_type: 'dogs' },
+      { animal_type: 'cats' }
+    ],
+    owner_has_pets: true,
+    owner_pet_types: ['Rescue Dogs'],
+    holistic_categories: [
+      { category: 'Vision Quests' },
+      { category: 'Fire Ceremonies' },
+      { category: 'Forest Bathing' },
+      { category: 'Sacred Rituals' },
+      { category: 'Silent Retreats' }
+    ],
+    list_publicly: false,
+    status: 'available',
+    verified: true,
     rating: 5.0,
     total_bookings: 98
   }

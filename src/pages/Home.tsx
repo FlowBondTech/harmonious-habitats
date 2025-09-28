@@ -150,10 +150,12 @@ const Home = () => {
         setTodayEvents(filteredEvents.slice(0, 3)); // Show max 3 events
         
         // Load featured spaces
-        const { data: spacesData } = await getSpaces({
+        const { data: spacesData, error: spacesError } = await getSpaces({
           status: 'available',
           limit: 3
         });
+        console.log('Loaded spaces:', spacesData);
+        console.log('Spaces error:', spacesError);
         setFeaturedSpaces(spacesData || []);
         
       } catch (err: unknown) {
@@ -187,10 +189,12 @@ const Home = () => {
       setTodayEvents(filteredEvents.slice(0, 3)); // Show max 3 events
       
       // Load featured spaces
-      const { data: spacesData } = await getSpaces({
+      const { data: spacesData, error: spacesError } = await getSpaces({
         status: 'available',
         limit: 3
       });
+      console.log('Loaded spaces in loadActivities:', spacesData);
+      console.log('Spaces error in loadActivities:', spacesError);
       setFeaturedSpaces(spacesData || []);
       
     } catch (err: unknown) {
