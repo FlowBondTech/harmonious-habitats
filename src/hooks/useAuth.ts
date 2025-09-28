@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase, Profile, getUserRole } from '../lib/supabase'
 import { logger, logError, logWarning } from '../lib/logger'
+import { DEMO_MODE, DEMO_USER, DEMO_PEOPLE } from '../lib/demo-mode'
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null)
@@ -14,12 +15,32 @@ export const useAuth = () => {
   const [showShareOptions, setShowShareOptions] = useState(false)
 
   useEffect(() => {
+    // Demo mode - auto-login with demo user
+    if (DEMO_MODE) {
+      const demoUser: User = {
+        id: DEMO_USER.id,
+        email: DEMO_USER.email,
+        app_metadata: {},
+        user_metadata: {
+          full_name: DEMO_USER.full_name
+        },
+        aud: 'authenticated',
+        created_at: new Date().toISOString()
+      } as User
+
+      setUser(demoUser)
+      setProfile(DEMO_USER as Profile)
+      setUserRole(DEMO_USER.is_admin ? 'admin' : 'user')
+      setLoading(false)
+      return
+    }
+
     // Get initial session
     const getInitialSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         setUser(session?.user ?? null)
-        
+
         if (session?.user) {
           await loadUserProfile(session.user.id)
           const role = await getUserRole(session.user.id)
@@ -45,6 +66,9 @@ export const useAuth = () => {
 
     getInitialSession()
 
+    // Skip auth state listener in demo mode
+    if (DEMO_MODE) return
+
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -67,6 +91,12 @@ export const useAuth = () => {
   }, [])
 
   const loadUserProfile = async (userId: string) => {
+    // Demo mode - return demo profile
+    if (DEMO_MODE) {
+      setProfile(DEMO_USER as Profile)
+      return
+    }
+
     try {
       // First ensure profile exists
       const { data: ensureData, error: ensureError } = await supabase
@@ -116,6 +146,34 @@ export const useAuth = () => {
     username?: string
     neighborhood?: string
   }) => {
+    // Demo mode - simulate successful signup
+    if (DEMO_MODE) {
+      const newDemoUser = {
+        ...DEMO_USER,
+        email,
+        full_name: userData.full_name,
+        username: userData.username || null,
+        neighborhood: userData.neighborhood || null
+      }
+
+      const demoUser: User = {
+        id: DEMO_USER.id,
+        email,
+        app_metadata: {},
+        user_metadata: {
+          full_name: userData.full_name
+        },
+        aud: 'authenticated',
+        created_at: new Date().toISOString()
+      } as User
+
+      setUser(demoUser)
+      setProfile(newDemoUser as Profile)
+      setUserRole('user')
+
+      return { data: { user: demoUser, session: null }, error: null }
+    }
+
     try {
       const { data, error: authError } = await supabase.auth.signUp({
         email,
@@ -180,6 +238,30 @@ export const useAuth = () => {
   }
 
   const signIn = async (email: string, password: string) => {
+    // Demo mode - simulate successful signin
+    if (DEMO_MODE) {
+      // Check if email matches any demo user
+      const demoUserMatch = [DEMO_USER, ...DEMO_PEOPLE].find(p => p.email === email)
+      const profileToUse = demoUserMatch || DEMO_USER
+
+      const demoUser: User = {
+        id: profileToUse.id,
+        email: profileToUse.email,
+        app_metadata: {},
+        user_metadata: {
+          full_name: profileToUse.full_name
+        },
+        aud: 'authenticated',
+        created_at: new Date().toISOString()
+      } as User
+
+      setUser(demoUser)
+      setProfile(profileToUse as Profile)
+      setUserRole(profileToUse.is_admin ? 'admin' : 'user')
+
+      return { data: { user: demoUser, session: null }, error: null }
+    }
+
     return await supabase.auth.signInWithPassword({ email, password })
   }
 
@@ -189,7 +271,13 @@ export const useAuth = () => {
       setUser(null)
       setProfile(null)
       setUserRole(null)
-      
+
+      // Demo mode - just clear state
+      if (DEMO_MODE) {
+        logger.log('Demo user signed out')
+        return { error: null }
+      }
+
       // Sign out from Supabase
       const result = await supabase.auth.signOut()
       
@@ -220,6 +308,13 @@ export const useAuth = () => {
 
   const updateProfile = async (profileData: Partial<Profile>) => {
     if (!user) return { error: new Error('No user logged in') }
+
+    // Demo mode - just update local state
+    if (DEMO_MODE) {
+      const updatedProfile = { ...profile, ...profileData } as Profile
+      setProfile(updatedProfile)
+      return { data: updatedProfile, error: null }
+    }
 
     try {
       const { data, error } = await supabase

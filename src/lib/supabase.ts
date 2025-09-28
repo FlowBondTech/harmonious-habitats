@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { logError } from './logger'
+import { DEMO_MODE, DEMO_EVENTS, DEMO_SPACES, DEMO_NEIGHBORHOODS, DEMO_PEOPLE, DEMO_MESSAGES, DEMO_NOTIFICATIONS } from './demo-mode'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -1053,6 +1054,31 @@ export const getEvents = async (filters?: {
   status?: string | string[]
   limit?: number
 }) => {
+  // Demo mode - return mock events
+  if (DEMO_MODE) {
+    let events = [...DEMO_EVENTS]
+
+    // Apply filters
+    if (filters?.category) {
+      events = events.filter(e => e.category === filters.category)
+    }
+    if (filters?.event_type) {
+      events = events.filter(e => e.event_type === filters.event_type)
+    }
+    if (filters?.status) {
+      const statusFilter = Array.isArray(filters.status) ? filters.status : [filters.status]
+      events = events.filter(e => statusFilter.includes(e.status))
+    }
+    if (filters?.limit) {
+      events = events.slice(0, filters.limit)
+    }
+
+    // Sort by date
+    events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+    return { data: events, error: null }
+  }
+
   let query = supabase
     .from('events')
     .select(`
@@ -1094,6 +1120,12 @@ export const getEvents = async (filters?: {
 
 // Get events a user is attending
 export const getUserAttendingEvents = async (userId: string) => {
+  // Demo mode - return some mock events
+  if (DEMO_MODE) {
+    const attendingEvents = DEMO_EVENTS.slice(0, 3) // User is attending first 3 events
+    return { data: attendingEvents, error: null }
+  }
+
   try {
     // First get the event_ids the user is participating in
     const { data: participations, error: participationsError } = await supabase
@@ -1135,6 +1167,27 @@ export const getSpaces = async (filters?: {
   list_publicly?: boolean
   limit?: number
 }) => {
+  // Demo mode - return mock spaces
+  if (DEMO_MODE) {
+    let spaces = [...DEMO_SPACES]
+
+    // Apply filters
+    if (filters?.type) {
+      spaces = spaces.filter(s => s.type === filters.type)
+    }
+    if (filters?.status) {
+      spaces = spaces.filter(s => s.status === filters.status)
+    }
+    if (filters?.list_publicly !== undefined) {
+      spaces = spaces.filter(s => s.list_publicly === filters.list_publicly)
+    }
+    if (filters?.limit) {
+      spaces = spaces.slice(0, filters.limit)
+    }
+
+    return { data: spaces, error: null }
+  }
+
   let query = supabase
     .from('spaces')
     .select(`
@@ -1164,6 +1217,12 @@ export const getSpaces = async (filters?: {
 }
 
 export const getSpaceById = async (id: string) => {
+  // Demo mode - find space by id
+  if (DEMO_MODE) {
+    const space = DEMO_SPACES.find(s => s.id === id)
+    return { data: space || null, error: space ? null : new Error('Space not found') }
+  }
+
   const { data, error } = await supabase
     .from('spaces')
     .select(`
@@ -1180,6 +1239,12 @@ export const getSpaceById = async (id: string) => {
 }
 
 export const getSpaceBySlug = async (slug: string) => {
+  // Demo mode - find space by slug
+  if (DEMO_MODE) {
+    const space = DEMO_SPACES.find(s => s.slug === slug)
+    return { data: space || null, error: space ? null : new Error('Space not found') }
+  }
+
   const { data, error } = await supabase
     .from('spaces')
     .select(`
@@ -1200,6 +1265,24 @@ export const getNeighborhoods = async (filters?: {
   is_active?: boolean
   limit?: number
 }) => {
+  // Demo mode - return mock neighborhoods
+  if (DEMO_MODE) {
+    let neighborhoods = [...DEMO_NEIGHBORHOODS]
+
+    // Apply filters
+    if (filters?.is_active !== undefined) {
+      neighborhoods = neighborhoods.filter(n => n.is_active === filters.is_active)
+    }
+    if (filters?.limit) {
+      neighborhoods = neighborhoods.slice(0, filters.limit)
+    }
+
+    // Sort by member count
+    neighborhoods.sort((a, b) => (b.member_count || 0) - (a.member_count || 0))
+
+    return { data: neighborhoods, error: null }
+  }
+
   let query = supabase
     .from('neighborhoods')
     .select(`
@@ -1221,6 +1304,12 @@ export const getNeighborhoods = async (filters?: {
 }
 
 export const getNeighborhoodBySlug = async (slug: string) => {
+  // Demo mode - find neighborhood by slug
+  if (DEMO_MODE) {
+    const neighborhood = DEMO_NEIGHBORHOODS.find(n => n.slug === slug)
+    return { data: neighborhood || null, error: neighborhood ? null : new Error('Neighborhood not found') }
+  }
+
   const { data, error } = await supabase
     .from('neighborhoods')
     .select(`
@@ -1234,6 +1323,20 @@ export const getNeighborhoodBySlug = async (slug: string) => {
 }
 
 export const getNeighborhoodMembers = async (neighborhoodId: string) => {
+  // Demo mode - return demo people as members
+  if (DEMO_MODE) {
+    const members = DEMO_PEOPLE.map(person => ({
+      id: `member-${person.id}`,
+      neighborhood_id: neighborhoodId,
+      user_id: person.id,
+      user: person,
+      status: 'verified',
+      joined_at: new Date().toISOString(),
+      role: 'member'
+    }))
+    return { data: members, error: null }
+  }
+
   const { data, error } = await supabase
     .from('neighborhood_members')
     .select(`
@@ -1626,6 +1729,12 @@ export const markNotificationAsRead = async (notificationId: string) => {
 }
 
 export const getUserNotifications = async (userId: string, limit = 20) => {
+  // Demo mode - return mock notifications
+  if (DEMO_MODE) {
+    const notifications = DEMO_NOTIFICATIONS.slice(0, limit)
+    return { data: notifications, error: null }
+  }
+
   const { data, error } = await supabase
     .from('notifications')
     .select('*')
@@ -2418,6 +2527,20 @@ export const sendMessage = async (
 }
 
 export const getConversations = async (userId: string) => {
+  // Demo mode - return mock conversations
+  if (DEMO_MODE) {
+    const conversations = DEMO_PEOPLE.map((person, index) => ({
+      id: `conv-${index}`,
+      user_id: userId,
+      other_user_id: person.id,
+      other_user: person,
+      last_message: DEMO_MESSAGES[index % DEMO_MESSAGES.length].content,
+      last_message_at: new Date(Date.now() - index * 3600000).toISOString(),
+      unread_count: index === 0 ? 2 : 0
+    }))
+    return { data: conversations, error: null }
+  }
+
   const { data, error } = await supabase
     .from('conversation_threads')
     .select('*')
@@ -2427,6 +2550,21 @@ export const getConversations = async (userId: string) => {
 }
 
 export const getMessages = async (userId: string, otherUserId: string) => {
+  // Demo mode - return mock messages
+  if (DEMO_MODE) {
+    const otherUser = DEMO_PEOPLE.find(p => p.id === otherUserId) || DEMO_PEOPLE[0]
+    const messages = DEMO_MESSAGES.map((msg, index) => ({
+      ...msg,
+      id: `msg-${index}`,
+      sender_id: index % 2 === 0 ? userId : otherUserId,
+      recipient_id: index % 2 === 0 ? otherUserId : userId,
+      sender: index % 2 === 0 ? DEMO_PEOPLE[0] : otherUser,
+      recipient: index % 2 === 0 ? otherUser : DEMO_PEOPLE[0],
+      created_at: new Date(Date.now() - (DEMO_MESSAGES.length - index) * 600000).toISOString()
+    }))
+    return { data: messages, error: null }
+  }
+
   const { data, error } = await supabase
     .from('messages')
     .select(`
@@ -2462,6 +2600,11 @@ export const markMessageAsRead = async (messageId: string) => {
 }
 
 export const getUnreadMessageCount = async (userId: string) => {
+  // Demo mode - return mock unread count
+  if (DEMO_MODE) {
+    return { count: 2, error: null }
+  }
+
   const { count, error } = await supabase
     .from('messages')
     .select('*', { count: 'exact', head: true })

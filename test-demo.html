@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Mode Test</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f4f1e8;
+    }
+    h1 { color: #1a3d2e; }
+    .section {
+      background: white;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .status {
+      padding: 8px 12px;
+      border-radius: 4px;
+      display: inline-block;
+      margin: 5px 0;
+    }
+    .success { background: #d4f4dd; color: #1a5928; }
+    .error { background: #fdd; color: #a00; }
+    .info { background: #e3f2fd; color: #1565c0; }
+    pre {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌿 Harmonious Habitats - Demo Mode Test</h1>
+
+  <div class="section">
+    <h2>Configuration</h2>
+    <div id="config"></div>
+  </div>
+
+  <div class="section">
+    <h2>Authentication</h2>
+    <div id="auth"></div>
+  </div>
+
+  <div class="section">
+    <h2>Events</h2>
+    <div id="events"></div>
+  </div>
+
+  <div class="section">
+    <h2>Spaces</h2>
+    <div id="spaces"></div>
+  </div>
+
+  <div class="section">
+    <h2>Neighborhoods</h2>
+    <div id="neighborhoods"></div>
+  </div>
+
+  <script type="module">
+    import { DEMO_MODE, DEMO_USER, DEMO_EVENTS, DEMO_SPACES, DEMO_NEIGHBORHOODS } from '/src/lib/demo-mode.ts';
+    import { getEvents, getSpaces, getNeighborhoods } from '/src/lib/supabase.ts';
+    import { useAuth } from '/src/hooks/useAuth.ts';
+
+    // Check configuration
+    const configEl = document.getElementById('config');
+    configEl.innerHTML = `
+      <div class="status ${DEMO_MODE ? 'success' : 'error'}">
+        Demo Mode: ${DEMO_MODE ? 'ENABLED ✅' : 'DISABLED ❌'}
+      </div>
+      <div class="status info">
+        Environment: ${import.meta.env.MODE}
+      </div>
+    `;
+
+    // Check demo data
+    const authEl = document.getElementById('auth');
+    if (DEMO_MODE) {
+      authEl.innerHTML = `
+        <div class="status success">Demo User Loaded ✅</div>
+        <pre>${JSON.stringify({
+          name: DEMO_USER.full_name,
+          email: DEMO_USER.email,
+          neighborhood: DEMO_USER.neighborhood,
+          interests: DEMO_USER.holistic_interests
+        }, null, 2)}</pre>
+      `;
+    } else {
+      authEl.innerHTML = `<div class="status error">Demo mode disabled - using real authentication</div>`;
+    }
+
+    // Test fetching events
+    const eventsEl = document.getElementById('events');
+    try {
+      const { data: events, error } = await getEvents({ limit: 3 });
+      if (error) throw error;
+
+      eventsEl.innerHTML = `
+        <div class="status success">Events Loaded: ${events?.length || 0} ✅</div>
+        ${events?.map(e => `
+          <div style="margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 4px;">
+            <strong>${e.title}</strong><br>
+            <small>${e.category} | ${e.date} at ${e.start_time}</small><br>
+            <small style="color: #666;">${e.description?.substring(0, 100)}...</small>
+          </div>
+        `).join('') || '<div>No events found</div>'}
+      `;
+    } catch (error) {
+      eventsEl.innerHTML = `<div class="status error">Error loading events: ${error.message}</div>`;
+    }
+
+    // Test fetching spaces
+    const spacesEl = document.getElementById('spaces');
+    try {
+      const { data: spaces, error } = await getSpaces({ limit: 3 });
+      if (error) throw error;
+
+      spacesEl.innerHTML = `
+        <div class="status success">Spaces Loaded: ${spaces?.length || 0} ✅</div>
+        ${spaces?.map(s => `
+          <div style="margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 4px;">
+            <strong>${s.name}</strong><br>
+            <small>${s.type} | Capacity: ${s.capacity} people</small><br>
+            <small style="color: #666;">${s.description?.substring(0, 100)}...</small>
+          </div>
+        `).join('') || '<div>No spaces found</div>'}
+      `;
+    } catch (error) {
+      spacesEl.innerHTML = `<div class="status error">Error loading spaces: ${error.message}</div>`;
+    }
+
+    // Test fetching neighborhoods
+    const neighborhoodsEl = document.getElementById('neighborhoods');
+    try {
+      const { data: neighborhoods, error } = await getNeighborhoods({ limit: 3 });
+      if (error) throw error;
+
+      neighborhoodsEl.innerHTML = `
+        <div class="status success">Neighborhoods Loaded: ${neighborhoods?.length || 0} ✅</div>
+        ${neighborhoods?.map(n => `
+          <div style="margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 4px;">
+            <strong>${n.name}</strong><br>
+            <small>${n.member_count} members</small><br>
+            <small style="color: #666;">${n.description?.substring(0, 100)}...</small>
+          </div>
+        `).join('') || '<div>No neighborhoods found</div>'}
+      `;
+    } catch (error) {
+      neighborhoodsEl.innerHTML = `<div class="status error">Error loading neighborhoods: ${error.message}</div>`;
+    }
+  </script>
+</body>
+</html>

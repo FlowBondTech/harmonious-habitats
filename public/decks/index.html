@@ -590,20 +590,195 @@
         /* Responsive Design */
         @media (max-width: 768px) {
             .slide-content {
-                padding: 2rem;
+                padding: 1.5rem;
+                width: 95%;
+            }
+
+            .mega-title {
+                font-size: clamp(2rem, 7vw, 3.5rem);
+            }
+
+            .subtitle {
+                font-size: clamp(1rem, 2.5vw, 1.3rem);
             }
 
             .feature-grid,
-            .stats-container {
+            .stats-container,
+            .team-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
             }
 
             .nav-bar {
-                padding: 1rem;
+                padding: 0.75rem 1rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .nav-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .nav-btn {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.875rem;
             }
 
             .deck-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .deck-card {
+                padding: 1.5rem;
+            }
+
+            .selector-title {
+                font-size: 2.5rem;
+            }
+
+            .selector-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .feature-card {
+                padding: 1.5rem;
+            }
+
+            .icon-box {
+                width: 60px;
+                height: 60px;
+                font-size: 2rem;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .stat-box {
+                padding: 1.5rem;
+            }
+
+            .timeline-content {
+                margin-left: 1rem;
+                padding: 1rem;
+            }
+
+            .team-member {
+                padding: 1.5rem;
+            }
+
+            .member-avatar {
+                width: 80px;
+                height: 80px;
+            }
+
+            .cta-button {
+                padding: 0.875rem 2rem;
+                font-size: 1rem;
+            }
+
+            .shortcuts-modal {
+                width: 90%;
+                padding: 2rem;
+            }
+
+            /* Hide keyboard hints on mobile */
+            .key {
+                display: none;
+            }
+
+            /* Touch gesture indicator */
+            .touch-hint {
+                display: block;
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.7);
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 20px;
+                font-size: 0.875rem;
+                animation: fadeInOut 4s ease;
+                pointer-events: none;
+                z-index: 1002;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .slide-content {
+                padding: 1rem;
+            }
+
+            .mega-title {
+                font-size: clamp(1.75rem, 6vw, 3rem);
+            }
+
+            .deck-icon {
+                font-size: 3rem;
+            }
+
+            /* Stack navigation buttons */
+            .nav-btn {
+                padding: 0.5rem 0.7rem;
+                font-size: 0.75rem;
+            }
+
+            .slide-counter {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Touch gesture indicator animation */
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            20%, 80% { opacity: 1; }
+        }
+
+        .touch-hint {
+            display: none;
+        }
+
+        /* Improve touch targets for mobile */
+        @media (pointer: coarse) {
+            .nav-btn,
+            .cta-button,
+            .deck-card {
+                min-height: 44px;
+            }
+
+            .deck-card {
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+            }
+        }
+
+        /* Landscape mobile optimization */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .slide-content {
+                padding: 1rem;
+                max-height: 100vh;
+                overflow-y: auto;
+            }
+
+            .mega-title {
+                font-size: 2rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .feature-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .nav-bar {
+                padding: 0.5rem 1rem;
             }
         }
 
@@ -675,6 +850,9 @@
     <!-- Loading Animation -->
     <div class="loader" id="loader"></div>
 
+    <!-- Touch Hint for Mobile -->
+    <div class="touch-hint" id="touchHint">Swipe left or right to navigate</div>
+
     <!-- Deck Selector -->
     <div class="deck-selector" id="deckSelector">
         <div class="selector-container">
@@ -711,7 +889,17 @@
                 </div>
             </div>
 
-            <p style="margin-top: 3rem; opacity: 0.7;">Press <span class="key">?</span> for keyboard shortcuts</p>
+            <p style="margin-top: 3rem; opacity: 0.7;" class="desktop-only">Press <span class="key">?</span> for keyboard shortcuts</p>
+            <p style="margin-top: 3rem; opacity: 0.7;" class="mobile-only">Swipe to navigate</p>
+
+            <style>
+                .desktop-only { display: block; }
+                .mobile-only { display: none; }
+                @media (max-width: 768px) {
+                    .desktop-only { display: none; }
+                    .mobile-only { display: block; }
+                }
+            </style>
         </div>
     </div>
 
@@ -1463,6 +1651,14 @@
                 updateSlideCounter();
                 updateProgress();
                 hideLoader();
+                showTouchHint();
+
+                // Auto-hide nav on mobile after a few seconds
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => {
+                        document.getElementById('navBar').classList.remove('visible');
+                    }, 3000);
+                }
             }, 500);
         }
 
@@ -1581,32 +1777,143 @@
             }
         });
 
-        // Touch navigation for mobile
+        // Enhanced touch navigation for mobile
         let touchStartX = 0;
+        let touchStartY = 0;
         let touchEndX = 0;
+        let touchEndY = 0;
+        let touchStartTime = 0;
+        let isDragging = false;
 
+        // Touch gesture handling
         document.addEventListener('touchstart', (e) => {
             touchStartX = e.changedTouches[0].screenX;
-        });
+            touchStartY = e.changedTouches[0].screenY;
+            touchStartTime = Date.now();
+            isDragging = false;
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            isDragging = true;
+            // Add swipe preview feedback if needed
+        }, { passive: true });
 
         document.addEventListener('touchend', (e) => {
             touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
+            touchEndY = e.changedTouches[0].screenY;
+            const touchEndTime = Date.now();
+            const touchDuration = touchEndTime - touchStartTime;
+
+            // Only process swipe if it was a quick gesture (not a slow drag)
+            if (touchDuration < 500) {
+                handleSwipe();
+            }
+        }, { passive: true });
 
         function handleSwipe() {
             if (!currentDeck) return;
 
-            if (touchEndX < touchStartX - 50) {
-                nextSlide();
-            }
-            if (touchEndX > touchStartX + 50) {
-                previousSlide();
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = Math.abs(touchEndY - touchStartY);
+
+            // Only process horizontal swipes (ignore vertical scrolling)
+            if (Math.abs(deltaX) > 30 && deltaY < 100) {
+                if (deltaX < 0) {
+                    // Swipe left - next slide
+                    nextSlide();
+                } else {
+                    // Swipe right - previous slide
+                    previousSlide();
+                }
             }
         }
 
+        // Show touch hint on mobile for first-time users
+        function showTouchHint() {
+            if ('ontouchstart' in window && !localStorage.getItem('touchHintShown')) {
+                setTimeout(() => {
+                    const hint = document.getElementById('touchHint');
+                    if (hint && currentDeck) {
+                        hint.style.display = 'block';
+                        localStorage.setItem('touchHintShown', 'true');
+                        setTimeout(() => {
+                            hint.style.display = 'none';
+                        }, 4000);
+                    }
+                }, 1000);
+            }
+        }
+
+        // Double tap to toggle fullscreen on mobile
+        let lastTapTime = 0;
+        document.addEventListener('touchend', (e) => {
+            const currentTime = Date.now();
+            const tapLength = currentTime - lastTapTime;
+
+            if (tapLength < 300 && tapLength > 0) {
+                // Double tap detected
+                e.preventDefault();
+                toggleFullscreen();
+            }
+            lastTapTime = currentTime;
+        });
+
+        // Improved mobile navigation visibility
+        let navTimer;
+        function showNavBarTemporarily() {
+            const navBar = document.getElementById('navBar');
+            if (navBar && currentDeck && window.innerWidth <= 768) {
+                navBar.classList.add('visible');
+                clearTimeout(navTimer);
+                navTimer = setTimeout(() => {
+                    navBar.classList.remove('visible');
+                }, 3000);
+            }
+        }
+
+        // Show navigation on tap
+        document.addEventListener('click', (e) => {
+            if (currentDeck && !e.target.closest('.nav-bar') && !e.target.closest('.deck-card')) {
+                showNavBarTemporarily();
+            }
+        });
+
         // Initialize
         generateParticles();
+
+        // Detect orientation changes
+        window.addEventListener('orientationchange', () => {
+            // Adjust layout after orientation change
+            setTimeout(() => {
+                if (currentDeck) {
+                    updateSlideCounter();
+                    updateProgress();
+                }
+            }, 100);
+        });
+
+        // Prevent pinch zoom on mobile
+        document.addEventListener('gesturestart', (e) => {
+            e.preventDefault();
+        });
+
+        // Add viewport height fix for mobile browsers
+        function setViewportHeight() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setViewportHeight();
+        window.addEventListener('resize', setViewportHeight);
+
+        // Add CSS for viewport height
+        const style = document.createElement('style');
+        style.textContent = `
+            .slide {
+                height: 100vh;
+                height: calc(var(--vh, 1vh) * 100);
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
