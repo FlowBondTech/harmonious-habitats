@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { MapPin, Users, Star, Badge, Home, Globe, Accessibility, DollarSign, Calendar, Cat, Dog, Share2, Heart, BookmarkPlus, Eye, UserCheck, Send } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase, Space } from '../lib/supabase';
@@ -53,19 +54,21 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
   };
 
   const handleBookmark = async (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     setIsBookmarked(!isBookmarked);
     // Add bookmark functionality here
   };
 
   const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     if (navigator.share) {
       try {
         await navigator.share({
           title: space.name,
           text: `Check out this beautiful space: "${space.name}" in our community!`,
-          url: window.location.origin
+          url: window.location.origin + `/spaces/${spaceSlug}`
         });
       } catch (error) {
         console.log('Error sharing:', error);
@@ -88,11 +91,14 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
     return icons[amenity.toLowerCase()] || Home;
   };
 
+  // Generate slug from space name for URL
+  const spaceSlug = space.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
   return (
     <>
-      <div 
-        className="card-interactive group overflow-hidden gpu-accelerated"
-        onClick={() => setShowDetailsModal(true)}
+      <Link
+        to={`/spaces/${spaceSlug}`}
+        className="card-interactive group overflow-hidden gpu-accelerated block"
       >
         {/* Space Image */}
         <div className="relative overflow-hidden">
@@ -265,8 +271,9 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
           <div className="space-y-3">
             {/* Primary Action - Book or Apply */}
             {space.allow_facilitator_applications ? (
-              <button 
+              <button
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   setShowApplicationModal(true);
                 }}
@@ -283,8 +290,9 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
                 </div>
               </button>
             ) : (
-              <button 
+              <button
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   handleBookSpace();
                 }}
@@ -311,8 +319,9 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
             {/* Secondary Actions */}
             <div className="grid grid-cols-2 gap-3">
               {space.allow_facilitator_applications && (
-                <button 
+                <button
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     handleBookSpace();
                   }}
@@ -326,20 +335,11 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
                   {!user ? 'Sign in' : 'Book Space'}
                 </button>
               )}
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDetailsModal(true);
-                }}
-                className={`btn-outline btn-sm focus-ring ${space.allow_facilitator_applications ? '' : 'col-span-2'}`}
-              >
-                <Eye className="icon-sm mr-1" />
-                View Details
-              </button>
+              {/* View Details button removed - the entire card is now clickable */}
             </div>
           </div>
         </div>
-      </div>
+      </Link>
 
       {/* Modals */}
       <SpaceDetailsModal

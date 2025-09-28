@@ -1,7 +1,6 @@
 import React, { Suspense, lazy, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuthContext } from './components/AuthProvider';
-import { DEMO_MODE } from './lib/demo-mode';
 import KeyboardNavHelper from './components/KeyboardNavHelper';
 import AuthModal from './components/AuthModal';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -141,7 +140,7 @@ const AppRouter = ({
           
           
           {/* Main Content with responsive padding - add padding for bottom nav on mobile */}
-          <main id="main" className={`${DEMO_MODE ? 'pt-24 lg:pt-24' : 'pt-16 lg:pt-16'} pb-20 md:pb-8 relative z-10 ${
+          <main id="main" className={`pt-16 lg:pt-16 pb-20 md:pb-8 relative z-10 ${
             !shouldHideSidebar && isSidebarOpen ? 'lg:ml-64' : ''
           }`}>
             <Suspense fallback={
