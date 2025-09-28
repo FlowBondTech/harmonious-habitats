@@ -92,7 +92,40 @@ const Home = () => {
         const oneMonthLater = new Date();
         oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
         const oneMonthFromNow = oneMonthLater.toISOString().split('T')[0];
-        
+
+        // Fetch ALL events for statistics (no limit)
+        const { data: allEventsData, error: statsError } = await getEvents({
+          status: ['published']
+        });
+
+        if (statsError) {
+          console.error('Error loading events for stats:', statsError);
+        }
+
+        // Calculate event statistics from ALL events
+        if (allEventsData) {
+          const now = new Date();
+          const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+          const thisWeek = allEventsData.filter(e => {
+            const eventDate = new Date(e.date);
+            return eventDate >= now && eventDate <= weekFromNow;
+          });
+          const totalParticipants = allEventsData.reduce((sum, e) => sum + (e.current_participants || 0), 0);
+          const neighborhoods = new Set(allEventsData.map(e => e.neighborhood).filter(Boolean));
+          const freeEvents = allEventsData.filter(e => e.is_free).length;
+          const virtualEvents = allEventsData.filter(e => e.is_virtual).length;
+
+          setEventStats({
+            totalEvents: allEventsData.length,
+            thisWeekEvents: thisWeek.length,
+            totalParticipants,
+            activeNeighborhoods: neighborhoods.size,
+            freeEvents,
+            virtualEvents
+          });
+        }
+
+        // Fetch limited events for display
         const { data, error } = await getEvents({
           status: ['published'],
           limit: 10
@@ -102,29 +135,6 @@ const Home = () => {
           console.error('Error loading events:', error);
           setError(error.message);
           return;
-        }
-
-        // Calculate event statistics
-        if (data) {
-          const now = new Date();
-          const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-          const thisWeek = data.filter(e => {
-            const eventDate = new Date(e.date);
-            return eventDate >= now && eventDate <= weekFromNow;
-          });
-          const totalParticipants = data.reduce((sum, e) => sum + (e.current_participants || 0), 0);
-          const neighborhoods = new Set(data.map(e => e.neighborhood).filter(Boolean));
-          const freeEvents = data.filter(e => e.is_free).length;
-          const virtualEvents = data.filter(e => e.is_virtual).length;
-
-          setEventStats({
-            totalEvents: data.length,
-            thisWeekEvents: thisWeek.length,
-            totalParticipants,
-            activeNeighborhoods: neighborhoods.size,
-            freeEvents,
-            virtualEvents
-          });
         }
 
         // Filter for today's events or upcoming events if no events today
