@@ -16,6 +16,7 @@ import MobileMenu from './components/MobileMenu';
 import { ShareModal } from './components/ShareModal';
 import OnboardingModal from './components/OnboardingModal';
 import ShareOptionsModal from './components/ShareOptionsModal';
+import BottomNavbar from './components/BottomNavbar';
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import('./pages/Home'));
@@ -140,10 +141,13 @@ const AppRouter = ({
           
           {/* Navigation - Always show on mobile */}
           <Navbar isMenuOpen={isSidebarOpen} setIsMenuOpen={setIsSidebarOpen} />
+
+          {/* Bottom Navigation for Mobile */}
+          <BottomNavbar />
           
           
-          {/* Main Content with responsive padding */}
-          <main id="main" className={`${DEMO_MODE ? 'pt-24 lg:pt-24' : 'pt-16 lg:pt-16'} pb-8 relative z-10 ${
+          {/* Main Content with responsive padding - add padding for bottom nav on mobile */}
+          <main id="main" className={`${DEMO_MODE ? 'pt-24 lg:pt-24' : 'pt-16 lg:pt-16'} pb-20 md:pb-8 relative z-10 ${
             !shouldHideSidebar && isSidebarOpen ? 'lg:ml-64' : ''
           }`}>
             <Suspense fallback={
