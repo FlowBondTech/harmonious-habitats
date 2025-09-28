@@ -1,4 +1,4 @@
-# Harmony Spaces Design System
+# Harmonious Habitats Design System
 
 ## 🎨 Design Philosophy
 

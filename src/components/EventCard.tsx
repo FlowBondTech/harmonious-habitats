@@ -174,33 +174,64 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
     }
   };
 
+  // Calculate event status
+  const isAlmostFull = event.max_participants && event.current_participants &&
+    (event.current_participants / event.max_participants) > 0.8;
+  const isTrending = event.current_participants && event.current_participants > 15;
+  const isToday = new Date(event.date).toDateString() === new Date().toDateString();
+  const isFree = event.is_free;
+
   return (
     <>
-      <div 
+      <div
         className="card-interactive group overflow-hidden gpu-accelerated"
         onClick={handleCardClick}
       >
         {/* Event Image */}
         <div className="relative overflow-hidden">
-          <img 
-            src={event.image_url || 'https://images.pexels.com/photos/3822647/pexels-photo-3822647.jpeg?auto=compress&cs=tinysrgb&w=600'} 
+          <img
+            src={event.image_url || 'https://images.pexels.com/photos/3822647/pexels-photo-3822647.jpeg?auto=compress&cs=tinysrgb&w=600'}
             alt={event.title}
             className="w-full h-48 sm:h-52 lg:h-56 object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
           />
-          
+
           {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          
+
           {/* Top Labels */}
-          <div className="absolute top-3 left-3 flex items-center space-x-2">
-            <span className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm border border-white/20 shadow-lg ${categoryColors[event.category] || 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800'}`}>
-              {event.category}
-            </span>
-            {event.verified && (
-              <div className="bg-gradient-to-r from-forest-600 to-forest-700 text-white p-2 rounded-full backdrop-blur-sm shadow-lg">
-                <Badge className="h-3 w-3" />
-              </div>
-            )}
+          <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
+            <div className="flex flex-wrap items-center gap-2 max-w-[70%]">
+              <span className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm border border-white/20 shadow-lg ${categoryColors[event.category] || 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800'}`}>
+                {event.category}
+              </span>
+              {isToday && (
+                <span className="px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm bg-gradient-to-r from-orange-500 to-red-500 text-white border border-white/20 shadow-lg animate-pulse">
+                  Today!
+                </span>
+              )}
+              {isTrending && (
+                <span className="px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm bg-gradient-to-r from-purple-500 to-pink-500 text-white border border-white/20 shadow-lg">
+                  🔥 Trending
+                </span>
+              )}
+              {isAlmostFull && (
+                <span className="px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm bg-gradient-to-r from-red-500 to-red-600 text-white border border-white/20 shadow-lg">
+                  Almost Full
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {event.verified && (
+                <div className="bg-gradient-to-r from-forest-600 to-forest-700 text-white p-2 rounded-full backdrop-blur-sm shadow-lg">
+                  <Badge className="h-3 w-3" />
+                </div>
+              )}
+              {isFree && (
+                <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-2 py-1 rounded-full backdrop-blur-sm shadow-lg text-xs font-bold">
+                  FREE
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Action Buttons */}
@@ -251,11 +282,32 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
               <MapPin className="h-4 w-4 mr-2.5 text-forest-500 group-hover/detail:text-forest-600 transition-colors" />
               <span className="body-sm font-medium truncate">{event.location_name}</span>
             </div>
-            <div className="flex items-center text-forest-600 group/detail hover:text-forest-700 transition-colors">
-              <Users className="h-4 w-4 mr-2.5 text-forest-500 group-hover/detail:text-forest-600 transition-colors" />
-              <span className="body-sm font-medium">
-                {event.participants?.length || 0}/{event.capacity} participants
-              </span>
+            <div className="flex items-center justify-between text-forest-600 group/detail hover:text-forest-700 transition-colors">
+              <div className="flex items-center">
+                <Users className="h-4 w-4 mr-2.5 text-forest-500 group-hover/detail:text-forest-600 transition-colors" />
+                <span className="body-sm font-medium">
+                  {event.current_participants || event.participants?.length || 0}{event.max_participants || event.capacity ? `/${event.max_participants || event.capacity}` : ''} joined
+                </span>
+              </div>
+              {(event.max_participants || event.capacity) && (
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-16 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-500 rounded-full ${
+                        ((event.current_participants || event.participants?.length || 0) / (event.max_participants || event.capacity)) > 0.8
+                          ? 'bg-gradient-to-r from-red-400 to-red-500'
+                          : ((event.current_participants || event.participants?.length || 0) / (event.max_participants || event.capacity)) > 0.5
+                          ? 'bg-gradient-to-r from-yellow-400 to-orange-400'
+                          : 'bg-gradient-to-r from-green-400 to-green-500'
+                      }`}
+                      style={{ width: `${Math.min(100, ((event.current_participants || event.participants?.length || 0) / (event.max_participants || event.capacity)) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-forest-600 font-medium">
+                    {Math.round(((event.current_participants || event.participants?.length || 0) / (event.max_participants || event.capacity)) * 100)}%
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           

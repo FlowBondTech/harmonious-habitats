@@ -56,6 +56,14 @@ const Home = () => {
   const [featuredSpaces, setFeaturedSpaces] = useState<Space[]>([]);
   const [loading, setLoading] = useState(true);
   const [, setError] = useState<string | null>(null);
+  const [eventStats, setEventStats] = useState({
+    totalEvents: 0,
+    thisWeekEvents: 0,
+    totalParticipants: 0,
+    activeNeighborhoods: 0,
+    freeEvents: 0,
+    virtualEvents: 0
+  });
   const [isMobile, setIsMobile] = useState(() => {
     // Check if window is available (client-side)
     if (typeof window !== 'undefined') {
@@ -94,6 +102,29 @@ const Home = () => {
           console.error('Error loading events:', error);
           setError(error.message);
           return;
+        }
+
+        // Calculate event statistics
+        if (data) {
+          const now = new Date();
+          const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+          const thisWeek = data.filter(e => {
+            const eventDate = new Date(e.date);
+            return eventDate >= now && eventDate <= weekFromNow;
+          });
+          const totalParticipants = data.reduce((sum, e) => sum + (e.current_participants || 0), 0);
+          const neighborhoods = new Set(data.map(e => e.neighborhood).filter(Boolean));
+          const freeEvents = data.filter(e => e.is_free).length;
+          const virtualEvents = data.filter(e => e.is_virtual).length;
+
+          setEventStats({
+            totalEvents: data.length,
+            thisWeekEvents: thisWeek.length,
+            totalParticipants,
+            activeNeighborhoods: neighborhoods.size,
+            freeEvents,
+            virtualEvents
+          });
         }
 
         // Filter for today's events or upcoming events if no events today
@@ -266,29 +297,49 @@ const Home = () => {
                 </div>
               )}
 
-              {/* Community Stats */}
+              {/* Community Stats - Enhanced */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
                 <HighlightCard
                   icon={Calendar}
-                  title="Upcoming Events"
-                  description="Available to join"
+                  title="This Week"
+                  description={`${eventStats.thisWeekEvents} upcoming events`}
                   color="bg-gradient-to-br from-forest-500 to-forest-600"
-                  value={todayEvents.length}
+                  value={eventStats.thisWeekEvents}
                 />
                 <HighlightCard
-                  icon={Sparkles}
-                  title="Event Categories"
-                  description="Different types available"
+                  icon={Users}
+                  title="Active Community"
+                  description={`${eventStats.totalParticipants} participants`}
                   color="bg-gradient-to-br from-earth-500 to-earth-600"
-                  value={new Set(todayEvents.map(e => e.category)).size}
+                  value={eventStats.totalParticipants}
                 />
                 <HighlightCard
-                  icon={Globe}
-                  title="Global Events"
-                  description="Join from anywhere"
+                  icon={MapPin}
+                  title="Neighborhoods"
+                  description={`${eventStats.activeNeighborhoods} active areas`}
                   color="bg-gradient-to-br from-blue-500 to-purple-600"
-                  value="∞"
+                  value={eventStats.activeNeighborhoods}
                 />
+              </div>
+
+              {/* Additional Stats Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6 animate-fade-in-up" style={{ animationDelay: '1s' }}>
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center border border-forest-100">
+                  <div className="text-2xl font-bold text-forest-700">{eventStats.totalEvents}</div>
+                  <div className="text-sm text-forest-600 mt-1">Total Events</div>
+                </div>
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center border border-forest-100">
+                  <div className="text-2xl font-bold text-forest-700">{eventStats.freeEvents}</div>
+                  <div className="text-sm text-forest-600 mt-1">Free Events</div>
+                </div>
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center border border-forest-100">
+                  <div className="text-2xl font-bold text-forest-700">{eventStats.virtualEvents}</div>
+                  <div className="text-sm text-forest-600 mt-1">Virtual Events</div>
+                </div>
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center border border-forest-100">
+                  <div className="text-2xl font-bold text-forest-700">{featuredSpaces.length}</div>
+                  <div className="text-sm text-forest-600 mt-1">Community Spaces</div>
+                </div>
               </div>
             </div>
           </div>

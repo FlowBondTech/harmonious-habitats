@@ -155,7 +155,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
         if (error) {
           setError(error.message);
         } else {
-          setSuccess('Account created successfully! Welcome to Harmony Spaces!');
+          setSuccess('Account created successfully! Welcome to Harmonious Habitats!');
           // Close modal and start onboarding after a short delay
           setTimeout(() => {
             onClose();
@@ -221,7 +221,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
               <div className="bg-white/20 p-2 rounded-xl">
                 <Sprout className="icon-md" />
               </div>
-              <h2 id="auth-title" className="text-2xl font-bold">Harmony Spaces</h2>
+              <h2 id="auth-title" className="text-2xl font-bold">Harmonious Habitats</h2>
             </div>
             
             <p className="text-forest-100">
