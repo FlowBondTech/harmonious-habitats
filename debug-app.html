@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug App Loading</title>
+</head>
+<body>
+    <h1>Debug App Loading Issue</h1>
+
+    <div id="status">Checking...</div>
+
+    <h2>Tests:</h2>
+    <ol id="tests"></ol>
+
+    <h2>Open Browser Console (F12) to see any errors</h2>
+
+    <script>
+        const tests = document.getElementById('tests');
+
+        async function addTest(message, success) {
+            const li = document.createElement('li');
+            li.innerHTML = success ? `✅ ${message}` : `❌ ${message}`;
+            tests.appendChild(li);
+        }
+
+        async function debug() {
+            // Test 1: Check if main page responds
+            try {
+                const response = await fetch('http://localhost:5173/');
+                if (response.ok) {
+                    addTest('Main page HTML loads', true);
+                } else {
+                    addTest(`Main page returns ${response.status}`, false);
+                }
+            } catch (err) {
+                addTest(`Cannot reach server: ${err.message}`, false);
+            }
+
+            // Test 2: Check JavaScript loading
+            try {
+                const response = await fetch('http://localhost:5173/src/main.tsx');
+                if (response.ok) {
+                    addTest('React app entry point exists', true);
+                } else {
+                    addTest(`main.tsx returns ${response.status}`, false);
+                }
+            } catch (err) {
+                addTest(`Cannot load main.tsx: ${err.message}`, false);
+            }
+
+            // Test 3: Check Vite
+            try {
+                const response = await fetch('http://localhost:5173/@vite/client');
+                if (response.ok) {
+                    addTest('Vite dev server working', true);
+                } else {
+                    addTest(`Vite returns ${response.status}`, false);
+                }
+            } catch (err) {
+                addTest(`Vite issue: ${err.message}`, false);
+            }
+
+            document.getElementById('status').innerHTML = `
+                <p>✅ Server is running at <a href="http://localhost:5173" target="_blank">http://localhost:5173</a></p>
+                <p>If the page is blank, check browser console for JavaScript errors.</p>
+                <p>Common issues:</p>
+                <ul>
+                    <li>Browser extensions blocking scripts</li>
+                    <li>JavaScript errors in the app</li>
+                    <li>React rendering issues</li>
+                </ul>
+            `;
+        }
+
+        debug();
+    </script>
+</body>
+</html>

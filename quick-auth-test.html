@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Auth Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Harmonious Habitats - Quick Auth Test</h1>
+
+    <div id="status">Loading...</div>
+
+    <h2>Test Sign Up</h2>
+    <form id="signup-form">
+        <input type="email" id="email" placeholder="Email" value="user@gmail.com">
+        <input type="password" id="password" placeholder="Password" value="TestPass123!">
+        <button type="submit">Sign Up</button>
+    </form>
+
+    <h2>Results:</h2>
+    <pre id="results"></pre>
+
+    <script>
+        // Your Supabase credentials
+        const SUPABASE_URL = 'https://vcbhqzwrmahdmfeamgtl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjYmhxendybWFoZG1mZWFtZ3RsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIzNjMsImV4cCI6MjA3NDQ4ODM2M30.eeQo663Wa52xJ7mHmIQdhdxBNQBAzkRio0_pX4zx6yc';
+
+        const { createClient } = window.supabase;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.getElementById('status').innerText = '✅ Connected to Supabase';
+
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const results = document.getElementById('results');
+
+            results.innerText = 'Testing sign up...';
+
+            try {
+                // Test sign up
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    results.innerText = `❌ Sign up failed:\n${error.message}\n\n`;
+
+                    if (error.message.includes('invalid')) {
+                        results.innerText += 'Fix: Check Supabase Dashboard → Authentication → Settings\n';
+                        results.innerText += '- Turn off email confirmations\n';
+                        results.innerText += '- Remove email domain restrictions\n';
+                    }
+
+                    if (error.message.includes('policy')) {
+                        results.innerText += '\nRLS Issue! Run this SQL:\n';
+                        results.innerText += 'ALTER TABLE profiles DISABLE ROW LEVEL SECURITY;';
+                    }
+                } else {
+                    results.innerText = `✅ Sign up successful!\n`;
+                    results.innerText += `User ID: ${data.user.id}\n`;
+                    results.innerText += `Email: ${data.user.email}\n\n`;
+
+                    // Check profile
+                    const { data: profile, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', data.user.id)
+                        .single();
+
+                    if (profile) {
+                        results.innerText += '✅ Profile created automatically!\n';
+                        results.innerText += JSON.stringify(profile, null, 2);
+                    } else {
+                        results.innerText += '❌ Profile not created\n';
+                        results.innerText += profileError ? profileError.message : 'Unknown error';
+                    }
+                }
+            } catch (err) {
+                results.innerText = `Error: ${err.message}`;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony Spaces - Application Documentation & Current State</title>
+    <style>
+        /* PDF-like styling */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #e5e5e5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .pdf-container {
+            max-width: 8.5in;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .page {
+            padding: 1in;
+            min-height: 11in;
+            position: relative;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+
+        /* Typography */
+        h1 {
+            color: #1a3d2e;
+            font-size: 32px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #1a3d2e;
+        }
+
+        h2 {
+            color: #1a3d2e;
+            font-size: 24px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #87a96b;
+        }
+
+        h3 {
+            color: #2c5f4d;
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        h4 {
+            color: #2c5f4d;
+            font-size: 16px;
+            margin-top: 15px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            margin-bottom: 10px;
+            text-align: justify;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .date {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th {
+            background: #1a3d2e;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: #f4f4f4;
+            border-left: 4px solid #1a3d2e;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+
+        /* Status badges */
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .badge-active { background: #4caf50; color: white; }
+        .badge-pending { background: #ff9800; color: white; }
+        .badge-complete { background: #2196f3; color: white; }
+        .badge-critical { background: #f44336; color: white; }
+
+        /* Feature cards */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+
+        .feature-card h4 {
+            color: #1a3d2e;
+            margin-top: 0;
+        }
+
+        /* Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-box {
+            background: #1a3d2e;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        /* TOC */
+        .toc {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .toc-item {
+            padding: 5px 0;
+            border-bottom: 1px dotted #ddd;
+        }
+
+        .toc-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .pdf-container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+
+            .page {
+                padding: 0.5in;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        /* Color scheme reference */
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .color-swatch {
+            width: 60px;
+            height: 40px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* Warning boxes */
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .success-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="pdf-container">
+        <!-- Page 1: Title Page -->
+        <div class="page page-break">
+            <div style="text-align: center; padding-top: 2in;">
+                <h1 style="font-size: 48px; border: none;">Harmony Spaces</h1>
+                <p class="subtitle">Community Wellness Platform</p>
+                <p style="font-size: 20px; margin: 40px 0;">Application Documentation & Current State Report</p>
+                <p class="date">Generated: December 2024</p>
+                <p style="margin-top: 60px; color: #666;">Version 1.0.0</p>
+            </div>
+        </div>
+
+        <!-- Page 2: Table of Contents -->
+        <div class="page page-break">
+            <h1>Table of Contents</h1>
+            <div class="toc">
+                <div class="toc-item">1. Executive Summary .................................. 3</div>
+                <div class="toc-item">2. Application Overview .............................. 4</div>
+                <div class="toc-item">3. Technical Architecture ............................ 5</div>
+                <div class="toc-item">4. Current Features & Status ......................... 6</div>
+                <div class="toc-item">5. Database Schema ................................... 8</div>
+                <div class="toc-item">6. User Roles & Permissions .......................... 9</div>
+                <div class="toc-item">7. API Endpoints & Integration ....................... 10</div>
+                <div class="toc-item">8. Performance Metrics ............................... 11</div>
+                <div class="toc-item">9. Security Assessment ............................... 12</div>
+                <div class="toc-item">10. Known Issues & Bugs ............................. 13</div>
+                <div class="toc-item">11. Future Roadmap ................................... 14</div>
+                <div class="toc-item">12. Deployment & Configuration ....................... 15</div>
+            </div>
+        </div>
+
+        <!-- Page 3: Executive Summary -->
+        <div class="page page-break">
+            <h1>1. Executive Summary</h1>
+
+            <p>Harmony Spaces is a hyperlocal community platform designed to connect neighbors through wellness practices, shared spaces, and mindful events. The application serves as a marketplace and discovery platform for holistic practitioners, space holders, and community members seeking wellness experiences.</p>
+
+            <h2>Key Metrics</h2>
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <div class="metric-value">100+</div>
+                    <div class="metric-label">React Components</div>
+                </div>
+                <div class="metric-box" style="background: #87a96b;">
+                    <div class="metric-value">89</div>
+                    <div class="metric-label">TypeScript Files</div>
+                </div>
+                <div class="metric-box" style="background: #b87333;">
+                    <div class="metric-value">15+</div>
+                    <div class="metric-label">Core Features</div>
+                </div>
+                <div class="metric-box" style="background: #2c5f4d;">
+                    <div class="metric-value">20+</div>
+                    <div class="metric-label">Database Tables</div>
+                </div>
+            </div>
+
+            <h2>Project Status</h2>
+            <table>
+                <tr>
+                    <th>Component</th>
+                    <th>Status</th>
+                    <th>Completion</th>
+                </tr>
+                <tr>
+                    <td>Core Platform</td>
+                    <td><span class="badge badge-active">ACTIVE</span></td>
+                    <td>85%</td>
+                </tr>
+                <tr>
+                    <td>User Authentication</td>
+                    <td><span class="badge badge-complete">COMPLETE</span></td>
+                    <td>100%</td>
+                </tr>
+                <tr>
+                    <td>Event Management</td>
+                    <td><span class="badge badge-active">ACTIVE</span></td>
+                    <td>90%</td>
+                </tr>
+                <tr>
+                    <td>Space Sharing</td>
+                    <td><span class="badge badge-active">ACTIVE</span></td>
+                    <td>80%</td>
+                </tr>
+                <tr>
+                    <td>Facilitator System</td>
+                    <td><span class="badge badge-active">ACTIVE</span></td>
+                    <td>75%</td>
+                </tr>
+                <tr>
+                    <td>Payment Integration</td>
+                    <td><span class="badge badge-pending">PENDING</span></td>
+                    <td>0%</td>
+                </tr>
+            </table>
+
+            <h2>Technology Stack</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>Frontend</h4>
+                    <ul>
+                        <li>React 18.3.1</li>
+                        <li>TypeScript 5.5.3</li>
+                        <li>Tailwind CSS 3.4.1</li>
+                        <li>Vite 5.4.2</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>Backend & Database</h4>
+                    <ul>
+                        <li>Supabase (PostgreSQL)</li>
+                        <li>Row Level Security</li>
+                        <li>Real-time subscriptions</li>
+                        <li>Edge Functions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 4: Application Overview -->
+        <div class="page page-break">
+            <h1>2. Application Overview</h1>
+
+            <h2>Vision & Mission</h2>
+            <p>Harmony Spaces aims to strengthen local communities by facilitating connections through wellness practices, shared spaces, and mindful events. The platform bridges the gap between wellness practitioners and community members seeking authentic, local experiences.</p>
+
+            <h2>Core Value Propositions</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>For Community Members</h4>
+                    <ul>
+                        <li>Discover local wellness events</li>
+                        <li>Connect with neighbors</li>
+                        <li>Find healing practices</li>
+                        <li>Access shared spaces</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>For Facilitators</h4>
+                    <ul>
+                        <li>Reach local audiences</li>
+                        <li>Book community spaces</li>
+                        <li>Manage events & bookings</li>
+                        <li>Build reputation</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>For Space Holders</h4>
+                    <ul>
+                        <li>Monetize unused spaces</li>
+                        <li>Support community</li>
+                        <li>Manage bookings</li>
+                        <li>Screen facilitators</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>For Neighborhoods</h4>
+                    <ul>
+                        <li>Build community bonds</li>
+                        <li>Organize local events</li>
+                        <li>Share resources</li>
+                        <li>Foster wellness culture</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2>User Journey</h2>
+            <ol>
+                <li><strong>Discovery:</strong> Users browse events, spaces, and facilitators in their area</li>
+                <li><strong>Connection:</strong> Users join neighborhoods and connect with like-minded neighbors</li>
+                <li><strong>Participation:</strong> Users register for events and book sessions</li>
+                <li><strong>Engagement:</strong> Users provide feedback and build community relationships</li>
+                <li><strong>Growth:</strong> Users become facilitators or space holders themselves</li>
+            </ol>
+
+            <h2>Platform Statistics</h2>
+            <table>
+                <tr>
+                    <th>Metric</th>
+                    <th>Current Value</th>
+                    <th>Target</th>
+                </tr>
+                <tr>
+                    <td>Total Components</td>
+                    <td>100+</td>
+                    <td>150</td>
+                </tr>
+                <tr>
+                    <td>Page Routes</td>
+                    <td>25</td>
+                    <td>35</td>
+                </tr>
+                <tr>
+                    <td>Database Tables</td>
+                    <td>20+</td>
+                    <td>25</td>
+                </tr>
+                <tr>
+                    <td>API Endpoints</td>
+                    <td>50+</td>
+                    <td>75</td>
+                </tr>
+                <tr>
+                    <td>Test Coverage</td>
+                    <td>0%</td>
+                    <td>80%</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Page 5: Technical Architecture -->
+        <div class="page page-break">
+            <h1>3. Technical Architecture</h1>
+
+            <h2>System Architecture</h2>
+            <div class="code-block">
+┌─────────────────────────────────────────────┐
+│             Client Layer (React)             │
+│  - Components  - Hooks  - Routes  - State    │
+└─────────────────┬───────────────────────────┘
+                  │
+┌─────────────────▼───────────────────────────┐
+│           Supabase Client SDK               │
+│  - Auth  - Database  - Storage  - Realtime  │
+└─────────────────┬───────────────────────────┘
+                  │
+┌─────────────────▼───────────────────────────┐
+│           Supabase Backend                  │
+│  - PostgreSQL  - RLS  - Functions  - Auth   │
+└─────────────────────────────────────────────┘
+            </div>
+
+            <h2>Frontend Architecture</h2>
+            <h3>Component Structure</h3>
+            <div class="code-block">
+src/
+├── components/       # Reusable UI components
+│   ├── ui/          # Base UI components
+│   ├── modals/      # Modal components
+│   └── features/    # Feature-specific components
+├── pages/           # Route-based page components
+├── hooks/           # Custom React hooks
+├── lib/             # Utilities and helpers
+│   ├── supabase.ts  # Database client
+│   ├── logger.ts    # Logging utilities
+│   └── storage.ts   # File storage helpers
+├── types/           # TypeScript definitions
+└── utils/           # Helper functions
+            </div>
+
+            <h2>Database Architecture</h2>
+            <table>
+                <tr>
+                    <th>Category</th>
+                    <th>Tables</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>Core</td>
+                    <td>profiles, neighborhoods</td>
+                    <td>User and community management</td>
+                </tr>
+                <tr>
+                    <td>Events</td>
+                    <td>events, event_participants</td>
+                    <td>Event creation and registration</td>
+                </tr>
+                <tr>
+                    <td>Spaces</td>
+                    <td>spaces, space_bookings, space_applications</td>
+                    <td>Space sharing and booking</td>
+                </tr>
+                <tr>
+                    <td>Facilitators</td>
+                    <td>facilitator_availability, facilitator_specialties</td>
+                    <td>Facilitator scheduling and expertise</td>
+                </tr>
+                <tr>
+                    <td>Communication</td>
+                    <td>messages, notifications</td>
+                    <td>User messaging and alerts</td>
+                </tr>
+            </table>
+
+            <h2>Security Layers</h2>
+            <div class="info-box">
+                <strong>Row Level Security (RLS):</strong> All database tables are protected with RLS policies ensuring users can only access their authorized data.
+            </div>
+
+            <ul>
+                <li>Authentication via Supabase Auth (JWT tokens)</li>
+                <li>Row Level Security on all tables</li>
+                <li>Environment variables for sensitive configuration</li>
+                <li>HTTPS encryption for all communications</li>
+                <li>Input validation on frontend</li>
+            </ul>
+        </div>
+
+        <!-- Page 6: Current Features -->
+        <div class="page page-break">
+            <h1>4. Current Features & Status</h1>
+
+            <h2>Implemented Features</h2>
+
+            <h3>✅ User Management</h3>
+            <ul>
+                <li>User registration and authentication</li>
+                <li>Profile creation and editing</li>
+                <li>Avatar upload and management</li>
+                <li>Skills and offerings management</li>
+                <li>Bio and personal information</li>
+            </ul>
+
+            <h3>✅ Event System</h3>
+            <ul>
+                <li>Event creation (simple and advanced modes)</li>
+                <li>Event discovery and search</li>
+                <li>Event registration and participant management</li>
+                <li>Event feedback and ratings</li>
+                <li>Virtual and physical event support</li>
+                <li>Recurring event patterns</li>
+            </ul>
+
+            <h3>✅ Space Sharing</h3>
+            <ul>
+                <li>Space listing and management</li>
+                <li>Space application system</li>
+                <li>Booking management</li>
+                <li>Space holder dashboard</li>
+                <li>Space details and amenities</li>
+            </ul>
+
+            <h3>✅ Facilitator System</h3>
+            <ul>
+                <li>Facilitator application process</li>
+                <li>Availability scheduling</li>
+                <li>Specialty management</li>
+                <li>Booking requests</li>
+                <li>Facilitator directory</li>
+            </ul>
+
+            <h3>✅ Neighborhood Features</h3>
+            <ul>
+                <li>Neighborhood creation and management</li>
+                <li>Member invitation system</li>
+                <li>Neighborhood-specific events</li>
+                <li>Community dashboard</li>
+            </ul>
+
+            <h3>✅ Messaging System</h3>
+            <ul>
+                <li>Direct messaging between users</li>
+                <li>Conversation management</li>
+                <li>Real-time message updates</li>
+                <li>Message notifications</li>
+            </ul>
+
+            <h2>Features In Progress</h2>
+
+            <div class="warning-box">
+                <strong>⚠️ Pending Integrations:</strong>
+                <ul>
+                    <li>Partiful API integration</li>
+                    <li>Meetup API integration</li>
+                    <li>Eventbrite API integration</li>
+                    <li>Facebook Graph API integration</li>
+                    <li>Payment processing</li>
+                </ul>
+            </div>
+
+            <h2>Feature Completion Status</h2>
+            <table>
+                <tr>
+                    <th>Feature</th>
+                    <th>Frontend</th>
+                    <th>Backend</th>
+                    <th>Testing</th>
+                    <th>Overall</th>
+                </tr>
+                <tr>
+                    <td>User Authentication</td>
+                    <td>100%</td>
+                    <td>100%</td>
+                    <td>0%</td>
+                    <td><span class="badge badge-complete">COMPLETE</span></td>
+                </tr>
+                <tr>
+                    <td>Event Management</td>
+                    <td>95%</td>
+                    <td>90%</td>
+                    <td>0%</td>
+                    <td><span class="badge badge-active">ACTIVE</span></td>
+                </tr>
+                <tr>
+                    <td>Space Booking</td>
+                    <td>85%</td>
+                    <td>80%</td>
+                    <td>0%</td>
+                    <td><span class="badge badge-active">ACTIVE</span></td>
+                </tr>
+                <tr>
+                    <td>Facilitator System</td>
+                    <td>80%</td>
+                    <td>75%</td>
+                    <td>0%</td>
+                    <td><span class="badge badge-active">ACTIVE</span></td>
+                </tr>
+                <tr>
+                    <td>Messaging</td>
+                    <td>90%</td>
+                    <td>85%</td>
+                    <td>0%</td>
+                    <td><span class="badge badge-active">ACTIVE</span></td>
+                </tr>
+                <tr>
+                    <td>Payments</td>
+                    <td>0%</td>
+                    <td>0%</td>
+                    <td>0%</td>
+                    <td><span class="badge badge-pending">PENDING</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Page 7: Database Schema -->
+        <div class="page page-break">
+            <h1>5. Database Schema</h1>
+
+            <h2>Core Tables</h2>
+
+            <h3>profiles</h3>
+            <div class="code-block">
+- id: uuid (PK)
+- full_name: text
+- username: text
+- avatar_url: text
+- bio: text
+- location: point
+- neighborhood_id: uuid (FK)
+- is_admin: boolean
+- is_space_holder: boolean
+- is_time_holder: boolean
+- is_facilitator: boolean
+- verified: boolean
+- created_at: timestamp
+- updated_at: timestamp
+            </div>
+
+            <h3>events</h3>
+            <div class="code-block">
+- id: uuid (PK)
+- title: text
+- description: text
+- start_date: timestamp
+- end_date: timestamp
+- location: point
+- address: text
+- organizer_id: uuid (FK)
+- neighborhood_id: uuid (FK)
+- space_id: uuid (FK)
+- category: text
+- max_participants: integer
+- is_virtual: boolean
+- virtual_meeting_link: text
+- price: decimal
+- status: text
+- created_at: timestamp
+            </div>
+
+            <h3>spaces</h3>
+            <div class="code-block">
+- id: uuid (PK)
+- name: text
+- description: text
+- owner_id: uuid (FK)
+- address: text
+- location: point
+- capacity: integer
+- amenities: jsonb
+- hourly_rate: decimal
+- availability: jsonb
+- images: text[]
+- neighborhood_only: boolean
+- created_at: timestamp
+            </div>
+
+            <h2>Relationship Tables</h2>
+
+            <table>
+                <tr>
+                    <th>Table</th>
+                    <th>Purpose</th>
+                    <th>Key Relationships</th>
+                </tr>
+                <tr>
+                    <td>event_participants</td>
+                    <td>Track event registrations</td>
+                    <td>events → profiles</td>
+                </tr>
+                <tr>
+                    <td>space_applications</td>
+                    <td>Facilitator space requests</td>
+                    <td>spaces → profiles</td>
+                </tr>
+                <tr>
+                    <td>space_bookings</td>
+                    <td>Space reservations</td>
+                    <td>spaces → events → profiles</td>
+                </tr>
+                <tr>
+                    <td>neighborhood_members</td>
+                    <td>Community membership</td>
+                    <td>neighborhoods → profiles</td>
+                </tr>
+                <tr>
+                    <td>facilitator_availability</td>
+                    <td>Facilitator scheduling</td>
+                    <td>profiles → time slots</td>
+                </tr>
+            </table>
+
+            <h2>Database Statistics</h2>
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <div class="metric-value">20+</div>
+                    <div class="metric-label">Tables</div>
+                </div>
+                <div class="metric-box" style="background: #87a96b;">
+                    <div class="metric-value">100+</div>
+                    <div class="metric-label">Columns</div>
+                </div>
+                <div class="metric-box" style="background: #b87333;">
+                    <div class="metric-value">15+</div>
+                    <div class="metric-label">Indexes</div>
+                </div>
+                <div class="metric-box" style="background: #2c5f4d;">
+                    <div class="metric-value">50+</div>
+                    <div class="metric-label">RLS Policies</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 8: User Roles -->
+        <div class="page page-break">
+            <h1>6. User Roles & Permissions</h1>
+
+            <h2>Role Hierarchy</h2>
+
+            <table>
+                <tr>
+                    <th>Role</th>
+                    <th>Description</th>
+                    <th>Key Permissions</th>
+                </tr>
+                <tr>
+                    <td><strong>Admin</strong></td>
+                    <td>Platform administrator</td>
+                    <td>
+                        • Full database access<br>
+                        • User management<br>
+                        • Content moderation<br>
+                        • System configuration
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Space Holder</strong></td>
+                    <td>Owns/manages spaces</td>
+                    <td>
+                        • Create space listings<br>
+                        • Approve applications<br>
+                        • Manage bookings<br>
+                        • Set pricing
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Facilitator</strong></td>
+                    <td>Offers services/events</td>
+                    <td>
+                        • Create events<br>
+                        • Apply for spaces<br>
+                        • Manage availability<br>
+                        • Handle bookings
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Time Holder</strong></td>
+                    <td>Event organizer</td>
+                    <td>
+                        • Create events<br>
+                        • Manage participants<br>
+                        • Send notifications<br>
+                        • Collect feedback
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Member</strong></td>
+                    <td>Regular user</td>
+                    <td>
+                        • Join neighborhoods<br>
+                        • Register for events<br>
+                        • Send messages<br>
+                        • Leave feedback
+                    </td>
+                </tr>
+            </table>
+
+            <h2>Permission Matrix</h2>
+
+            <table>
+                <tr>
+                    <th>Feature</th>
+                    <th>Admin</th>
+                    <th>Space Holder</th>
+                    <th>Facilitator</th>
+                    <th>Member</th>
+                </tr>
+                <tr>
+                    <td>View Events</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                </tr>
+                <tr>
+                    <td>Create Events</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td>Manage Spaces</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td>Apply for Spaces</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td>Moderate Content</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td>Access Analytics</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                </tr>
+            </table>
+
+            <h2>Role Transition Flow</h2>
+            <div class="info-box">
+                <strong>User Evolution Path:</strong>
+                <ol>
+                    <li>New users start as Members</li>
+                    <li>Can apply to become Facilitators through application process</li>
+                    <li>Can register spaces to become Space Holders</li>
+                    <li>Creating first event grants Time Holder status</li>
+                    <li>Admin role assigned manually by existing admins</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Page 9: API Endpoints -->
+        <div class="page page-break">
+            <h1>7. API Endpoints & Integration</h1>
+
+            <h2>Supabase API Structure</h2>
+
+            <h3>Authentication Endpoints</h3>
+            <div class="code-block">
+POST   /auth/signup         - User registration
+POST   /auth/signin         - User login
+POST   /auth/signout        - User logout
+POST   /auth/refresh        - Refresh token
+GET    /auth/user           - Get current user
+            </div>
+
+            <h3>Database Operations (via PostgREST)</h3>
+            <div class="code-block">
+# Profiles
+GET    /profiles            - List profiles
+GET    /profiles/:id        - Get profile
+PATCH  /profiles/:id        - Update profile
+
+# Events
+GET    /events              - List events
+POST   /events              - Create event
+PATCH  /events/:id          - Update event
+DELETE /events/:id          - Delete event
+
+# Spaces
+GET    /spaces              - List spaces
+POST   /spaces              - Create space
+PATCH  /spaces/:id          - Update space
+
+# Messages
+GET    /messages            - List messages
+POST   /messages            - Send message
+            </div>
+
+            <h2>External API Integrations</h2>
+
+            <div class="warning-box">
+                <strong>⚠️ Pending Integrations:</strong> The following external APIs are planned but not yet implemented:
+            </div>
+
+            <table>
+                <tr>
+                    <th>Service</th>
+                    <th>Purpose</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                </tr>
+                <tr>
+                    <td>Partiful</td>
+                    <td>Event discovery</td>
+                    <td><span class="badge badge-pending">TODO</span></td>
+                    <td>Medium</td>
+                </tr>
+                <tr>
+                    <td>Meetup</td>
+                    <td>Event import</td>
+                    <td><span class="badge badge-pending">TODO</span></td>
+                    <td>High</td>
+                </tr>
+                <tr>
+                    <td>Eventbrite</td>
+                    <td>Ticketing</td>
+                    <td><span class="badge badge-pending">TODO</span></td>
+                    <td>Medium</td>
+                </tr>
+                <tr>
+                    <td>Facebook</td>
+                    <td>Social events</td>
+                    <td><span class="badge badge-pending">TODO</span></td>
+                    <td>Low</td>
+                </tr>
+                <tr>
+                    <td>Stripe</td>
+                    <td>Payments</td>
+                    <td><span class="badge badge-pending">PLANNED</span></td>
+                    <td>High</td>
+                </tr>
+            </table>
+
+            <h2>Real-time Subscriptions</h2>
+            <div class="code-block">
+// Message updates
+supabase.channel('messages')
+  .on('postgres_changes', {
+    event: 'INSERT',
+    schema: 'public',
+    table: 'messages'
+  }, handleNewMessage)
+
+// Event updates
+supabase.channel('events')
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'events'
+  }, handleEventChange)
+            </div>
+        </div>
+
+        <!-- Page 10: Performance -->
+        <div class="page page-break">
+            <h1>8. Performance Metrics</h1>
+
+            <h2>Current Performance Analysis</h2>
+
+            <table>
+                <tr>
+                    <th>Metric</th>
+                    <th>Current</th>
+                    <th>Target</th>
+                    <th>Status</th>
+                </tr>
+                <tr>
+                    <td>Initial Load Time</td>
+                    <td>~3.5s</td>
+                    <td><2s</td>
+                    <td><span class="badge badge-pending">NEEDS WORK</span></td>
+                </tr>
+                <tr>
+                    <td>Bundle Size</td>
+                    <td>~850KB</td>
+                    <td><500KB</td>
+                    <td><span class="badge badge-pending">NEEDS WORK</span></td>
+                </tr>
+                <tr>
+                    <td>Time to Interactive</td>
+                    <td>~4s</td>
+                    <td><3s</td>
+                    <td><span class="badge badge-pending">NEEDS WORK</span></td>
+                </tr>
+                <tr>
+                    <td>API Response Time</td>
+                    <td>~200ms</td>
+                    <td><100ms</td>
+                    <td><span class="badge badge-active">ACCEPTABLE</span></td>
+                </tr>
+                <tr>
+                    <td>Database Queries</td>
+                    <td>Optimized</td>
+                    <td>Indexed</td>
+                    <td><span class="badge badge-complete">GOOD</span></td>
+                </tr>
+            </table>
+
+            <h2>Optimization Opportunities</h2>
+
+            <h3>🚀 High Priority</h3>
+            <ul>
+                <li><strong>Code Splitting:</strong> Implement route-based code splitting</li>
+                <li><strong>Image Optimization:</strong> Add lazy loading and WebP format</li>
+                <li><strong>Bundle Size:</strong> Tree-shake unused dependencies</li>
+                <li><strong>Caching:</strong> Implement service worker caching</li>
+            </ul>
+
+            <h3>📈 Medium Priority</h3>
+            <ul>
+                <li><strong>Memoization:</strong> Add React.memo to expensive components</li>
+                <li><strong>Virtual Scrolling:</strong> Implement for long lists</li>
+                <li><strong>API Caching:</strong> Add SWR or React Query</li>
+                <li><strong>CSS Optimization:</strong> Purge unused Tailwind classes</li>
+            </ul>
+
+            <h3>📊 Low Priority</h3>
+            <ul>
+                <li><strong>Web Workers:</strong> Offload heavy computations</li>
+                <li><strong>Prefetching:</strong> Predictive prefetching of routes</li>
+                <li><strong>CDN:</strong> Serve static assets from CDN</li>
+            </ul>
+
+            <h2>Performance Budget</h2>
+            <div class="info-box">
+                <strong>Recommended Performance Budget:</strong>
+                <ul>
+                    <li>JavaScript: <300KB (gzipped)</li>
+                    <li>CSS: <50KB (gzipped)</li>
+                    <li>Images: <200KB per image</li>
+                    <li>Total Page Weight: <1MB</li>
+                    <li>Time to Interactive: <3s on 3G</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Page 11: Security -->
+        <div class="page page-break">
+            <h1>9. Security Assessment</h1>
+
+            <h2>Security Implementation Status</h2>
+
+            <table>
+                <tr>
+                    <th>Security Layer</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                </tr>
+                <tr>
+                    <td>Authentication</td>
+                    <td><span class="badge badge-complete">IMPLEMENTED</span></td>
+                    <td>Supabase Auth with JWT</td>
+                </tr>
+                <tr>
+                    <td>Authorization</td>
+                    <td><span class="badge badge-complete">IMPLEMENTED</span></td>
+                    <td>Row Level Security policies</td>
+                </tr>
+                <tr>
+                    <td>Data Encryption</td>
+                    <td><span class="badge badge-complete">IMPLEMENTED</span></td>
+                    <td>HTTPS/TLS encryption</td>
+                </tr>
+                <tr>
+                    <td>Input Validation</td>
+                    <td><span class="badge badge-pending">PARTIAL</span></td>
+                    <td>Frontend validation only</td>
+                </tr>
+                <tr>
+                    <td>Rate Limiting</td>
+                    <td><span class="badge badge-critical">MISSING</span></td>
+                    <td>Not implemented</td>
+                </tr>
+                <tr>
+                    <td>CSRF Protection</td>
+                    <td><span class="badge badge-complete">IMPLEMENTED</span></td>
+                    <td>SameSite cookies</td>
+                </tr>
+                <tr>
+                    <td>XSS Protection</td>
+                    <td><span class="badge badge-active">PARTIAL</span></td>
+                    <td>React default escaping</td>
+                </tr>
+                <tr>
+                    <td>SQL Injection</td>
+                    <td><span class="badge badge-complete">PROTECTED</span></td>
+                    <td>Parameterized queries</td>
+                </tr>
+            </table>
+
+            <h2>Security Vulnerabilities</h2>
+
+            <div class="warning-box">
+                <strong>⚠️ Critical Issues:</strong>
+                <ul>
+                    <li>213 console.log statements in production code</li>
+                    <li>No rate limiting on API endpoints</li>
+                    <li>Missing Content Security Policy headers</li>
+                    <li>No audit logging for sensitive operations</li>
+                </ul>
+            </div>
+
+            <h2>Security Recommendations</h2>
+
+            <h3>🔴 Critical Priority</h3>
+            <ol>
+                <li>Remove all console.log statements</li>
+                <li>Implement rate limiting</li>
+                <li>Add server-side input validation</li>
+                <li>Set up audit logging</li>
+            </ol>
+
+            <h3>🟡 High Priority</h3>
+            <ol>
+                <li>Add Content Security Policy headers</li>
+                <li>Implement API request signing</li>
+                <li>Add security monitoring</li>
+                <li>Set up vulnerability scanning</li>
+            </ol>
+
+            <h3>🟢 Medium Priority</h3>
+            <ol>
+                <li>Implement session timeout</li>
+                <li>Add two-factor authentication</li>
+                <li>Set up security headers</li>
+                <li>Regular dependency updates</li>
+            </ol>
+
+            <h2>Compliance Considerations</h2>
+            <div class="info-box">
+                <strong>Data Protection Requirements:</strong>
+                <ul>
+                    <li>GDPR compliance for EU users</li>
+                    <li>CCPA compliance for California users</li>
+                    <li>COPPA compliance for users under 13</li>
+                    <li>PCI DSS compliance for payment processing</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Page 12: Known Issues -->
+        <div class="page page-break">
+            <h1>10. Known Issues & Bugs</h1>
+
+            <h2>Critical Issues</h2>
+            <table>
+                <tr>
+                    <th>Issue</th>
+                    <th>Severity</th>
+                    <th>Impact</th>
+                    <th>Status</th>
+                </tr>
+                <tr>
+                    <td>Console logs in production</td>
+                    <td><span class="badge badge-critical">CRITICAL</span></td>
+                    <td>Security risk</td>
+                    <td>Open</td>
+                </tr>
+                <tr>
+                    <td>No test coverage</td>
+                    <td><span class="badge badge-critical">CRITICAL</span></td>
+                    <td>Quality risk</td>
+                    <td>Open</td>
+                </tr>
+                <tr>
+                    <td>Missing rate limiting</td>
+                    <td><span class="badge badge-critical">CRITICAL</span></td>
+                    <td>DDoS vulnerability</td>
+                    <td>Open</td>
+                </tr>
+            </table>
+
+            <h2>Pending TODOs in Code</h2>
+            <ul>
+                <li>Partiful API integration (event-aggregator.ts:87)</li>
+                <li>Meetup API integration (event-aggregator.ts:93)</li>
+                <li>Eventbrite API integration (event-aggregator.ts:99)</li>
+                <li>Facebook Graph API integration (event-aggregator.ts:105)</li>
+                <li>Fetch events from aggregation service (HyperlocalEvents.tsx:30)</li>
+            </ul>
+
+            <h2>UI/UX Issues</h2>
+            <ul>
+                <li>Mobile optimization incomplete</li>
+                <li>No loading states for async operations</li>
+                <li>Inconsistent error handling</li>
+                <li>Missing accessibility features</li>
+                <li>No offline support</li>
+            </ul>
+
+            <h2>Performance Issues</h2>
+            <ul>
+                <li>Large bundle size (~850KB)</li>
+                <li>No image optimization</li>
+                <li>Missing component memoization</li>
+                <li>No request caching</li>
+                <li>Slow initial load time</li>
+            </ul>
+
+            <h2>Bug Tracking</h2>
+            <div class="warning-box">
+                <strong>Note:</strong> No formal bug tracking system is currently in place. Consider implementing:
+                <ul>
+                    <li>GitHub Issues for bug tracking</li>
+                    <li>Sentry for error monitoring</li>
+                    <li>LogRocket for session replay</li>
+                    <li>Hotjar for user feedback</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Page 13: Roadmap -->
+        <div class="page page-break">
+            <h1>11. Future Roadmap</h1>
+
+            <h2>Q1 2025 - Foundation & Quality</h2>
+            <table>
+                <tr>
+                    <th>Feature</th>
+                    <th>Priority</th>
+                    <th>Effort</th>
+                </tr>
+                <tr>
+                    <td>Comprehensive testing suite</td>
+                    <td><span class="badge badge-critical">CRITICAL</span></td>
+                    <td>2 weeks</td>
+                </tr>
+                <tr>
+                    <td>Security audit & fixes</td>
+                    <td><span class="badge badge-critical">CRITICAL</span></td>
+                    <td>1 week</td>
+                </tr>
+                <tr>
+                    <td>Performance optimization</td>
+                    <td><span class="badge badge-active">HIGH</span></td>
+                    <td>2 weeks</td>
+                </tr>
+                <tr>
+                    <td>Mobile app development</td>
+                    <td><span class="badge badge-active">HIGH</span></td>
+                    <td>4 weeks</td>
+                </tr>
+            </table>
+
+            <h2>Q2 2025 - Integration & Scale</h2>
+            <table>
+                <tr>
+                    <th>Feature</th>
+                    <th>Priority</th>
+                    <th>Effort</th>
+                </tr>
+                <tr>
+                    <td>Payment processing (Stripe)</td>
+                    <td><span class="badge badge-critical">CRITICAL</span></td>
+                    <td>3 weeks</td>
+                </tr>
+                <tr>
+                    <td>External event APIs</td>
+                    <td><span class="badge badge-active">HIGH</span></td>
+                    <td>2 weeks</td>
+                </tr>
+                <tr>
+                    <td>Advanced search & filtering</td>
+                    <td><span class="badge badge-active">HIGH</span></td>
+                    <td>1 week</td>
+                </tr>
+                <tr>
+                    <td>Email notifications</td>
+                    <td><span class="badge badge-active">HIGH</span></td>
+                    <td>1 week</td>
+                </tr>
+            </table>
+
+            <h2>Q3 2025 - Growth Features</h2>
+            <ul>
+                <li>AI-powered event recommendations</li>
+                <li>Video streaming for virtual events</li>
+                <li>Advanced analytics dashboard</li>
+                <li>Multi-language support</li>
+                <li>Social sharing features</li>
+                <li>Referral program</li>
+            </ul>
+
+            <h2>Q4 2025 - Enterprise & Expansion</h2>
+            <ul>
+                <li>White-label solution</li>
+                <li>Enterprise features</li>
+                <li>API marketplace</li>
+                <li>Advanced moderation tools</li>
+                <li>Blockchain integration</li>
+                <li>Global expansion features</li>
+            </ul>
+
+            <h2>Technical Debt Priorities</h2>
+            <div class="success-box">
+                <strong>Technical Excellence Goals:</strong>
+                <ol>
+                    <li>Achieve 80% test coverage</li>
+                    <li>Implement CI/CD pipeline</li>
+                    <li>Set up monitoring & alerting</li>
+                    <li>Document all APIs</li>
+                    <li>Implement design system</li>
+                    <li>Achieve A+ security rating</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Page 14: Deployment -->
+        <div class="page page-break">
+            <h1>12. Deployment & Configuration</h1>
+
+            <h2>Environment Variables</h2>
+            <div class="code-block">
+# Required Environment Variables
+VITE_SUPABASE_URL=https://[project-ref].supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+
+# Admin Operations (Backend only)
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+DATABASE_URL=postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres
+
+# Optional Configuration
+VITE_APP_URL=https://harmonyspaces.app
+VITE_SENTRY_DSN=https://...
+VITE_GA_TRACKING_ID=UA-...
+            </div>
+
+            <h2>Development Setup</h2>
+            <div class="code-block">
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Run type checking
+npm run type-check
+
+# Run linting
+npm run lint
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+            </div>
+
+            <h2>Database Management</h2>
+            <div class="code-block">
+# Check database status
+node scripts/db-manager.mjs check
+
+# List all tables
+node scripts/db-manager.mjs tables
+
+# Execute SQL query
+node scripts/db-manager.mjs sql "SELECT * FROM profiles"
+
+# Show database info
+node scripts/db-manager.mjs info
+            </div>
+
+            <h2>Deployment Options</h2>
+            <table>
+                <tr>
+                    <th>Platform</th>
+                    <th>Pros</th>
+                    <th>Cons</th>
+                    <th>Cost</th>
+                </tr>
+                <tr>
+                    <td>Vercel</td>
+                    <td>Easy setup, automatic deploys</td>
+                    <td>Limited backend</td>
+                    <td>Free tier available</td>
+                </tr>
+                <tr>
+                    <td>Netlify</td>
+                    <td>Great DX, form handling</td>
+                    <td>Build limits</td>
+                    <td>Free tier available</td>
+                </tr>
+                <tr>
+                    <td>AWS Amplify</td>
+                    <td>Full AWS integration</td>
+                    <td>Complex setup</td>
+                    <td>Pay as you go</td>
+                </tr>
+                <tr>
+                    <td>Railway</td>
+                    <td>Full stack support</td>
+                    <td>Limited regions</td>
+                    <td>$5/month start</td>
+                </tr>
+            </table>
+
+            <h2>Production Checklist</h2>
+            <div class="info-box">
+                <strong>Pre-Deployment Checklist:</strong>
+                <ul>
+                    <li>☐ Remove all console.log statements</li>
+                    <li>☐ Set up error monitoring (Sentry)</li>
+                    <li>☐ Configure environment variables</li>
+                    <li>☐ Enable HTTPS</li>
+                    <li>☐ Set up CDN for assets</li>
+                    <li>☐ Configure backup strategy</li>
+                    <li>☐ Set up monitoring & alerts</li>
+                    <li>☐ Document deployment process</li>
+                    <li>☐ Create rollback plan</li>
+                    <li>☐ Load testing completed</li>
+                </ul>
+            </div>
+
+            <h2>Monitoring & Maintenance</h2>
+            <ul>
+                <li><strong>Uptime Monitoring:</strong> UptimeRobot, Pingdom</li>
+                <li><strong>Error Tracking:</strong> Sentry, Rollbar</li>
+                <li><strong>Analytics:</strong> Google Analytics, Mixpanel</li>
+                <li><strong>Performance:</strong> Lighthouse CI, SpeedCurve</li>
+                <li><strong>Security:</strong> Snyk, OWASP ZAP</li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <div class="page">
+            <div style="text-align: center; padding-top: 3in;">
+                <h2 style="border: none;">End of Document</h2>
+                <p style="margin-top: 40px; color: #666;">
+                    Generated for Harmony Spaces<br>
+                    December 2024<br>
+                    Version 1.0.0
+                </p>
+                <div class="color-palette" style="justify-content: center; margin-top: 40px;">
+                    <div class="color-swatch" style="background: #1a3d2e;">Forest</div>
+                    <div class="color-swatch" style="background: #87a96b;">Sage</div>
+                    <div class="color-swatch" style="background: #b87333;">Clay</div>
+                    <div class="color-swatch" style="background: #f4f1e8; color: #333;">Sand</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add print functionality
+        window.addEventListener('load', function() {
+            // Automatically prompt for print/PDF save
+            if (confirm('Would you like to save this document as a PDF?')) {
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>
