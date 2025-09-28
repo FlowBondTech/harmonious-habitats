@@ -444,3 +444,6 @@ export const DEMO_NOTIFICATIONS = [
     read: true
   }
 ];
+
+// Alias for backward compatibility
+export const DEMO_PEOPLE = DEMO_PROFILES;

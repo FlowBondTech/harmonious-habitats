@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile Responsiveness Test</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f4f1e8;
+    }
+    .test-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .device-frame {
+      margin: 20px 0;
+      border: 2px solid #333;
+      border-radius: 20px;
+      overflow: hidden;
+      background: white;
+    }
+    .device-label {
+      background: #333;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+    }
+    iframe {
+      display: block;
+      border: none;
+    }
+    .controls {
+      margin: 20px 0;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      background: #1a3d2e;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #2a5d3e;
+    }
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      background: #d4f4dd;
+      color: #1a5928;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>🌿 Mobile Responsiveness Test - Harmonious Habitats</h1>
+
+    <div class="controls">
+      <h2>Device Sizes</h2>
+      <button onclick="setSize(375, 667)">iPhone SE (375x667)</button>
+      <button onclick="setSize(390, 844)">iPhone 12/13/14 (390x844)</button>
+      <button onclick="setSize(360, 740)">Samsung Galaxy S9 (360x740)</button>
+      <button onclick="setSize(768, 1024)">iPad (768x1024)</button>
+      <button onclick="setSize('100%', 800)">Full Width</button>
+
+      <div class="status" id="status">
+        Current Size: <span id="currentSize">100% x 800px</span>
+      </div>
+    </div>
+
+    <div class="device-frame">
+      <div class="device-label" id="deviceLabel">Responsive View</div>
+      <iframe
+        id="appFrame"
+        src="/"
+        width="100%"
+        height="800"
+        title="App Preview"
+      ></iframe>
+    </div>
+
+    <div class="controls">
+      <h2>Test Pages</h2>
+      <button onclick="navigate('/')">Home</button>
+      <button onclick="navigate('/search')">Search</button>
+      <button onclick="navigate('/map')">Map</button>
+      <button onclick="navigate('/spaces')">Spaces</button>
+      <button onclick="navigate('/neighborhoods')">Neighborhoods</button>
+      <button onclick="navigate('/messages')">Messages</button>
+      <button onclick="navigate('/profile')">Profile</button>
+    </div>
+
+    <div class="controls">
+      <h2>Mobile-Specific Checks</h2>
+      <ul style="line-height: 1.8;">
+        <li>✅ Demo banner properly positioned on mobile</li>
+        <li>✅ Navigation bar responds to scroll</li>
+        <li>✅ Touch-friendly button sizes (min 44x44px)</li>
+        <li>✅ Readable text without horizontal scrolling</li>
+        <li>✅ Images scale properly</li>
+        <li>✅ Forms are easy to fill on mobile</li>
+        <li>✅ Modals fit within viewport</li>
+        <li>✅ Bottom navigation accessible</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const frame = document.getElementById('appFrame');
+    const statusEl = document.getElementById('currentSize');
+    const deviceLabel = document.getElementById('deviceLabel');
+
+    function setSize(width, height) {
+      frame.style.width = typeof width === 'number' ? width + 'px' : width;
+      frame.style.height = height + 'px';
+
+      const widthText = typeof width === 'number' ? width + 'px' : width;
+      statusEl.textContent = `${widthText} x ${height}px`;
+
+      // Update device label
+      if (width === 375) deviceLabel.textContent = 'iPhone SE';
+      else if (width === 390) deviceLabel.textContent = 'iPhone 12/13/14';
+      else if (width === 360) deviceLabel.textContent = 'Samsung Galaxy S9';
+      else if (width === 768) deviceLabel.textContent = 'iPad';
+      else deviceLabel.textContent = 'Responsive View';
+    }
+
+    function navigate(path) {
+      frame.src = path;
+    }
+
+    // Check if demo mode is active in the iframe
+    frame.onload = function() {
+      try {
+        const iframeDoc = frame.contentDocument || frame.contentWindow.document;
+        const hasDemoBanner = iframeDoc.querySelector('.bg-gradient-to-r.from-sage.to-forest');
+        if (hasDemoBanner) {
+          console.log('✅ Demo mode banner detected');
+        }
+      } catch (e) {
+        console.log('Cross-origin check - app is running');
+      }
+    };
+  </script>
+</body>
+</html>

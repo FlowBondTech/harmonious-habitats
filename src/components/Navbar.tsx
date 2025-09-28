@@ -17,6 +17,7 @@ import { useAuthContext } from './AuthProvider';
 import Avatar from './Avatar';
 import NotificationCenter from './NotificationCenter';
 import { useScrollDirection } from '../hooks/useScrollDirection';
+import { DEMO_MODE } from '../lib/demo-mode';
 
 interface NavbarProps {
   isMenuOpen: boolean;
@@ -78,7 +79,7 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
   };
 
   return (
-    <header className={`lg:hidden fixed top-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-md border-b border-gray-200 transition-transform duration-300 ${
+    <header className={`lg:hidden fixed ${DEMO_MODE ? 'top-9' : 'top-0'} left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 transition-transform duration-300 ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
       <div className="max-h-screen overflow-y-auto scrollbar-hide overflow-x-visible">

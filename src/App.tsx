@@ -117,7 +117,7 @@ const AppRouter = ({
           </div>
         )}
         {/* Desktop Header - Always show on desktop */}
-        <div className="hidden lg:block">
+        <div className={`hidden lg:block ${DEMO_MODE ? 'pt-9' : ''}`}>
           <DesktopHeader onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} isSidebarOpen={isSidebarOpen} />
         </div>
         
@@ -143,7 +143,7 @@ const AppRouter = ({
           
           
           {/* Main Content with responsive padding */}
-          <main id="main" className={`pt-16 lg:pt-16 pb-8 relative z-10 ${
+          <main id="main" className={`${DEMO_MODE ? 'pt-24 lg:pt-24' : 'pt-16 lg:pt-16'} pb-8 relative z-10 ${
             !shouldHideSidebar && isSidebarOpen ? 'lg:ml-64' : ''
           }`}>
             <Suspense fallback={
