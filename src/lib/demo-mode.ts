@@ -960,6 +960,7 @@ export const DEMO_EVENTS = [
 export const DEMO_SPACES = [
   {
     id: 'space-001',
+    slug: 'springdale-farm-community-pavilion',
     name: 'Springdale Farm Community Pavilion',
     description: 'Historic urban farm pavilion surrounded by organic gardens. Perfect for farm-to-table dinners, workshops, and healing ceremonies. This beautiful 1920s pavilion has hosted countless community gatherings and features exposed beam ceilings, natural wood floors, and panoramic views of our organic gardens.',
     type: 'outdoor_pavilion',
@@ -1020,6 +1021,7 @@ export const DEMO_SPACES = [
   },
   {
     id: 'space-002',
+    slug: 'casa-de-luz-healing-studio',
     name: 'Casa de Luz Healing Studio',
     description: 'Intimate studio at Casa de Luz wellness center designed for healing work, small circles, and spiritual practices. This serene space features beautiful natural lighting, handcrafted altar with crystals and sacred objects, bamboo floors, and energy-clearing performed between each use. The studio maintains a peaceful vibration perfect for deep healing work.',
     type: 'studio',
@@ -1076,6 +1078,7 @@ export const DEMO_SPACES = [
   },
   {
     id: 'space-003',
+    slug: 'mueller-community-garden-greenhouse',
     name: 'Mueller Community Garden Greenhouse',
     description: 'Year-round growing space with workshop area in the sustainable Mueller development. This solar-powered greenhouse features raised beds, potting stations, seed library, and demonstration gardens. Perfect for teaching permaculture, herbalism, and sustainable living practices. The space includes rainwater harvesting systems and composting demonstrations.',
     type: 'greenhouse',
@@ -1135,6 +1138,7 @@ export const DEMO_SPACES = [
   },
   {
     id: 'space-004',
+    slug: 'zilker-botanical-garden-pavilion',
     name: 'Zilker Botanical Garden Pavilion',
     description: 'Beautiful garden venue within Zilker Park featuring native Texas plants and peaceful meditation spaces. Surrounded by butterfly gardens, herb spirals, and a tranquil koi pond. The covered pavilion offers shade while maintaining connection to nature. Perfect for ceremonies, workshops, and mindful gatherings.',
     type: 'garden_pavilion',
@@ -1195,6 +1199,7 @@ export const DEMO_SPACES = [
   },
   {
     id: 'space-005',
+    slug: 'hyde-park-community-center',
     name: 'Hyde Park Community Center',
     description: 'Historic 1930s community center with original hardwood floors and vintage charm. Features multiple meeting rooms, a full commercial kitchen, and a beautiful tree-shaded courtyard with string lights. This beloved neighborhood hub has hosted countless potlucks, workshops, and celebrations. The space embodies community spirit and mutual aid.',
     type: 'community_center',
@@ -1257,6 +1262,7 @@ export const DEMO_SPACES = [
   },
   {
     id: 'space-006',
+    slug: 'crestview-urban-farm',
     name: 'Crestview Urban Farm',
     description: 'Working 2-acre urban farm with teaching pavilion, food forest, and demonstration gardens. Features aquaponics systems, chicken coops, bee hives, and seasonal vegetable production. Our mission is teaching sustainable living and building food security. Monthly harvest shares available for regular users.',
     type: 'urban_farm',
@@ -1316,6 +1322,7 @@ export const DEMO_SPACES = [
   },
   {
     id: 'space-007',
+    slug: 'domain-northside-rooftop-garden',
     name: 'Domain NORTHSIDE Rooftop Garden',
     description: 'Modern 5th floor rooftop garden with panoramic city views and raised garden beds growing herbs and vegetables. Features shade sails, misting system, and comfortable seating areas. The sunset views are spectacular, making it perfect for evening meditation, rooftop yoga, or stargazing gatherings.',
     type: 'rooftop_garden',
@@ -1372,6 +1379,7 @@ export const DEMO_SPACES = [
   },
   {
     id: 'space-008',
+    slug: 'west-lake-hills-forest-sanctuary',
     name: 'West Lake Hills Forest Sanctuary',
     description: 'Private 5-acre forest retreat with ancient oak groves, meditation platforms built around trees, stone labyrinth, and ceremonial fire circle with hill country views. This sacred land has been tended with love for decades. Features natural spring, crystal grid, and multiple quiet spaces for solitary practice.',
     type: 'forest_sanctuary',
