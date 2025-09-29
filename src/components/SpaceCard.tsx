@@ -316,27 +316,24 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
               </button>
             )}
             
-            {/* Secondary Actions */}
-            <div className="grid grid-cols-2 gap-3">
-              {space.allow_facilitator_applications && (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleBookSpace();
-                  }}
-                  disabled={isBooking || !user}
-                  className={`btn-outline btn-sm focus-ring ${
-                    !user
-                      ? '!bg-gray-200 !text-gray-500 !cursor-not-allowed'
-                      : ''
-                  }`}
-                >
-                  {!user ? 'Sign in' : 'Book Space'}
-                </button>
-              )}
-              {/* View Details button removed - the entire card is now clickable */}
-            </div>
+            {/* Secondary Actions - only show if there are facilitator applications */}
+            {space.allow_facilitator_applications && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleBookSpace();
+                }}
+                disabled={isBooking || !user}
+                className={`w-full btn-outline btn-sm focus-ring ${
+                  !user
+                    ? '!bg-gray-200 !text-gray-500 !cursor-not-allowed'
+                    : ''
+                }`}
+              >
+                {!user ? 'Sign in' : 'Book Space'}
+              </button>
+            )}
           </div>
         </div>
       </Link>
