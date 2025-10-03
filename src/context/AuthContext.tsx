@@ -47,36 +47,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Helper function to clear all authentication data
   const clearAuthData = async () => {
-    console.log('Clearing all authentication data...');
+    console.log('Clearing authentication data...');
     
     // Clear Supabase session
     await supabase.auth.signOut();
     
-    // Explicitly clear localStorage items that Supabase might use
-    const keysToRemove = [
-      'supabase.auth.token',
-      'sb-nvcmlxemxqxwaunqnyhx-auth-token', // Replace with your actual project ref
-      'sb-auth-token'
-    ];
-    
-    keysToRemove.forEach(key => {
-      try {
-        localStorage.removeItem(key);
-      } catch (error) {
-        console.warn(`Failed to remove ${key} from localStorage:`, error);
-      }
-    });
-    
-    // Also try to clear any keys that start with 'sb-' (Supabase pattern)
+    // Only clear our specific storage key
     try {
-      for (let i = localStorage.length - 1; i >= 0; i--) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('sb-')) {
-          localStorage.removeItem(key);
-        }
-      }
+      localStorage.removeItem('hspaces-auth');
     } catch (error) {
-      console.warn('Failed to clear Supabase localStorage keys:', error);
+      console.warn('Failed to remove auth data from localStorage:', error);
     }
     
     // Clear state
@@ -85,62 +65,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // Force Supabase to pick up session from localStorage
+    const storedSession = localStorage.getItem('hspaces-auth');
+    console.log('[Debug] Stored session from localStorage:', storedSession);
+    if (storedSession) {
+      try {
+        const sessionObj = JSON.parse(storedSession);
+        console.log('[Debug] Parsed session object:', sessionObj);
+        if (sessionObj && sessionObj.currentSession) {
+          console.log('[Debug] Setting session in Supabase:', sessionObj.currentSession);
+          supabase.auth.setSession(sessionObj.currentSession);
+        }
+      } catch (e) {
+        console.warn('Failed to parse stored session:', e);
+      }
+    } else {
+      console.log('[Debug] No session found in localStorage');
+    }
+
     let mounted = true;
 
     const initializeAuth = async () => {
       try {
-        console.log('Initializing authentication...');
+        console.log('[Debug] Initializing authentication...');
         
-        // Add timeout protection
-        const timeoutId = setTimeout(() => {
-          if (mounted && !initialized) {
-            console.warn('Auth initialization timed out, setting loading to false');
-            setLoading(false);
-            setInitialized(true);
-          }
-        }, 10000); // 10 second timeout
-
         // Get initial session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        console.log('[Debug] Initial session retrieval:', { session, sessionError });
         
         if (sessionError) {
-          console.error('Session error:', sessionError);
-          
-          // Check if it's a refresh token error and clear all auth data if so
-          if (sessionError.message?.includes('Refresh Token Not Found') || 
-              sessionError.message?.includes('invalid_grant') ||
-              sessionError.message?.includes('Invalid Refresh Token')) {
-            console.log('Invalid refresh token detected, clearing all authentication data...');
-            await clearAuthData();
-          }
-          
+          console.error('[Debug] Session error:', sessionError);
+          await clearAuthData();
           if (mounted) {
             setLoading(false);
             setInitialized(true);
           }
-          clearTimeout(timeoutId);
           return;
         }
 
-        console.log('Session retrieved:', session ? 'Found session' : 'No session');
-
         if (session?.user && mounted) {
+          console.log('[Debug] Setting user and fetching profile for user:', session.user.id);
           setUser(session.user);
           await fetchProfile(session.user.id);
         } else if (mounted) {
-          // Defensively clear any stale tokens when no valid session is found
+          console.log('[Debug] No session found, clearing auth data');
           await clearAuthData();
           setLoading(false);
         }
 
         setInitialized(true);
-        clearTimeout(timeoutId);
       } catch (error) {
-        console.error('Auth initialization error:', error);
-        
-        // If there's any error during initialization, clear auth data
+        console.error('[Debug] Auth initialization error:', error);
+        await clearAuthData();
         if (mounted) {
-          await clearAuthData();
           setLoading(false);
           setInitialized(true);
         }
@@ -149,31 +126,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session ? 'with session' : 'no session');
+      console.log('[Debug] Auth state change:', { 
+        event, 
+        hasSession: !!session,
+        userId: session?.user?.id,
+        timestamp: new Date().toISOString()
+      });
       
       if (!mounted) return;
 
       try {
         if (event === 'TOKEN_REFRESHED' && !session) {
-          // Token refresh failed, clear everything
-          console.log('Token refresh failed, clearing authentication data');
+          console.log('[Debug] Token refresh failed, clearing authentication data');
           await clearAuthData();
           setLoading(false);
           return;
         }
 
         if (session?.user) {
+          console.log('[Debug] Setting user and fetching profile for user:', session.user.id);
           setUser(session.user);
           await fetchProfile(session.user.id);
         } else {
+          console.log('[Debug] No session, clearing user and profile');
           setUser(null);
           setProfile(null);
           setLoading(false);
         }
       } catch (error) {
-        console.error('Auth state change error:', error);
-        
-        // On any error during auth state change, clear auth data
+        console.error('[Debug] State change error:', error);
         await clearAuthData();
         setLoading(false);
       }
@@ -201,9 +182,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Error fetching profile:', error);
-        
-        // FIXED: Don't force logout on profile fetch errors
-        // Instead, just set profile to null and continue with authenticated state
         setProfile(null);
         setLoading(false);
         return;
@@ -218,12 +196,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Profile fetch exception:', error);
-      
-      // FIXED: Don't force logout on exceptions
-      // Just set profile to null and continue
       setProfile(null);
     } finally {
-      // CRITICAL: Always set loading to false regardless of success or failure
       setLoading(false);
     }
   };
