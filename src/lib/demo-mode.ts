@@ -1,5 +1,5 @@
 // Demo Mode Configuration
-export const DEMO_MODE = true; // Set to false to use real Supabase
+export const DEMO_MODE = false; // Set to false to use real Supabase
 
 // Demo user for auto-login
 export const DEMO_USER = {

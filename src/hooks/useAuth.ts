@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase, Profile, getUserRole } from '../lib/supabase'
 import { logger, logError, logWarning } from '../lib/logger'
-import { DEMO_MODE, DEMO_USER, DEMO_PEOPLE } from '../lib/demo-mode'
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null)
@@ -15,26 +14,6 @@ export const useAuth = () => {
   const [showShareOptions, setShowShareOptions] = useState(false)
 
   useEffect(() => {
-    // Demo mode - auto-login with demo user
-    if (DEMO_MODE) {
-      const demoUser: User = {
-        id: DEMO_USER.id,
-        email: DEMO_USER.email,
-        app_metadata: {},
-        user_metadata: {
-          full_name: DEMO_USER.full_name
-        },
-        aud: 'authenticated',
-        created_at: new Date().toISOString()
-      } as User
-
-      setUser(demoUser)
-      setProfile(DEMO_USER as Profile)
-      setUserRole(DEMO_USER.is_admin ? 'admin' : 'user')
-      setLoading(false)
-      return
-    }
-
     // Get initial session
     const getInitialSession = async () => {
       try {
@@ -48,11 +27,11 @@ export const useAuth = () => {
         }
       } catch (error) {
         logError(error as Error, 'loadInitialSession')
-        
+
         // Check if the error is related to invalid refresh token
         if (error && typeof error === 'object' && 'message' in error) {
           const errorMessage = String(error.message).toLowerCase()
-          if (errorMessage.includes('refresh token not found') || 
+          if (errorMessage.includes('refresh token not found') ||
               errorMessage.includes('invalid refresh token')) {
             logger.log('Invalid refresh token detected, clearing session...')
             // Clear the invalid session data
@@ -66,14 +45,11 @@ export const useAuth = () => {
 
     getInitialSession()
 
-    // Skip auth state listener in demo mode
-    if (DEMO_MODE) return
-
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setUser(session?.user ?? null)
-        
+
         if (session?.user) {
           await loadUserProfile(session.user.id)
           const role = await getUserRole(session.user.id)
@@ -82,7 +58,7 @@ export const useAuth = () => {
           setProfile(null)
           setUserRole(null)
         }
-        
+
         setLoading(false)
       }
     )
@@ -91,12 +67,6 @@ export const useAuth = () => {
   }, [])
 
   const loadUserProfile = async (userId: string) => {
-    // Demo mode - return demo profile
-    if (DEMO_MODE) {
-      setProfile(DEMO_USER as Profile)
-      return
-    }
-
     try {
       // First ensure profile exists
       const { data: ensureData, error: ensureError } = await supabase
@@ -141,127 +111,92 @@ export const useAuth = () => {
     }
   }
 
-  const signUp = async (email: string, password: string, userData: {
+  // Magic link sign in with OTP
+  const signInWithOTP = async (email: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      })
+
+      if (error) {
+        logError(error, 'signInWithOTP')
+      }
+
+      return { data, error }
+    } catch (error) {
+      logError(error as Error, 'signInWithOTP')
+      return { data: null, error: error as any }
+    }
+  }
+
+  // Verify OTP code
+  const verifyOTP = async (email: string, token: string) => {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+      })
+
+      if (error) {
+        logError(error, 'verifyOTP')
+        return { data: null, error }
+      }
+
+      // If successful and user exists, load their profile
+      if (data.user) {
+        await loadUserProfile(data.user.id)
+        const role = await getUserRole(data.user.id)
+        setUserRole(role)
+      }
+
+      return { data, error: null }
+    } catch (error) {
+      logError(error as Error, 'verifyOTP')
+      return { data: null, error: error as any }
+    }
+  }
+
+  // Sign up with email (creates user and sends OTP)
+  const signUp = async (email: string, userData: {
     full_name: string
     username?: string
     neighborhood?: string
   }) => {
-    // Demo mode - simulate successful signup
-    if (DEMO_MODE) {
-      const newDemoUser = {
-        ...DEMO_USER,
-        email,
-        full_name: userData.full_name,
-        username: userData.username || null,
-        neighborhood: userData.neighborhood || null
-      }
-
-      const demoUser: User = {
-        id: DEMO_USER.id,
-        email,
-        app_metadata: {},
-        user_metadata: {
-          full_name: userData.full_name
-        },
-        aud: 'authenticated',
-        created_at: new Date().toISOString()
-      } as User
-
-      setUser(demoUser)
-      setProfile(newDemoUser as Profile)
-      setUserRole('user')
-
-      return { data: { user: demoUser, session: null }, error: null }
-    }
-
     try {
-      const { data, error: authError } = await supabase.auth.signUp({
+      // Sign up with OTP
+      const { data, error: authError } = await supabase.auth.signInWithOtp({
         email,
-        password,
         options: {
           data: {
             full_name: userData.full_name,
             username: userData.username,
             neighborhood: userData.neighborhood
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/`
         }
       })
 
-      if (data.user && !authError) {
-        // Create/update profile with retry logic
-        let retries = 3
-        let profileError = null
-
-        while (retries > 0) {
-          const { error } = await supabase
-            .from('profiles')
-            .upsert({
-              id: data.user.id,
-              full_name: userData.full_name,
-              username: userData.username || null,
-              neighborhood: userData.neighborhood || null,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }, {
-              onConflict: 'id'
-            })
-
-          if (!error) {
-            profileError = null
-            break
-          }
-
-          profileError = error
-          retries--
-          
-          if (retries > 0) {
-            // Wait a bit before retrying
-            await new Promise(resolve => setTimeout(resolve, 1000))
-          }
-        }
-
-        if (profileError) {
-          logError(profileError as Error, 'createProfileAfterRetries')
-          return { data, error: profileError }
-        }
-
-        // Load the created profile
-        await new Promise(resolve => setTimeout(resolve, 500)) // Give time for triggers to run
-        await loadUserProfile(data.user.id)
+      if (authError) {
+        logError(authError, 'signUpWithOTP')
+        return { data: null, error: authError }
       }
 
-      return { data, error: authError }
+      // Note: Profile will be created after OTP verification
+      // The database trigger will handle profile creation when user confirms email
+
+      return { data, error: null }
     } catch (error) {
       logError(error as Error, 'signUp')
       return { data: null, error: error as any }
     }
   }
 
+  // Legacy password sign in (keeping for backward compatibility)
   const signIn = async (email: string, password: string) => {
-    // Demo mode - simulate successful signin
-    if (DEMO_MODE) {
-      // Check if email matches any demo user
-      const demoUserMatch = [DEMO_USER, ...DEMO_PEOPLE].find(p => p.email === email)
-      const profileToUse = demoUserMatch || DEMO_USER
-
-      const demoUser: User = {
-        id: profileToUse.id,
-        email: profileToUse.email,
-        app_metadata: {},
-        user_metadata: {
-          full_name: profileToUse.full_name
-        },
-        aud: 'authenticated',
-        created_at: new Date().toISOString()
-      } as User
-
-      setUser(demoUser)
-      setProfile(profileToUse as Profile)
-      setUserRole(profileToUse.is_admin ? 'admin' : 'user')
-
-      return { data: { user: demoUser, session: null }, error: null }
-    }
-
     return await supabase.auth.signInWithPassword({ email, password })
   }
 
@@ -272,27 +207,21 @@ export const useAuth = () => {
       setProfile(null)
       setUserRole(null)
 
-      // Demo mode - just clear state
-      if (DEMO_MODE) {
-        logger.log('Demo user signed out')
-        return { error: null }
-      }
-
       // Sign out from Supabase
       const result = await supabase.auth.signOut()
-      
+
       // Log success
       logger.log('User signed out successfully')
-      
+
       return result
     } catch (error) {
       logError(error as Error, 'signOut')
-      
+
       // Even if there's an error, clear local state
       setUser(null)
       setProfile(null)
       setUserRole(null)
-      
+
       return { error: error as Error }
     }
   }
@@ -308,13 +237,6 @@ export const useAuth = () => {
 
   const updateProfile = async (profileData: Partial<Profile>) => {
     if (!user) return { error: new Error('No user logged in') }
-
-    // Demo mode - just update local state
-    if (DEMO_MODE) {
-      const updatedProfile = { ...profile, ...profileData } as Profile
-      setProfile(updatedProfile)
-      return { data: updatedProfile, error: null }
-    }
 
     try {
       const { data, error } = await supabase
@@ -385,6 +307,8 @@ export const useAuth = () => {
     needsOnboarding,
     signUp,
     signIn,
+    signInWithOTP,
+    verifyOTP,
     signOut,
     loadUserProfile,
     updateProfile,
