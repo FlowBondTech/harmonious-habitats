@@ -9,6 +9,3 @@
 
 [build.environment]
   NODE_VERSION = "18"
-  VITE_SUPABASE_URL = "https://nvcmlxemxqxwaunqnyhx.supabase.com"
-  VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y21seGVteHF4d2F1bnFueWh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxMzkxNzQsImV4cCI6MjA2NDcxNTE3NH0.cocfJmyAjfAHg8jzFrdsoVjhB3sIlQBLKoLkJifvEz0"
-  VITE_CLERK_PUBLISHABLE_KEY = "pk_test_Y3VycmVudC1jcmlja2V0LTUzLmNsZXJrLmFjY291bnRzLmRldiQ"
