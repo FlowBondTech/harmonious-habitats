@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Mail, User, MapPin, Sprout, KeyRound, ArrowLeft } from 'lucide-react';
+import { X, Mail, Sprout, KeyRound, ArrowLeft } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 
 interface AuthModalProps {
@@ -93,13 +93,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
       return false;
     }
 
-    if (mode === 'signup') {
-      if (!formData.full_name.trim()) {
-        setError('Full name is required');
-        return false;
-      }
-    }
-
     return true;
   };
 
@@ -125,12 +118,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
           setStep('verify');
         }
       } else {
-        // Send magic link for sign up
-        const { error } = await signUp(formData.email, {
-          full_name: formData.full_name,
-          username: formData.username || undefined,
-          neighborhood: formData.neighborhood || undefined
-        });
+        // Send magic link for sign up (just email, profile setup comes after verification)
+        const { error } = await signInWithOTP(formData.email);
 
         if (error) {
           setError(error.message);
@@ -164,14 +153,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
       if (error) {
         setError(error.message || 'Invalid code. Please try again.');
       } else {
-        setSuccess(mode === 'signup' ? 'Account created! Welcome!' : 'Signed in successfully!');
+        setSuccess('Verified successfully!');
         setTimeout(() => {
           onClose();
-          if (mode === 'signup') {
-            startOnboarding();
-          } else {
-            navigate('/activities');
-          }
+          // Always show onboarding for new users, existing users go to activities
+          startOnboarding();
         }, 1000);
       }
     } catch (error) {
@@ -254,10 +240,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
 
             <p className="text-forest-100">
               {step === 'email'
-                ? (mode === 'signin'
-                    ? 'Welcome back to your community'
-                    : 'Join your neighborhood community'
-                  )
+                ? 'Welcome to your community'
                 : 'Enter the code sent to your email'
               }
             </p>
@@ -279,59 +262,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
 
             {step === 'email' ? (
               <form onSubmit={handleSendCode} className="space-y-4">
-                {mode === 'signup' && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-forest-700 mb-2">
-                        Full Name *
-                      </label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
-                        <input
-                          type="text"
-                          value={formData.full_name}
-                          onChange={(e) => handleInputChange('full_name', e.target.value)}
-                          className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
-                          placeholder="Your full name"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-forest-700 mb-2">
-                        Username (optional)
-                      </label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
-                        <input
-                          type="text"
-                          value={formData.username}
-                          onChange={(e) => handleInputChange('username', e.target.value)}
-                          className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
-                          placeholder="Choose a username"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-forest-700 mb-2">
-                        Neighborhood (optional)
-                      </label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
-                        <input
-                          type="text"
-                          value={formData.neighborhood}
-                          onChange={(e) => handleInputChange('neighborhood', e.target.value)}
-                          className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
-                          placeholder="e.g., Downtown, Riverside, etc."
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-
                 <div>
                   <label className="block text-sm font-medium text-forest-700 mb-2">
                     Email Address *
@@ -420,24 +350,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
               </form>
             )}
 
-            {/* Switch Mode */}
+            {/* Terms */}
             {step === 'email' && (
-              <div className="mt-6 text-center">
-                <p className="text-forest-600">
-                  {mode === 'signin' ? "Don't have an account?" : "Already have an account?"}
-                  <button
-                    onClick={switchMode}
-                    className="ml-2 text-forest-700 font-semibold hover:text-forest-800 transition-colors focus:underline focus-ring rounded"
-                  >
-                    {mode === 'signin' ? 'Sign up' : 'Sign in'}
-                  </button>
-                </p>
-              </div>
-            )}
-
-            {mode === 'signup' && step === 'email' && (
-              <div className="mt-4 text-xs text-forest-500 text-center">
-                By creating an account, you agree to our community guidelines and privacy policy.
+              <div className="mt-6 text-xs text-forest-500 text-center">
+                By continuing, you agree to our community guidelines and privacy policy.
               </div>
             )}
           </div>
