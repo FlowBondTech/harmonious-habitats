@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Mail, Lock, User, MapPin, Eye, EyeOff, Sprout } from 'lucide-react';
+import { X, Mail, User, MapPin, Sprout, KeyRound, ArrowLeft } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 
 interface AuthModalProps {
@@ -12,24 +12,23 @@ interface AuthModalProps {
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'signin' }) => {
   const navigate = useNavigate();
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
-  const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState<'email' | 'verify'>('email');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
+
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    confirmPassword: '',
+    otp: '',
     full_name: '',
     username: '',
     neighborhood: ''
   });
-  
+
   const modalRef = useRef<HTMLDivElement>(null);
   const initialFocusRef = useRef<HTMLButtonElement>(null);
   const lastActiveElement = useRef<Element | null>(null);
-  
+
   // Trap focus within modal
   useEffect(() => {
     if (isOpen) {
@@ -43,11 +42,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
       }
     }
   }, [isOpen]);
-  
+
   // Handle keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
@@ -56,17 +55,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
         const focusableElements = modalRef.current?.querySelectorAll(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         ) || [];
-        
+
         if (focusableElements.length === 0) return;
-        
+
         const firstElement = focusableElements[0] as HTMLElement;
         const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-        
+
         // If shift+tab and on first element, move to last element
         if (event.shiftKey && document.activeElement === firstElement) {
           event.preventDefault();
           lastElement.focus();
-        } 
+        }
         // If tab and on last element, cycle back to first element
         else if (!event.shiftKey && document.activeElement === lastElement) {
           event.preventDefault();
@@ -74,31 +73,23 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
         }
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  const { signIn, signUp, startOnboarding } = useAuthContext();
+  const { signUp, signInWithOTP, verifyOTP, startOnboarding } = useAuthContext();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError(null);
-    
-    // Real-time validation for password confirmation
-    if (field === 'confirmPassword' && mode === 'signup') {
-      if (value && formData.password && value !== formData.password) {
-        setError('Passwords do not match');
-      }
-    }
   };
 
-  const validateForm = () => {
-    // Clear any existing errors first
+  const validateEmail = () => {
     setError(null);
-    
-    if (!formData.email || !formData.password) {
-      setError('Email and password are required');
+
+    if (!formData.email) {
+      setError('Email is required');
       return false;
     }
 
@@ -107,28 +98,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
         setError('Full name is required');
         return false;
       }
-      if (formData.password.length < 6) {
-        setError('Password must be at least 6 characters');
-        return false;
-      }
-      if (!formData.confirmPassword) {
-        setError('Please confirm your password');
-        return false;
-      }
-      if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
-        return false;
-      }
     }
 
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Prevent double submission and validate form
-    if (loading || !validateForm()) {
+
+    if (loading || !validateEmail()) {
       return;
     }
 
@@ -138,33 +116,66 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
 
     try {
       if (mode === 'signin') {
-        const { error } = await signIn(formData.email, formData.password);
+        // Send magic link for sign in
+        const { error } = await signInWithOTP(formData.email);
         if (error) {
           setError(error.message);
         } else {
-          onClose();
-          navigate('/activities');
+          setSuccess('Check your email for the verification code!');
+          setStep('verify');
         }
       } else {
-        const { error } = await signUp(formData.email, formData.password, {
+        // Send magic link for sign up
+        const { error } = await signUp(formData.email, {
           full_name: formData.full_name,
           username: formData.username || undefined,
           neighborhood: formData.neighborhood || undefined
         });
-        
+
         if (error) {
           setError(error.message);
         } else {
-          setSuccess('Account created successfully! Welcome to Harmonious Habitats!');
-          // Close modal and start onboarding after a short delay
-          setTimeout(() => {
-            onClose();
-            startOnboarding();
-          }, 1500);
+          setSuccess('Check your email for the verification code!');
+          setStep('verify');
         }
       }
     } catch (error) {
-      console.error('Authentication error:', error);
+      console.error('Send code error:', error);
+      setError('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (loading || !formData.otp) {
+      setError('Please enter the verification code');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await verifyOTP(formData.email, formData.otp);
+
+      if (error) {
+        setError(error.message || 'Invalid code. Please try again.');
+      } else {
+        setSuccess(mode === 'signup' ? 'Account created! Welcome!' : 'Signed in successfully!');
+        setTimeout(() => {
+          onClose();
+          if (mode === 'signup') {
+            startOnboarding();
+          } else {
+            navigate('/activities');
+          }
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Verify code error:', error);
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
@@ -173,16 +184,23 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
 
   const switchMode = () => {
     setMode(mode === 'signin' ? 'signup' : 'signin');
+    setStep('email');
     setError(null);
     setSuccess(null);
     setFormData({
       email: '',
-      password: '',
-      confirmPassword: '',
+      otp: '',
       full_name: '',
       username: '',
       neighborhood: ''
     });
+  };
+
+  const goBackToEmail = () => {
+    setStep('email');
+    setError(null);
+    setSuccess(null);
+    setFormData(prev => ({ ...prev, otp: '' }));
   };
 
   if (!isOpen) return null;
@@ -191,13 +209,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
     <div className="fixed inset-0 z-[100] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="auth-title">
       <div className="flex min-h-screen items-end sm:items-center justify-center sm:p-4">
         {/* Backdrop */}
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
           onClick={onClose}
         />
-        
+
         {/* Modal */}
-        <div 
+        <div
           ref={modalRef}
           className="relative w-full sm:max-w-md transform overflow-hidden rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl transition-all animate-slide-up sm:animate-fade-in safe-area-bottom"
         >
@@ -205,7 +223,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
           <div className="flex sm:hidden justify-center pt-2 pb-1">
             <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
           </div>
-          
+
           {/* Header */}
           <div className="bg-gradient-to-r from-forest-600 to-earth-500 px-6 py-6 sm:py-8 text-white">
             <button
@@ -216,18 +234,31 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
             >
               <X className="icon-sm" />
             </button>
-            
+
+            {step === 'verify' && (
+              <button
+                onClick={goBackToEmail}
+                className="absolute left-4 top-4 p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus-ring"
+                aria-label="Go back"
+              >
+                <ArrowLeft className="icon-sm" />
+              </button>
+            )}
+
             <div className="flex items-center space-x-3 mb-4">
               <div className="bg-white/20 p-2 rounded-xl">
                 <Sprout className="icon-md" />
               </div>
-              <h2 id="auth-title" className="text-2xl font-bold">Harmonious Habitats</h2>
+              <h2 id="auth-title" className="text-2xl font-bold">Harmony Spaces</h2>
             </div>
-            
+
             <p className="text-forest-100">
-              {mode === 'signin' 
-                ? 'Welcome back to your community' 
-                : 'Join your neighborhood community'
+              {step === 'email'
+                ? (mode === 'signin'
+                    ? 'Welcome back to your community'
+                    : 'Join your neighborhood community'
+                  )
+                : 'Enter the code sent to your email'
               }
             </p>
           </div>
@@ -246,168 +277,165 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === 'signup' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-forest-700 mb-2">
-                      Full Name *
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
-                      <input
-                        type="text"
-                        value={formData.full_name}
-                        onChange={(e) => handleInputChange('full_name', e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
-                        placeholder="Your full name"
-                        required
-                      />
+            {step === 'email' ? (
+              <form onSubmit={handleSendCode} className="space-y-4">
+                {mode === 'signup' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-forest-700 mb-2">
+                        Full Name *
+                      </label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
+                        <input
+                          type="text"
+                          value={formData.full_name}
+                          onChange={(e) => handleInputChange('full_name', e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
+                          placeholder="Your full name"
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-forest-700 mb-2">
-                      Username (optional)
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
-                      <input
-                        type="text"
-                        value={formData.username}
-                        onChange={(e) => handleInputChange('username', e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
-                        placeholder="Choose a username"
-                      />
+                    <div>
+                      <label className="block text-sm font-medium text-forest-700 mb-2">
+                        Username (optional)
+                      </label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
+                        <input
+                          type="text"
+                          value={formData.username}
+                          onChange={(e) => handleInputChange('username', e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
+                          placeholder="Choose a username"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-forest-700 mb-2">
-                      Neighborhood (optional)
-                    </label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
-                      <input
-                        type="text"
-                        value={formData.neighborhood}
-                        onChange={(e) => handleInputChange('neighborhood', e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
-                        placeholder="e.g., Downtown, Riverside, etc."
-                      />
+                    <div>
+                      <label className="block text-sm font-medium text-forest-700 mb-2">
+                        Neighborhood (optional)
+                      </label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
+                        <input
+                          type="text"
+                          value={formData.neighborhood}
+                          onChange={(e) => handleInputChange('neighborhood', e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
+                          placeholder="e.g., Downtown, Riverside, etc."
+                        />
+                      </div>
                     </div>
-                  </div>
-                </>
-              )}
+                  </>
+                )}
 
-              <div>
-                <label className="block text-sm font-medium text-forest-700 mb-2">
-                  Email Address *
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    placeholder="your@email.com"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-forest-700 mb-2">
-                  Password *
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                    className="w-full pl-10 pr-12 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
-                    placeholder={mode === 'signup' ? 'At least 6 characters' : 'Your password'}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-forest-400 hover:text-forest-600 focus-ring rounded"
-                  >
-                    {showPassword ? <EyeOff className="icon-sm" /> : <Eye className="icon-sm" />}
-                  </button>
-                </div>
-              </div>
-
-              {mode === 'signup' && (
                 <div>
                   <label className="block text-sm font-medium text-forest-700 mb-2">
-                    Confirm Password *
+                    Email Address *
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
                     <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={formData.confirmPassword}
-                      onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                      className={`w-full pl-10 pr-4 py-3 min-h-[44px] border rounded-lg focus:outline-none focus:ring-2 text-base ${
-                        formData.confirmPassword && formData.password
-                          ? formData.password === formData.confirmPassword
-                            ? 'border-green-300 focus:ring-green-500 focus:border-green-500'
-                            : 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                          : 'border-forest-200 focus:ring-forest-500 focus:border-transparent'
-                      }`}
-                      placeholder="Confirm your password"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
+                      placeholder="your@email.com"
                       required
                     />
-                    {formData.confirmPassword && formData.password && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        {formData.password === formData.confirmPassword ? (
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        ) : (
-                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                        )}
-                      </div>
-                    )}
                   </div>
-                  {formData.confirmPassword && formData.password && formData.password !== formData.confirmPassword && (
-                    <p className="mt-1 text-sm text-red-600">Passwords do not match</p>
-                  )}
+                  <p className="mt-2 text-sm text-forest-600">
+                    We'll send you a code to sign in
+                  </p>
                 </div>
-              )}
 
-              <button
-                type="submit"
-                disabled={loading || (mode === 'signup' && formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword)}
-                className="w-full btn-primary btn-lg focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>{mode === 'signin' ? 'Signing in...' : 'Creating account...'}</span>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full btn-primary btn-lg focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Sending code...</span>
+                    </div>
+                  ) : (
+                    'Send Verification Code'
+                  )}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyCode} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-forest-700 mb-2">
+                    Verification Code
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
+                    <input
+                      type="text"
+                      value={formData.otp}
+                      onChange={(e) => handleInputChange('otp', e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base tracking-widest text-center text-lg font-mono"
+                      placeholder="000000"
+                      maxLength={6}
+                      pattern="[0-9]*"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      required
+                      autoFocus
+                    />
                   </div>
-                ) : (
-                  mode === 'signin' ? 'Sign In' : 'Create Account'
-                )}
-              </button>
-            </form>
+                  <p className="mt-2 text-sm text-forest-600">
+                    Enter the 6-digit code sent to <strong>{formData.email}</strong>
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading || formData.otp.length !== 6}
+                  className="w-full btn-primary btn-lg focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Verifying...</span>
+                    </div>
+                  ) : (
+                    'Verify & Continue'
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSendCode}
+                  disabled={loading}
+                  className="w-full text-sm text-forest-600 hover:text-forest-700 focus:underline py-2"
+                >
+                  Didn't receive the code? Resend
+                </button>
+              </form>
+            )}
 
             {/* Switch Mode */}
-            <div className="mt-6 text-center">
-              <p className="text-forest-600">
-                {mode === 'signin' ? "Don't have an account?" : "Already have an account?"}
-                <button
-                  onClick={switchMode}
-                  className="ml-2 text-forest-700 font-semibold hover:text-forest-800 transition-colors focus:underline focus-ring rounded"
-                >
-                  {mode === 'signin' ? 'Sign up' : 'Sign in'}
-                </button>
-              </p>
-            </div>
+            {step === 'email' && (
+              <div className="mt-6 text-center">
+                <p className="text-forest-600">
+                  {mode === 'signin' ? "Don't have an account?" : "Already have an account?"}
+                  <button
+                    onClick={switchMode}
+                    className="ml-2 text-forest-700 font-semibold hover:text-forest-800 transition-colors focus:underline focus-ring rounded"
+                  >
+                    {mode === 'signin' ? 'Sign up' : 'Sign in'}
+                  </button>
+                </p>
+              </div>
+            )}
 
-            {mode === 'signup' && (
+            {mode === 'signup' && step === 'email' && (
               <div className="mt-4 text-xs text-forest-500 text-center">
                 By creating an account, you agree to our community guidelines and privacy policy.
               </div>
