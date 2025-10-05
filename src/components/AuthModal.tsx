@@ -78,7 +78,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  const { signUp, signInWithOTP, verifyOTP, startOnboarding } = useAuthContext();
+  const { signUp, signInWithOTP, verifyOTP, startOnboarding, needsOnboarding } = useAuthContext();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -156,8 +156,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
         setSuccess('Verified successfully!');
         setTimeout(() => {
           onClose();
-          // Always show onboarding for new users, existing users go to activities
-          startOnboarding();
+          // Check if user needs onboarding, otherwise redirect to activities
+          if (needsOnboarding) {
+            startOnboarding();
+          } else {
+            navigate('/activities');
+          }
         }, 1000);
       }
     } catch (error) {
