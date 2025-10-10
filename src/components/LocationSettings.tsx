@@ -51,15 +51,17 @@ export const LocationSettings: React.FC<LocationSettingsProps> = ({ userId }) =>
       if (prefsError && prefsError.code !== 'PGRST116') throw prefsError;
       
       if (!prefsData) {
-        // Create default preferences
+        // Create or update default preferences (UPSERT to avoid duplicate key errors)
         const { data: newPrefs, error: createError } = await supabase
           .from('user_location_preferences')
-          .insert({
+          .upsert({
             user_id: userId,
             track_gps_enabled: false,
             auto_detect_hotspots: true,
             hotspot_threshold: 5,
             class_suggestion_radius: 0.5
+          }, {
+            onConflict: 'user_id'
           })
           .select()
           .single();
