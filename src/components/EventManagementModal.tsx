@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { 
   X, 
   Users, 
@@ -24,6 +25,8 @@ import {
 import { useAuthContext } from './AuthProvider';
 import { supabase, Event } from '../lib/supabase';
 import EventParticipantManagement from './EventParticipantManagement';
+import EventPractitionerManager from './EventPractitionerManager';
+import EventEditModal from './EventEditModal';
 
 interface EventManagementModalProps {
   event: Event | null;
@@ -46,6 +49,8 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showParticipantManagement, setShowParticipantManagement] = useState(false);
+  const [showPractitionerManager, setShowPractitionerManager] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     if (event && isOpen) {
@@ -237,8 +242,7 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
   const confirmedParticipants = participants.filter(p => p.status === 'confirmed');
   const cancelledParticipants = participants.filter(p => p.status === 'cancelled');
 
-  return (
-    <>
+  return ReactDOM.createPortal(
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         {/* Backdrop */}
@@ -327,6 +331,13 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
                     Event Participants ({confirmedParticipants.length})
                   </h3>
                   <div className="flex space-x-2">
+                    <button
+                      onClick={() => setShowPractitionerManager(true)}
+                      className="flex items-center space-x-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <Users className="h-4 w-4" />
+                      <span>Practitioners</span>
+                    </button>
                     <button
                       onClick={() => setShowParticipantManagement(true)}
                       className="flex items-center space-x-2 bg-purple-100 text-purple-700 hover:bg-purple-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -511,7 +522,10 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
                     <div className="bg-forest-50 rounded-xl p-4">
                       <h4 className="font-semibold text-forest-800 mb-2">Edit Event</h4>
                       <p className="text-sm text-forest-600 mb-3">Update event details, time, or location</p>
-                      <button className="btn-primary btn-sm flex items-center space-x-2 focus-ring">
+                      <button
+                        onClick={() => setShowEditModal(true)}
+                        className="btn-primary btn-sm flex items-center space-x-2 focus-ring"
+                      >
                         <Edit className="icon-sm" />
                         <span>Edit Event</span>
                       </button>
@@ -604,8 +618,7 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
-    
+
     {/* Participant Management Modal */}
     {event && (
       <EventParticipantManagement
@@ -619,7 +632,34 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
         }}
       />
     )}
-    </>
+
+    {/* Practitioner Management Modal */}
+    {event && (
+      <EventPractitionerManager
+        eventId={event.id}
+        organizerId={event.organizer_id}
+        isOpen={showPractitionerManager}
+        onClose={() => setShowPractitionerManager(false)}
+      />
+    )}
+
+    {/* Event Edit Modal */}
+    {event && (
+      <EventEditModal
+        event={event}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onEventUpdated={() => {
+          if (onUpdate) {
+            onUpdate();
+          }
+          loadParticipants();
+          loadWaitlist();
+        }}
+      />
+    )}
+    </div>,
+    document.body
   );
 };
 

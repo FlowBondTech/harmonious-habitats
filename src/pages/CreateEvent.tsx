@@ -1,26 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Users, DollarSign, Plus, X, Star, Globe, Video, Clock, Book, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Calendar, MapPin, Users, DollarSign, Plus, X, Star, Globe, Video, Clock, Book, AlertCircle, Save, FileText, Heart, CheckCircle } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
 import HolisticCategorySelector from '../components/HolisticCategorySelector';
+import { DatePicker, TimePicker } from '../components/DateTimePicker';
+import { SlidingFormWizard, WizardStep } from '../components/SlidingFormWizard';
 
 const CreateEvent = () => {
   const { user } = useAuthContext();
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
-  console.log('CreateEvent component rendering, user:', user);
-  
+
+  // Refs for required fields
+  const categoryRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const dateRef = useRef<HTMLDivElement>(null);
+  const locationRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState({
     title: '',
     category: '',
     description: '',
     date: '',
-    startTime: '',
-    endTime: '',
+    startTime: '09:00',
+    endTime: '10:00',
     location: '',
     address: '',
     capacity: '0',
@@ -30,7 +37,6 @@ const CreateEvent = () => {
     recurring: false,
     recurrencePattern: 'weekly',
     eventType: 'local' as 'local' | 'virtual' | 'global_physical',
-    // New fields from comprehensive schema
     virtualMeetingUrl: '',
     virtualPlatform: '',
     registrationRequired: true,
@@ -53,57 +59,82 @@ const CreateEvent = () => {
   const [userSpaces, setUserSpaces] = useState<any[]>([]);
   const [userTimeOfferings, setUserTimeOfferings] = useState<any[]>([]);
 
+  // Template state
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [templateDescription, setTemplateDescription] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+
   // Check authentication and load user's spaces and time offerings
   useEffect(() => {
     if (!user) {
-      console.log('No user found, redirecting to home');
       navigate('/');
       return;
     }
-    
-    console.log('User found, loading resources');
-    loadUserResources();
-  }, [user, navigate]);
 
-  const loadUserResources = async () => {
+    const loadUserResources = async () => {
+      try {
+        const { data: spaces, error: spacesError } = await supabase
+          .from('spaces')
+          .select('id, name')
+          .eq('owner_id', user.id)
+          .eq('status', 'active');
+
+        if (!spacesError && spaces) {
+          setUserSpaces(spaces);
+        }
+
+        const { data: offerings, error: offeringsError } = await supabase
+          .from('time_offerings')
+          .select('id, title, category')
+          .eq('holder_id', user.id)
+          .eq('status', 'active');
+
+        if (!offeringsError && offerings) {
+          setUserTimeOfferings(offerings);
+        }
+      } catch (err) {
+        console.error('Error in loadUserResources:', err);
+      }
+    };
+
+    loadUserResources();
+  }, [user]);
+
+  // Load user's templates
+  useEffect(() => {
     if (!user) return;
 
-    try {
-      // Load user's spaces
-      const { data: spaces, error: spacesError } = await supabase
-        .from('spaces')
-        .select('id, name')
-        .eq('owner_id', user.id)
-        .eq('status', 'active');
+    const loadTemplates = async () => {
+      const { data, error } = await supabase
+        .from('event_templates')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('is_favorite', { ascending: false })
+        .order('use_count', { ascending: false })
+        .order('created_at', { ascending: false });
 
-      if (spacesError) {
-        console.error('Error loading spaces:', spacesError);
-      } else if (spaces) {
-        setUserSpaces(spaces);
+      if (!error && data) {
+        setTemplates(data);
       }
+    };
 
-      // Load user's time offerings
-      const { data: offerings, error: offeringsError } = await supabase
-        .from('time_offerings')
-        .select('id, title, category')
-        .eq('holder_id', user.id)
-        .eq('status', 'active');
+    loadTemplates();
+  }, [user]);
 
-      if (offeringsError) {
-        console.error('Error loading time offerings:', offeringsError);
-      } else if (offerings) {
-        setUserTimeOfferings(offerings);
-      }
-    } catch (err) {
-      console.error('Error in loadUserResources:', err);
-      // Don't prevent the page from loading if these optional resources fail
+  // Load template from navigation state if provided
+  useEffect(() => {
+    const state = location.state as { templateId?: string } | null;
+    if (state?.templateId && templates.length > 0) {
+      loadTemplate(state.templateId);
+      window.history.replaceState({}, document.title);
     }
-  };
+  }, [location.state, templates]);
 
   const handleInputChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Update related fields
+
     if (field === 'exchangeType') {
       setFormData(prev => ({
         ...prev,
@@ -111,7 +142,7 @@ const CreateEvent = () => {
         donationAmount: value === 'free' ? '' : prev.donationAmount
       }));
     }
-    
+
     if (field === 'capacity' && value === '0') {
       setFormData(prev => ({
         ...prev,
@@ -154,29 +185,124 @@ const CreateEvent = () => {
     }));
   };
 
-  const validateForm = () => {
-    if (!formData.title.trim()) {
-      setError('Event title is required');
-      return false;
+  const saveAsTemplate = async () => {
+    if (!user || !templateName.trim()) {
+      setError('Please enter a template name');
+      return;
     }
+
+    try {
+      const { date, startTime, endTime, registrationDeadline, ...templateData } = formData;
+
+      const { error } = await supabase
+        .from('event_templates')
+        .insert({
+          user_id: user.id,
+          name: templateName.trim(),
+          description: templateDescription.trim(),
+          category: formData.category,
+          template_data: templateData
+        });
+
+      if (error) throw error;
+
+      setSuccess('Template saved successfully!');
+      setShowSaveTemplateModal(false);
+      setTemplateName('');
+      setTemplateDescription('');
+
+      const { data } = await supabase
+        .from('event_templates')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (data) setTemplates(data);
+    } catch (err) {
+      console.error('Error saving template:', err);
+      setError('Failed to save template');
+    }
+  };
+
+  const loadTemplate = async (templateId: string) => {
+    if (!templateId) return;
+
+    const template = templates.find(t => t.id === templateId);
+    if (!template) return;
+
+    try {
+      setFormData(prev => ({
+        ...prev,
+        ...template.template_data,
+        date: prev.date,
+        startTime: prev.startTime,
+        endTime: prev.endTime,
+        registrationDeadline: prev.registrationDeadline
+      }));
+
+      await supabase
+        .from('event_templates')
+        .update({ use_count: template.use_count + 1 })
+        .eq('id', templateId);
+
+      setSuccess(`Loaded template: ${template.name}`);
+    } catch (err) {
+      console.error('Error loading template:', err);
+      setError('Failed to load template');
+    }
+  };
+
+  // Helper function to scroll to and highlight invalid field
+  const scrollToAndHighlight = (ref: React.RefObject<HTMLElement>) => {
+    if (ref.current) {
+      // Scroll element into view
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Add radiate animation class
+      ref.current.classList.add('field-error-radiate');
+
+      // Focus if it's an input element
+      if (ref.current instanceof HTMLInputElement || ref.current instanceof HTMLTextAreaElement) {
+        setTimeout(() => ref.current?.focus(), 300);
+      }
+
+      // Remove animation class after animation completes
+      setTimeout(() => {
+        ref.current?.classList.remove('field-error-radiate');
+      }, 2000);
+    }
+  };
+
+  // Validation functions for each step
+  const validateCategoryStep = () => {
     if (!formData.category) {
       setError('Please select a category');
+      scrollToAndHighlight(categoryRef);
       return false;
     }
+    setError(null);
+    return true;
+  };
+
+  const validateBasicInfoStep = () => {
+    if (!formData.title.trim()) {
+      setError('Event title is required');
+      scrollToAndHighlight(titleRef);
+      return false;
+    }
+    setError(null);
+    return true;
+  };
+
+  const validateScheduleStep = () => {
     if (!formData.date) {
       setError('Event date is required');
+      scrollToAndHighlight(dateRef);
       return false;
     }
     if (!formData.startTime || !formData.endTime) {
       setError('Start and end times are required');
-      return false;
-    }
-    if (!formData.location.trim()) {
-      setError('Event location is required');
-      return false;
-    }
-    if (formData.eventType === 'virtual' && !formData.virtualMeetingUrl.trim()) {
-      setError('Virtual meeting URL is required for virtual events');
+      scrollToAndHighlight(dateRef);
       return false;
     }
     if (formData.registrationRequired && formData.registrationDeadline) {
@@ -184,9 +310,30 @@ const CreateEvent = () => {
       const eventDate = new Date(formData.date + 'T' + formData.startTime);
       if (deadline > eventDate) {
         setError('Registration deadline must be before the event starts');
+        scrollToAndHighlight(dateRef);
         return false;
       }
     }
+    setError(null);
+    return true;
+  };
+
+  const validateLocationStep = () => {
+    if (!formData.location.trim()) {
+      setError('Event location is required');
+      scrollToAndHighlight(locationRef);
+      return false;
+    }
+    if (formData.eventType === 'virtual' && !formData.virtualMeetingUrl.trim()) {
+      setError('Virtual meeting URL is required for virtual events');
+      scrollToAndHighlight(locationRef);
+      return false;
+    }
+    setError(null);
+    return true;
+  };
+
+  const validateCommunityDetailsStep = () => {
     if (!formData.isFree && formData.exchangeType === 'sliding_scale') {
       if (!formData.minimumDonation || !formData.maximumDonation) {
         setError('Please specify minimum and maximum amounts for sliding scale');
@@ -197,49 +344,28 @@ const CreateEvent = () => {
         return false;
       }
     }
+    setError(null);
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    console.log('Event submission started');
-    console.log('User:', user);
-    console.log('Form data:', formData);
-    
-    if (!user) {
-      setError('You must be signed in to create an event');
-      return;
-    }
-
-    // Check if user session is valid
+  const handleComplete = async () => {
     try {
+      if (!user) {
+        setError('You must be signed in to create an event');
+        return;
+      }
+
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log('Session check:', { session, sessionError });
-      
+
       if (!session) {
         setError('Your session has expired. Please sign in again.');
         return;
       }
-    } catch (err) {
-      console.error('Error checking session:', err);
-      setError('Failed to verify session. Please try again.');
-      return;
-    }
 
-    console.log('Validating form...');
-    if (!validateForm()) {
-      console.log('Form validation failed');
-      return;
-    }
-    console.log('Form validation passed');
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
 
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      // Prepare event data - start with minimal fields
       const eventData: any = {
         organizer_id: user.id,
         title: formData.title.trim(),
@@ -248,19 +374,26 @@ const CreateEvent = () => {
         date: formData.date,
         start_time: formData.startTime,
         end_time: formData.endTime,
-        location_name: formData.location.trim()
+        event_type: formData.eventType || 'local',
+        location_name: formData.location.trim() || null,
+        address: formData.address?.trim() || null,
+        capacity: formData.capacity ? parseInt(formData.capacity) : null,
+        skill_level: formData.skillLevel || null,
+        is_free: formData.isFree,
+        exchange_type: formData.exchangeType || null,
+        prerequisites: formData.prerequisites?.trim() || null,
+        registration_required: formData.registrationRequired || false
       };
-      
-      // Log what we're about to send
-      console.log('Minimal event data:', eventData);
 
-      // Add virtual event fields if applicable
+      if (formData.registrationRequired && formData.registrationDeadline) {
+        eventData.registration_deadline = formData.registrationDeadline;
+      }
+
       if (formData.eventType === 'virtual') {
-        eventData.virtual_meeting_url = formData.virtualMeetingUrl.trim();
+        eventData.virtual_meeting_url = formData.virtualMeetingUrl?.trim() || null;
         eventData.virtual_platform = formData.virtualPlatform || null;
       }
 
-      // Add space/time offering connections if applicable
       if (formData.space_id) {
         eventData.space_id = formData.space_id;
       }
@@ -268,90 +401,36 @@ const CreateEvent = () => {
         eventData.time_offering_id = formData.time_offering_id;
       }
 
-      console.log('Attempting to insert event data:', JSON.stringify(eventData, null, 2));
-      
-      // First, let's try a simple insert without the select
-      const { data: insertData, error: insertError } = await supabase
+      const { data, error: insertError } = await supabase
         .from('events')
-        .insert([eventData]);
-      
-      console.log('Initial insert response:', { insertData, insertError });
-      
+        .insert([eventData])
+        .select()
+        .single();
+
       if (insertError) {
         console.error('Supabase insert error:', insertError);
         throw insertError;
       }
-      
-      // If insert succeeded, fetch the created event
-      const { data, error: fetchError } = await supabase
-        .from('events')
-        .select('*')
-        .eq('organizer_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
 
-      console.log('Fetch response:', { data, error: fetchError });
-
-      if (fetchError) {
-        console.error('Supabase fetch error:', fetchError);
-        throw fetchError;
-      }
-      
-      console.log("Event created successfully:", data);
-
-      // Add materials if any (commented out - table doesn't exist)
-      // if (formData.materials.length > 0) {
-      //   const materials = formData.materials.map(material => ({
-      //     event_id: data.id,
-      //     item: material,
-      //     is_required: true,
-      //     provider: 'participant'
-      //   }));
-
-      //   await supabase
-      //     .from('event_materials')
-      //     .insert(materials);
-      // }
-
-      // Add the organizer as a participant automatically (commented out - column mismatch)
-      // try {
-      //   await supabase
-      //     .from('event_participants')
-      //     .insert([{
-      //       event_id: data.id,
-      //       user_id: user.id,
-      //       status: 'registered',
-      //       registered_at: new Date().toISOString()
-      //     }]);
-          
-      //   console.log("Added organizer as participant");
-      // } catch (err) {
-      //   console.error("Error adding organizer as participant:", err);
-      // }
-      
       setSuccess('Event created successfully!');
-      
-      // Redirect to the event or activities page after a short delay
+
       setTimeout(() => {
         navigate('/activities');
       }, 2000);
 
     } catch (err: unknown) {
-      console.error('Error creating event:', err);
-      
+      console.error('Error in handleComplete:', err);
+
       let errorMessage = 'Failed to create event';
-      
+
       if (err instanceof Error) {
         errorMessage = err.message;
-        
-        // Check for specific Supabase errors
+
         if ('code' in err) {
           console.error('Error code:', (err as any).code);
           console.error('Error details:', (err as any).details);
           console.error('Error hint:', (err as any).hint);
-          
-          // Common Supabase error codes
+
           if ((err as any).code === '23505') {
             errorMessage = 'An event with similar details already exists';
           } else if ((err as any).code === '23503') {
@@ -363,626 +442,881 @@ const CreateEvent = () => {
           }
         }
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-forest-800 mb-2">Create Holistic Event</h1>
-          <p className="text-forest-600">Share your practice with the neighborhood community</p>
+  // Wizard steps
+  const wizardSteps: WizardStep[] = [
+    {
+      id: 'category',
+      title: 'Category',
+      description: 'Choose your event category',
+      icon: Heart,
+      validation: validateCategoryStep,
+      component: (
+        <div ref={categoryRef}>
+          <HolisticCategorySelector
+            selectedCategory={formData.category}
+            onCategorySelect={(categoryId) => handleInputChange('category', categoryId)}
+          />
         </div>
+      )
+    },
+    {
+      id: 'basic-info',
+      title: 'Basic Info',
+      description: 'Tell us about your event',
+      icon: FileText,
+      validation: validateBasicInfoStep,
+      component: (
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-forest-700 mb-2">Event Title</label>
+            <input
+              ref={titleRef}
+              type="text"
+              value={formData.title}
+              onChange={(e) => handleInputChange('title', e.target.value)}
+              placeholder="e.g., Morning Yoga Flow, Community Garden Workday"
+              className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent transition-all"
+              required
+            />
+          </div>
 
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <form onSubmit={handleSubmit} className="p-8 space-y-8">
-            {/* Error/Success Messages */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-sm text-red-600">{error}</p>
+          <div>
+            <label className="block text-sm font-medium text-forest-700 mb-2">Description</label>
+            <textarea
+              rows={4}
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Describe your event, what participants can expect, and any special focuses..."
+              className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-forest-700 mb-3">Event Type</label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <button
+                type="button"
+                onClick={() => handleInputChange('eventType', 'local')}
+                className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                  formData.eventType === 'local'
+                    ? 'border-forest-500 bg-forest-50'
+                    : 'border-forest-100 hover:border-forest-200 hover:bg-forest-50'
+                }`}
+              >
+                <MapPin className="h-5 w-5 text-forest-600 mb-2" />
+                <h4 className="font-semibold text-forest-800 mb-1">Local Event</h4>
+                <p className="text-sm text-forest-600">In-person event in your neighborhood</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleInputChange('eventType', 'virtual')}
+                className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                  formData.eventType === 'virtual'
+                    ? 'border-forest-500 bg-forest-50'
+                    : 'border-forest-100 hover:border-forest-200 hover:bg-forest-50'
+                }`}
+              >
+                <Video className="h-5 w-5 text-forest-600 mb-2" />
+                <h4 className="font-semibold text-forest-800 mb-1">Virtual Event</h4>
+                <p className="text-sm text-forest-600">Online event accessible globally</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleInputChange('eventType', 'global_physical')}
+                className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                  formData.eventType === 'global_physical'
+                    ? 'border-forest-500 bg-forest-50'
+                    : 'border-forest-100 hover:border-forest-200 hover:bg-forest-50'
+                }`}
+              >
+                <Globe className="h-5 w-5 text-forest-600 mb-2" />
+                <h4 className="font-semibold text-forest-800 mb-1">Global Physical</h4>
+                <p className="text-sm text-forest-600">Multiple locations worldwide</p>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-forest-700 mb-2">Tags</label>
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                placeholder="e.g., meditation, outdoor, beginners"
+                className="flex-1 px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+              />
+              <button
+                type="button"
+                onClick={addTag}
+                className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-3 rounded-lg transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+
+            {formData.tags.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {formData.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="bg-forest-100 text-forest-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2"
+                  >
+                    <span>#{tag}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeTag(index)}
+                      className="text-forest-500 hover:text-forest-700"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
               </div>
             )}
-            {success && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-sm text-green-600">{success}</p>
-              </div>
-            )}
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'schedule',
+      title: 'Schedule',
+      description: 'Set your date and time',
+      icon: Calendar,
+      validation: validateScheduleStep,
+      component: (
+        <div className="space-y-6">
+          {/* Main Date & Time Section */}
+          <div className="bg-gradient-to-br from-forest-50 to-earth-50 rounded-xl p-4 sm:p-6 border-2 border-forest-200">
+            <div className="flex items-center space-x-2 mb-4">
+              <Calendar className="h-5 w-5 text-forest-600" />
+              <h3 className="text-lg font-semibold text-forest-800">Event Date & Time</h3>
+            </div>
 
-            {/* Basic Information */}
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-forest-800 border-b border-forest-100 pb-3">
-                Basic Information
-              </h2>
-              
+            <div ref={dateRef} className="space-y-4">
+              {/* Date */}
               <div>
-                <label className="block text-sm font-medium text-forest-700 mb-2">Event Title</label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  placeholder="e.g., Morning Yoga Flow, Community Garden Workday"
+                <DatePicker
+                  value={formData.date}
+                  onChange={(date) => handleInputChange('date', date)}
+                  minDate={new Date().toISOString().split('T')[0]}
+                  label="Event Date"
+                  required
+                />
+              </div>
+
+              {/* Time Range */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <TimePicker
+                  value={formData.startTime}
+                  onChange={(time) => handleInputChange('startTime', time)}
+                  label="Start Time"
+                  required
+                />
+                <TimePicker
+                  value={formData.endTime}
+                  onChange={(time) => handleInputChange('endTime', time)}
+                  label="End Time"
+                  required
+                />
+              </div>
+
+              {/* Duration Display */}
+              {formData.startTime && formData.endTime && (() => {
+                const [startHour, startMin] = formData.startTime.split(':').map(Number);
+                const [endHour, endMin] = formData.endTime.split(':').map(Number);
+                const durationMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+                const hours = Math.floor(durationMinutes / 60);
+                const minutes = durationMinutes % 60;
+
+                if (durationMinutes > 0) {
+                  return (
+                    <div className="flex items-center justify-center space-x-2 p-3 bg-white rounded-lg border border-forest-200">
+                      <Clock className="h-4 w-4 text-forest-600" />
+                      <span className="text-sm font-medium text-forest-700">
+                        Duration: {hours > 0 && `${hours}h `}{minutes > 0 && `${minutes}m`}
+                      </span>
+                    </div>
+                  );
+                }
+              })()}
+            </div>
+          </div>
+
+          {/* Registration Options */}
+          <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
+            <div
+              className="p-4 sm:p-5 cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => handleInputChange('registrationRequired', !formData.registrationRequired)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                    formData.registrationRequired
+                      ? 'bg-forest-600 border-forest-600'
+                      : 'border-gray-300 bg-white'
+                  }`}>
+                    {formData.registrationRequired && (
+                      <CheckCircle className="h-4 w-4 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-forest-800">Registration Required</p>
+                    <p className="text-sm text-gray-600">Attendees must register to join</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {formData.registrationRequired && (
+              <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4 border-t border-gray-200 pt-4 bg-gray-50">
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-gray-700">Registration Deadline</p>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <DatePicker
+                      value={formData.registrationDeadline ? formData.registrationDeadline.split('T')[0] : ''}
+                      onChange={(date) => {
+                        const time = formData.registrationDeadline ? formData.registrationDeadline.split('T')[1] || '23:59' : '23:59';
+                        handleInputChange('registrationDeadline', `${date}T${time}`);
+                      }}
+                      label="Deadline Date"
+                      minDate={new Date().toISOString().split('T')[0]}
+                    />
+                    <TimePicker
+                      value={formData.registrationDeadline ? formData.registrationDeadline.split('T')[1] || '23:59' : '23:59'}
+                      onChange={(time) => {
+                        const date = formData.registrationDeadline ? formData.registrationDeadline.split('T')[0] : new Date().toISOString().split('T')[0];
+                        handleInputChange('registrationDeadline', `${date}T${time}`);
+                      }}
+                      label="Deadline Time"
+                    />
+                  </div>
+                </div>
+
+                <div
+                  className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleInputChange('waitlistEnabled', !formData.waitlistEnabled)}
+                >
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                    formData.waitlistEnabled
+                      ? 'bg-forest-600 border-forest-600'
+                      : 'border-gray-300 bg-white'
+                  }`}>
+                    {formData.waitlistEnabled && (
+                      <CheckCircle className="h-4 w-4 text-white" />
+                    )}
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">Enable waitlist when event is full</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Recurring Event Options */}
+          <div className="bg-white rounded-xl border-2 border-gray-200 overflow-hidden">
+            <div
+              className="p-4 sm:p-5 cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => handleInputChange('recurring', !formData.recurring)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                    formData.recurring
+                      ? 'bg-forest-600 border-forest-600'
+                      : 'border-gray-300 bg-white'
+                  }`}>
+                    {formData.recurring && (
+                      <CheckCircle className="h-4 w-4 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-forest-800">Recurring Event</p>
+                    <p className="text-sm text-gray-600">Repeat this event on a schedule</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {formData.recurring && (
+              <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-gray-200 pt-4 bg-gray-50">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Repeat Pattern</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: 'weekly', label: 'Weekly' },
+                    { value: 'biweekly', label: 'Bi-weekly' },
+                    { value: 'monthly', label: 'Monthly' }
+                  ].map((pattern) => (
+                    <button
+                      key={pattern.value}
+                      type="button"
+                      onClick={() => handleInputChange('recurrencePattern', pattern.value)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        formData.recurrencePattern === pattern.value
+                          ? 'bg-forest-600 text-white shadow-md'
+                          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pattern.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'location',
+      title: 'Location',
+      description: 'Where will it happen?',
+      icon: MapPin,
+      validation: validateLocationStep,
+      component: (
+        <div className="space-y-6">
+          {formData.eventType === 'virtual' ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-forest-700 mb-2">
+                  <Video className="h-4 w-4 inline mr-1" />
+                  Virtual Platform
+                </label>
+                <select
+                  value={formData.virtualPlatform}
+                  onChange={(e) => handleInputChange('virtualPlatform', e.target.value)}
                   className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                >
+                  <option value="">Select platform</option>
+                  <option value="zoom">Zoom</option>
+                  <option value="meet">Google Meet</option>
+                  <option value="teams">Microsoft Teams</option>
+                  <option value="discord">Discord</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-forest-700 mb-2">Meeting URL</label>
+                <input
+                  type="url"
+                  value={formData.virtualMeetingUrl}
+                  onChange={(e) => handleInputChange('virtualMeetingUrl', e.target.value)}
+                  placeholder="https://zoom.us/j/..."
+                  className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                  required
+                />
+                <p className="text-xs text-forest-600 mt-1">
+                  Link will only be shared with registered participants
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-forest-700 mb-2">Platform Details</label>
+                <input
+                  ref={locationRef}
+                  type="text"
+                  value={formData.location}
+                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  placeholder="e.g., Zoom Meeting Room, Discord Server Name"
+                  className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent transition-all"
+                  required
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-forest-700 mb-2">Venue Name</label>
+                <input
+                  ref={locationRef}
+                  type="text"
+                  value={formData.location}
+                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  placeholder="e.g., My backyard garden, Community center, Local park pavilion"
+                  className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent transition-all"
                   required
                 />
               </div>
 
               <div>
-                <HolisticCategorySelector
-                  selectedCategory={formData.category}
-                  onCategorySelect={(categoryId) => handleInputChange('category', categoryId)}
+                <label className="block text-sm font-medium text-forest-700 mb-2">Address (Optional)</label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  placeholder="Street address - will only be shared with confirmed participants"
+                  className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
                 />
+                <p className="text-xs text-forest-600 mt-1">
+                  Exact address will only be shared with confirmed participants
+                </p>
               </div>
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      id: 'community-details',
+      title: 'Details',
+      description: 'Community & exchange settings',
+      icon: Users,
+      validation: validateCommunityDetailsStep,
+      component: (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-forest-700 mb-2">
+                <Users className="h-4 w-4 inline mr-1" />
+                Maximum Participants
+              </label>
+              <input
+                type="number"
+                value={formData.capacity}
+                onChange={(e) => handleInputChange('capacity', e.target.value)}
+                placeholder="e.g., 10 (0 for unlimited)"
+                min="0"
+                className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+              />
+              <p className="text-xs text-forest-600 mt-1">
+                Set to 0 for unlimited capacity
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-forest-700 mb-2">
+                <Star className="h-4 w-4 inline mr-1" />
+                Skill Level
+              </label>
+              <select
+                value={formData.skillLevel}
+                onChange={(e) => handleInputChange('skillLevel', e.target.value)}
+                className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+              >
+                <option value="beginner">Beginner Friendly</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+                <option value="all">All Levels</option>
+              </select>
+            </div>
+          </div>
 
+          <div>
+            <label className="block text-sm font-medium text-forest-700 mb-2">
+              <DollarSign className="h-4 w-4 inline mr-1" />
+              Exchange Type
+            </label>
+            <select
+              value={formData.exchangeType}
+              onChange={(e) => handleInputChange('exchangeType', e.target.value)}
+              className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent mb-4"
+            >
+              <option value="free">Free</option>
+              <option value="donation">Suggested Donation</option>
+              <option value="fixed">Fixed Price</option>
+              <option value="sliding_scale">Sliding Scale</option>
+              <option value="barter">Barter/Exchange</option>
+            </select>
+
+            {formData.exchangeType === 'donation' && (
               <div>
-                <label className="block text-sm font-medium text-forest-700 mb-2">Description</label>
-                <textarea
-                  rows={4}
-                  value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Describe your event, what participants can expect, and any special focuses..."
+                <input
+                  type="text"
+                  value={formData.donationAmount}
+                  onChange={(e) => handleInputChange('donationAmount', e.target.value)}
+                  placeholder="e.g., $5-10, Pay what you can"
+                  className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                />
+                <p className="text-xs text-forest-600 mt-1">
+                  Suggested amount to support community growth
+                </p>
+              </div>
+            )}
+
+            {formData.exchangeType === 'fixed' && (
+              <div>
+                <input
+                  type="text"
+                  value={formData.donationAmount}
+                  onChange={(e) => handleInputChange('donationAmount', e.target.value)}
+                  placeholder="e.g., $20"
                   className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
                 />
               </div>
+            )}
 
-              {/* Event Type */}
+            {formData.exchangeType === 'sliding_scale' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-forest-700 mb-1">Minimum</label>
+                    <input
+                      type="number"
+                      value={formData.minimumDonation}
+                      onChange={(e) => handleInputChange('minimumDonation', e.target.value)}
+                      placeholder="0"
+                      min="0"
+                      className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-forest-700 mb-1">Maximum</label>
+                    <input
+                      type="number"
+                      value={formData.maximumDonation}
+                      onChange={(e) => handleInputChange('maximumDonation', e.target.value)}
+                      placeholder="50"
+                      min="0"
+                      className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-forest-600">
+                  Participants can choose amount based on their means
+                </p>
+              </div>
+            )}
+
+            {formData.exchangeType === 'barter' && (
               <div>
-                <label className="block text-sm font-medium text-forest-700 mb-3">Event Type</label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleInputChange('eventType', 'local')}
-                    className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                      formData.eventType === 'local'
-                        ? 'border-forest-300 bg-forest-50'
-                        : 'border-forest-100 hover:border-forest-200 hover:bg-forest-50'
-                    }`}
-                  >
-                    <MapPin className="h-5 w-5 text-forest-600 mb-2" />
-                    <h4 className="font-semibold text-forest-800 mb-1">Local Event</h4>
-                    <p className="text-sm text-forest-600">In-person event in your neighborhood</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleInputChange('eventType', 'virtual')}
-                    className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                      formData.eventType === 'virtual'
-                        ? 'border-forest-300 bg-forest-50'
-                        : 'border-forest-100 hover:border-forest-200 hover:bg-forest-50'
-                    }`}
-                  >
-                    <Video className="h-5 w-5 text-forest-600 mb-2" />
-                    <h4 className="font-semibold text-forest-800 mb-1">Virtual Event</h4>
-                    <p className="text-sm text-forest-600">Online event accessible globally</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleInputChange('eventType', 'global_physical')}
-                    className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                      formData.eventType === 'global_physical'
-                        ? 'border-forest-300 bg-forest-50'
-                        : 'border-forest-100 hover:border-forest-200 hover:bg-forest-50'
-                    }`}
-                  >
-                    <Globe className="h-5 w-5 text-forest-600 mb-2" />
-                    <h4 className="font-semibold text-forest-800 mb-1">Global Physical</h4>
-                    <p className="text-sm text-forest-600">Multiple locations worldwide</p>
-                  </button>
-                </div>
+                <input
+                  type="text"
+                  value={formData.donationAmount}
+                  onChange={(e) => handleInputChange('donationAmount', e.target.value)}
+                  placeholder="e.g., Bring a dish to share, Energy exchange"
+                  className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                />
+                <p className="text-xs text-forest-600 mt-1">
+                  Describe what participants can offer in exchange
+                </p>
               </div>
+            )}
+          </div>
 
-              {/* Tags */}
-              <div>
-                <label className="block text-sm font-medium text-forest-700 mb-2">Tags</label>
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    placeholder="e.g., meditation, outdoor, beginners"
-                    className="flex-1 px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                  />
-                  <button
-                    type="button"
-                    onClick={addTag}
-                    className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-3 rounded-lg transition-colors"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
-                
-                {formData.tags.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {formData.tags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="bg-forest-100 text-forest-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2"
-                      >
-                        <span>#{tag}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeTag(index)}
-                          className="text-forest-500 hover:text-forest-700"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
+          <div>
+            <label className="block text-sm font-medium text-forest-700 mb-2">
+              <Book className="h-4 w-4 inline mr-1" />
+              Prerequisites
+            </label>
+            <textarea
+              rows={2}
+              value={formData.prerequisites}
+              onChange={(e) => handleInputChange('prerequisites', e.target.value)}
+              placeholder="Any requirements or prior experience needed..."
+              className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'materials',
+      title: 'Materials',
+      description: 'What to bring',
+      icon: Book,
+      component: (
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-forest-700 mb-2">What to Bring</label>
+            <textarea
+              rows={2}
+              value={formData.whatToBring}
+              onChange={(e) => handleInputChange('whatToBring', e.target.value)}
+              placeholder="General instructions about what participants should bring..."
+              className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent mb-4"
+            />
+
+            <label className="block text-sm font-medium text-forest-700 mb-2">Specific Materials</label>
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={newMaterial}
+                onChange={(e) => setNewMaterial(e.target.value)}
+                placeholder="e.g., Yoga mat, Water bottle, Notebook"
+                className="flex-1 px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addMaterial())}
+              />
+              <button
+                type="button"
+                onClick={addMaterial}
+                className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-3 rounded-lg transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
             </div>
 
-            {/* Date & Time */}
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-forest-800 border-b border-forest-100 pb-3">
-                <Calendar className="h-5 w-5 inline mr-2" />
-                Schedule
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-forest-700 mb-2">Date</label>
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => handleInputChange('date', e.target.value)}
-                    className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    min={new Date().toISOString().split('T')[0]}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-forest-700 mb-2">Start Time</label>
-                  <input
-                    type="time"
-                    value={formData.startTime}
-                    onChange={(e) => handleInputChange('startTime', e.target.value)}
-                    className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-forest-700 mb-2">End Time</label>
-                  <input
-                    type="time"
-                    value={formData.endTime}
-                    onChange={(e) => handleInputChange('endTime', e.target.value)}
-                    className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Registration Settings */}
-              <div className="bg-forest-50 rounded-lg p-4 space-y-4">
-                <label className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    checked={formData.registrationRequired}
-                    onChange={(e) => handleInputChange('registrationRequired', e.target.checked)}
-                    className="w-4 h-4 text-forest-600 bg-forest-100 border-forest-300 rounded focus:ring-forest-500 focus:ring-2"
-                  />
-                  <span className="text-sm font-medium text-forest-700">Require registration</span>
-                </label>
-                
-                {formData.registrationRequired && (
-                  <div className="ml-7 space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-forest-700 mb-1">Registration deadline</label>
-                      <input
-                        type="datetime-local"
-                        value={formData.registrationDeadline}
-                        onChange={(e) => handleInputChange('registrationDeadline', e.target.value)}
-                        className="px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
-                      />
-                    </div>
-                    
-                    <label className="flex items-center space-x-3">
-                      <input
-                        type="checkbox"
-                        checked={formData.waitlistEnabled}
-                        onChange={(e) => handleInputChange('waitlistEnabled', e.target.checked)}
-                        disabled={formData.capacity === '0'}
-                        className="w-4 h-4 text-forest-600 bg-forest-100 border-forest-300 rounded focus:ring-forest-500 focus:ring-2 disabled:opacity-50"
-                      />
-                      <span className="text-sm font-medium text-forest-700">Enable waitlist when full</span>
-                    </label>
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-forest-50 rounded-lg p-4">
-                <label className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    checked={formData.recurring}
-                    onChange={(e) => handleInputChange('recurring', e.target.checked)}
-                    className="w-4 h-4 text-forest-600 bg-forest-100 border-forest-300 rounded focus:ring-forest-500 focus:ring-2"
-                  />
-                  <span className="text-sm font-medium text-forest-700">Make this a recurring event</span>
-                </label>
-                {formData.recurring && (
-                  <div className="mt-3">
-                    <select
-                      value={formData.recurrencePattern}
-                      onChange={(e) => handleInputChange('recurrencePattern', e.target.value)}
-                      className="px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+            {formData.materials.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {formData.materials.map((material, index) => (
+                  <span
+                    key={index}
+                    className="bg-forest-100 text-forest-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2"
+                  >
+                    <span>{material}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeMaterial(index)}
+                      className="text-forest-500 hover:text-forest-700"
                     >
-                      <option value="weekly">Weekly</option>
-                      <option value="biweekly">Bi-weekly</option>
-                      <option value="monthly">Monthly</option>
-                    </select>
-                  </div>
-                )}
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Location */}
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-forest-800 border-b border-forest-100 pb-3">
-                <MapPin className="h-5 w-5 inline mr-2" />
-                Location
-              </h2>
-              
-              {formData.eventType === 'virtual' ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-forest-700 mb-2">
-                      <Video className="h-4 w-4 inline mr-1" />
-                      Virtual Platform
-                    </label>
-                    <select
-                      value={formData.virtualPlatform}
-                      onChange={(e) => handleInputChange('virtualPlatform', e.target.value)}
-                      className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    >
-                      <option value="">Select platform</option>
-                      <option value="zoom">Zoom</option>
-                      <option value="meet">Google Meet</option>
-                      <option value="teams">Microsoft Teams</option>
-                      <option value="discord">Discord</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-forest-700 mb-2">Meeting URL</label>
-                    <input
-                      type="url"
-                      value={formData.virtualMeetingUrl}
-                      onChange={(e) => handleInputChange('virtualMeetingUrl', e.target.value)}
-                      placeholder="https://zoom.us/j/..."
-                      className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                      required
-                    />
-                    <p className="text-xs text-forest-600 mt-1">
-                      Link will only be shared with registered participants
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-forest-700 mb-2">Platform Details</label>
-                    <input
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) => handleInputChange('location', e.target.value)}
-                      placeholder="e.g., Zoom Meeting Room, Discord Server Name"
-                      className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-forest-700 mb-2">Venue Name</label>
-                    <input
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) => handleInputChange('location', e.target.value)}
-                      placeholder="e.g., My backyard garden, Community center, Local park pavilion"
-                      className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-forest-700 mb-2">Address (Optional)</label>
-                    <input
-                      type="text"
-                      value={formData.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      placeholder="Street address - will only be shared with confirmed participants"
-                      className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-forest-600 mt-1">
-                      Exact address will only be shared with confirmed participants
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
+          {(userSpaces.length > 0 || userTimeOfferings.length > 0) && (
+            <div className="bg-forest-50 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-forest-700 mb-3">Connect to Your Offerings</h3>
 
-            {/* Participants & Donation */}
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-forest-800 border-b border-forest-100 pb-3">
-                Community Details
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-forest-700 mb-2">
-                    <Users className="h-4 w-4 inline mr-1" />
-                    Maximum Participants
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.capacity}
-                    onChange={(e) => handleInputChange('capacity', e.target.value)}
-                    placeholder="e.g., 10 (0 for unlimited)"
-                    min="0"
-                    className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-forest-600 mt-1">
-                    Set to 0 for unlimited capacity
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-forest-700 mb-2">
-                    <Star className="h-4 w-4 inline mr-1" />
-                    Skill Level
-                  </label>
+              {userSpaces.length > 0 && (
+                <div className="mb-3">
+                  <label className="block text-xs font-medium text-forest-600 mb-1">Host at Your Space</label>
                   <select
-                    value={formData.skillLevel}
-                    onChange={(e) => handleInputChange('skillLevel', e.target.value)}
-                    className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    onChange={(e) => handleInputChange('space_id', e.target.value)}
+                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 text-sm"
                   >
-                    <option value="beginner">Beginner Friendly</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                    <option value="all">All Levels</option>
+                    <option value="">Not using my space</option>
+                    {userSpaces.map(space => (
+                      <option key={space.id} value={space.id}>{space.name}</option>
+                    ))}
                   </select>
                 </div>
-              </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium text-forest-700 mb-2">
-                  <DollarSign className="h-4 w-4 inline mr-1" />
-                  Exchange Type
-                </label>
-                <select
-                  value={formData.exchangeType}
-                  onChange={(e) => handleInputChange('exchangeType', e.target.value)}
-                  className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent mb-4"
-                >
-                  <option value="free">Free</option>
-                  <option value="donation">Suggested Donation</option>
-                  <option value="fixed">Fixed Price</option>
-                  <option value="sliding_scale">Sliding Scale</option>
-                  <option value="barter">Barter/Exchange</option>
-                </select>
-
-                {formData.exchangeType === 'donation' && (
-                  <div>
-                    <input
-                      type="text"
-                      value={formData.donationAmount}
-                      onChange={(e) => handleInputChange('donationAmount', e.target.value)}
-                      placeholder="e.g., $5-10, Pay what you can"
-                      className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-forest-600 mt-1">
-                      Suggested amount to support community growth
-                    </p>
-                  </div>
-                )}
-
-                {formData.exchangeType === 'fixed' && (
-                  <div>
-                    <input
-                      type="text"
-                      value={formData.donationAmount}
-                      onChange={(e) => handleInputChange('donationAmount', e.target.value)}
-                      placeholder="e.g., $20"
-                      className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    />
-                  </div>
-                )}
-
-                {formData.exchangeType === 'sliding_scale' && (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium text-forest-700 mb-1">Minimum</label>
-                        <input
-                          type="number"
-                          value={formData.minimumDonation}
-                          onChange={(e) => handleInputChange('minimumDonation', e.target.value)}
-                          placeholder="0"
-                          min="0"
-                          className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-forest-700 mb-1">Maximum</label>
-                        <input
-                          type="number"
-                          value={formData.maximumDonation}
-                          onChange={(e) => handleInputChange('maximumDonation', e.target.value)}
-                          placeholder="50"
-                          min="0"
-                          className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
-                    <p className="text-xs text-forest-600">
-                      Participants can choose amount based on their means
-                    </p>
-                  </div>
-                )}
-
-                {formData.exchangeType === 'barter' && (
-                  <div>
-                    <input
-                      type="text"
-                      value={formData.donationAmount}
-                      onChange={(e) => handleInputChange('donationAmount', e.target.value)}
-                      placeholder="e.g., Bring a dish to share, Energy exchange"
-                      className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-forest-600 mt-1">
-                      Describe what participants can offer in exchange
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-forest-700 mb-2">
-                  <Book className="h-4 w-4 inline mr-1" />
-                  Prerequisites
-                </label>
-                <textarea
-                  rows={2}
-                  value={formData.prerequisites}
-                  onChange={(e) => handleInputChange('prerequisites', e.target.value)}
-                  placeholder="Any requirements or prior experience needed..."
-                  className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Materials & Requirements */}
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-forest-800 border-b border-forest-100 pb-3">
-                What to Bring & Requirements
-              </h2>
-              
-              <div>
-                <label className="block text-sm font-medium text-forest-700 mb-2">What to Bring</label>
-                <textarea
-                  rows={2}
-                  value={formData.whatToBring}
-                  onChange={(e) => handleInputChange('whatToBring', e.target.value)}
-                  placeholder="General instructions about what participants should bring..."
-                  className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent mb-4"
-                />
-                
-                <label className="block text-sm font-medium text-forest-700 mb-2">Specific Materials</label>
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={newMaterial}
-                    onChange={(e) => setNewMaterial(e.target.value)}
-                    placeholder="e.g., Yoga mat, Water bottle, Notebook"
-                    className="flex-1 px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addMaterial())}
-                  />
-                  <button
-                    type="button"
-                    onClick={addMaterial}
-                    className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-3 rounded-lg transition-colors"
+              {userTimeOfferings.length > 0 && (
+                <div>
+                  <label className="block text-xs font-medium text-forest-600 mb-1">Part of Time Offering</label>
+                  <select
+                    onChange={(e) => handleInputChange('time_offering_id', e.target.value)}
+                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 text-sm"
                   >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
-                
-                {formData.materials.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {formData.materials.map((material, index) => (
-                      <span
-                        key={index}
-                        className="bg-forest-100 text-forest-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2"
-                      >
-                        <span>{material}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeMaterial(index)}
-                          className="text-forest-500 hover:text-forest-700"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
+                    <option value="">Not part of time offering</option>
+                    {userTimeOfferings.map(offering => (
+                      <option key={offering.id} value={offering.id}>
+                        {offering.title} ({offering.category})
+                      </option>
                     ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Space/Time Offering Connection */}
-              {(userSpaces.length > 0 || userTimeOfferings.length > 0) && (
-                <div className="bg-forest-50 rounded-lg p-4">
-                  <h3 className="text-sm font-medium text-forest-700 mb-3">Connect to Your Offerings</h3>
-                  
-                  {userSpaces.length > 0 && (
-                    <div className="mb-3">
-                      <label className="block text-xs font-medium text-forest-600 mb-1">Host at Your Space</label>
-                      <select
-                        onChange={(e) => handleInputChange('space_id', e.target.value)}
-                        className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 text-sm"
-                      >
-                        <option value="">Not using my space</option>
-                        {userSpaces.map(space => (
-                          <option key={space.id} value={space.id}>{space.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                  
-                  {userTimeOfferings.length > 0 && (
-                    <div>
-                      <label className="block text-xs font-medium text-forest-600 mb-1">Part of Time Offering</label>
-                      <select
-                        onChange={(e) => handleInputChange('time_offering_id', e.target.value)}
-                        className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 text-sm"
-                      >
-                        <option value="">Not part of time offering</option>
-                        {userTimeOfferings.map(offering => (
-                          <option key={offering.id} value={offering.id}>
-                            {offering.title} ({offering.category})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
+                  </select>
                 </div>
               )}
             </div>
+          )}
+        </div>
+      )
+    },
+    {
+      id: 'review',
+      title: 'Review',
+      description: 'Review and submit',
+      icon: CheckCircle,
+      component: (
+        <div className="space-y-6">
+          <div className="bg-forest-50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-forest-800 mb-4">Event Summary</h3>
 
-            {/* Submit */}
-            <div className="border-t border-forest-100 pt-6">
-              <div className="flex justify-end space-x-4">
-                <button
-                  type="button"
-                  disabled={loading}
-                  className="px-6 py-3 border border-forest-300 text-forest-700 rounded-lg hover:bg-forest-50 transition-colors"
-                >
-                  Save as Draft
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-forest-600 hover:bg-forest-700 disabled:bg-forest-300 text-white px-8 py-3 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md flex items-center space-x-2"
-                >
-                  {loading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Creating...</span>
-                    </>
-                  ) : (
-                    <span>Create Event</span>
-                  )}
-                </button>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-forest-600">Title</p>
+                <p className="text-forest-800">{formData.title || 'Not set'}</p>
               </div>
+
+              <div>
+                <p className="text-sm font-medium text-forest-600">Category</p>
+                <p className="text-forest-800 capitalize">{formData.category || 'Not selected'}</p>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-forest-600">Type</p>
+                <p className="text-forest-800 capitalize">{formData.eventType.replace('_', ' ')}</p>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-forest-600">Date & Time</p>
+                <p className="text-forest-800">
+                  {formData.date ? new Date(formData.date).toLocaleDateString() : 'Not set'} at {formData.startTime} - {formData.endTime}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-forest-600">Location</p>
+                <p className="text-forest-800">{formData.location || 'Not set'}</p>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-forest-600">Capacity</p>
+                <p className="text-forest-800">{formData.capacity === '0' ? 'Unlimited' : `${formData.capacity} participants`}</p>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-forest-600">Exchange</p>
+                <p className="text-forest-800 capitalize">{formData.exchangeType.replace('_', ' ')}</p>
+              </div>
+
+              {formData.tags.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-forest-600">Tags</p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {formData.tags.map((tag, index) => (
+                      <span key={index} className="bg-forest-100 text-forest-700 px-2 py-1 rounded-full text-xs">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </form>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800">
+              <AlertCircle className="h-4 w-4 inline mr-1" />
+              Review all details before submitting. You'll be able to edit your event after creation.
+            </p>
+          </div>
+        </div>
+      )
+    }
+  ];
+
+  return (
+    <div>
+      {/* Template Controls Bar */}
+      <div className="bg-white border-b border-forest-100 px-2 sm:px-4 py-2 sm:py-3">
+        <div className="max-w-4xl mx-auto flex items-center justify-between flex-wrap gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+            <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-forest-600 flex-shrink-0" />
+            <select
+              value={selectedTemplate}
+              onChange={(e) => {
+                setSelectedTemplate(e.target.value);
+                if (e.target.value) {
+                  loadTemplate(e.target.value);
+                }
+              }}
+              className="px-2 sm:px-3 py-1.5 sm:py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 text-xs sm:text-sm flex-1 min-w-0"
+            >
+              <option value="">Load template...</option>
+              {templates.map(template => (
+                <option key={template.id} value={template.id}>
+                  {template.is_favorite && '⭐ '}{template.name}
+                  {template.use_count > 0 && ` (${template.use_count}x)`}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (!formData.title && !formData.description) {
+                setError('Please fill in some event details before saving as template');
+                return;
+              }
+              setShowSaveTemplateModal(true);
+            }}
+            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-forest-600 text-white rounded-lg hover:bg-forest-700 transition-colors text-xs sm:text-sm flex-shrink-0"
+          >
+            <Save className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Save as Template</span>
+            <span className="sm:hidden">Save</span>
+          </button>
         </div>
       </div>
+
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="max-w-4xl mx-auto px-2 sm:px-4 mt-2 sm:mt-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-red-600">{error}</p>
+          </div>
+        </div>
+      )}
+      {success && (
+        <div className="max-w-4xl mx-auto px-2 sm:px-4 mt-2 sm:mt-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-green-600">{success}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Wizard */}
+      <SlidingFormWizard
+        steps={wizardSteps}
+        onComplete={handleComplete}
+        onCancel={() => navigate('/activities')}
+        showStepIndicator={true}
+        showProgressBar={true}
+        allowSkip={false}
+        saveProgress={false}
+      />
+
+      {/* Save Template Modal */}
+      {showSaveTemplateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-forest-800 mb-4">Save Event Template</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-forest-700 mb-1">
+                  Template Name
+                </label>
+                <input
+                  type="text"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  placeholder="e.g., Weekly Yoga Class"
+                  className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-forest-700 mb-1">
+                  Description (Optional)
+                </label>
+                <textarea
+                  value={templateDescription}
+                  onChange={(e) => setTemplateDescription(e.target.value)}
+                  placeholder="Notes about this template..."
+                  className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSaveTemplateModal(false);
+                  setTemplateName('');
+                  setTemplateDescription('');
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveAsTemplate}
+                className="px-4 py-2 bg-forest-600 text-white rounded-lg hover:bg-forest-700"
+              >
+                Save Template
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

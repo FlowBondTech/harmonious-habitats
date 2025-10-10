@@ -67,6 +67,12 @@ export const useAuth = () => {
   }, [])
 
   const loadUserProfile = async (userId: string) => {
+    // Guard against undefined or invalid user ID
+    if (!userId) {
+      logWarning('loadUserProfile called with invalid userId:', userId)
+      return
+    }
+
     try {
       // First ensure profile exists
       const { data: ensureData, error: ensureError } = await supabase
@@ -134,27 +140,48 @@ export const useAuth = () => {
 
   // Verify OTP code
   const verifyOTP = async (email: string, token: string) => {
+    console.log('verifyOTP called with:', { email, token });
+
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
+      console.log('Calling supabase.auth.verifyOtp...');
+
+      // Call verifyOtp directly without Promise.race (which seems to be causing the issue)
+      const result = await supabase.auth.verifyOtp({
         email,
         token,
         type: 'email'
-      })
+      });
 
-      if (error) {
-        logError(error, 'verifyOTP')
-        return { data: null, error }
+      console.log('Supabase verifyOtp response:', result);
+
+      if (result.error) {
+        console.error('OTP verification error:', result.error);
+        logError(result.error, 'verifyOTP')
+        return { data: null, error: result.error }
       }
 
       // If successful and user exists, load their profile
-      if (data.user) {
-        await loadUserProfile(data.user.id)
-        const role = await getUserRole(data.user.id)
+      if (result.data?.user) {
+        console.log('User verified, loading profile for user:', result.data.user.id);
+
+        // Set the user immediately
+        setUser(result.data.user);
+
+        // Then load profile in the background
+        await loadUserProfile(result.data.user.id)
+        const role = await getUserRole(result.data.user.id)
         setUserRole(role)
+        console.log('Profile loaded, role set to:', role);
+
+        // Also refresh the session to ensure it's properly set
+        const { data: sessionData } = await supabase.auth.getSession();
+        console.log('Session after verification:', sessionData);
       }
 
-      return { data, error: null }
+      console.log('Verification complete, returning success');
+      return { data: result.data, error: null }
     } catch (error) {
+      console.error('Unexpected error in verifyOTP:', error);
       logError(error as Error, 'verifyOTP')
       return { data: null, error: error as any }
     }

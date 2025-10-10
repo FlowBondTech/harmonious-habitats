@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Users, 
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
   Plus,
   Heart,
   Star,
@@ -19,7 +19,9 @@ import {
   MoreHorizontal,
   Home as HomeIcon,
   Bookmark,
-  Filter
+  Filter,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuthContext } from '../components/AuthProvider';
@@ -56,10 +58,16 @@ const MyActivities = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [attendingEvents, setAttendingEvents] = useState<Event[]>([]);
   const [hostingEvents, setHostingEvents] = useState<Event[]>([]);
+  const [favoriteEvents, setFavoriteEvents] = useState<Event[]>([]);
   const [mySpaces, setMySpaces] = useState<Space[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+
+  // Scrollable tabs state
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
   // const [_filter, _setFilter] = useState<ActivityFilter>({
   //   timeRange: 'month',
   //   status: 'all',
@@ -81,6 +89,45 @@ const MyActivities = () => {
       newConnections: 5
     }
   });
+
+  // Check if tabs need scroll arrows
+  const checkScrollArrows = useCallback(() => {
+    if (!tabsRef.current) return;
+
+    const { scrollLeft, scrollWidth, clientWidth } = tabsRef.current;
+    setShowLeftArrow(scrollLeft > 0);
+    setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+  }, []);
+
+  // Scroll tabs left/right
+  const scrollTabs = (direction: 'left' | 'right') => {
+    if (!tabsRef.current) return;
+
+    const scrollAmount = 200;
+    const newScrollLeft = direction === 'left'
+      ? tabsRef.current.scrollLeft - scrollAmount
+      : tabsRef.current.scrollLeft + scrollAmount;
+
+    tabsRef.current.scrollTo({
+      left: newScrollLeft,
+      behavior: 'smooth'
+    });
+  };
+
+  // Set up scroll listeners
+  useEffect(() => {
+    const tabsElement = tabsRef.current;
+    if (!tabsElement) return;
+
+    checkScrollArrows();
+    tabsElement.addEventListener('scroll', checkScrollArrows);
+    window.addEventListener('resize', checkScrollArrows);
+
+    return () => {
+      tabsElement.removeEventListener('scroll', checkScrollArrows);
+      window.removeEventListener('resize', checkScrollArrows);
+    };
+  }, [checkScrollArrows]);
 
   const loadActivities = useCallback(async () => {
     if (!user) return;
@@ -113,7 +160,7 @@ const MyActivities = () => {
       }
       
       // Load events user is hosting
-      const { data: hostingData } = await supabase
+      const { data: hostingData, error: hostingError } = await supabase
         .from('events')
         .select(`
           *,
@@ -124,6 +171,13 @@ const MyActivities = () => {
         .in('status', ['published', 'draft'])
         .order('date', { ascending: true });
 
+      console.log('Hosting events query:', {
+        userId: user.id,
+        data: hostingData,
+        error: hostingError,
+        count: hostingData?.length || 0
+      });
+
       if (hostingData) {
         const events = hostingData.map(event => ({
           ...event,
@@ -131,7 +185,34 @@ const MyActivities = () => {
         }));
         setHostingEvents(events);
       }
-      
+
+      // Load user's favorite events
+      const { data: favoritesData } = await supabase
+        .from('event_favorites')
+        .select(`
+          event_id,
+          event:events!inner(
+            *,
+            organizer:profiles!organizer_id(id, full_name, avatar_url, verified),
+            participant_count:event_participants(count)
+          )
+        `)
+        .eq('user_id', user.id);
+
+      console.log('Favorites query:', {
+        userId: user.id,
+        data: favoritesData,
+        count: favoritesData?.length || 0
+      });
+
+      if (favoritesData) {
+        const favorites = favoritesData.map((fav: any) => ({
+          ...fav.event,
+          participant_count: fav.event.participant_count?.[0]?.count || 0
+        }));
+        setFavoriteEvents(favorites);
+      }
+
       // Load user's spaces
       const { data: spacesData } = await getSpaces({
         status: 'available'
@@ -212,29 +293,6 @@ const MyActivities = () => {
 
   const insights = getActivityInsights();
 
-  const favoriteEvents = [
-    {
-      id: '1',
-      title: 'Tuesday Pottery Circle',
-      facilitator: 'The Clay Collective',
-      nextDate: 'Every Tuesday',
-      time: '7:00 PM',
-      location: 'Community Art Center',
-      distance: '0.9 miles',
-      participants: 12
-    },
-    {
-      id: '2',
-      title: 'Saturday Permaculture Study',
-      facilitator: 'Green Thumb Collective',
-      nextDate: 'Every Saturday',
-      time: '10:00 AM',
-      location: 'Urban Farm Co-op',
-      distance: '0.8 miles',
-      participants: 18
-    }
-  ];
-
   const recentActivity: any[] = []; // Activity will be derived from joined/hosted events
 
   const tabs = [
@@ -298,8 +356,34 @@ const MyActivities = () => {
 
         {/* Navigation Tabs */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8 overflow-hidden">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6 overflow-x-auto">
+          <div className="border-b border-gray-200 relative">
+            {/* Left Scroll Arrow */}
+            {showLeftArrow && (
+              <button
+                onClick={() => scrollTabs('left')}
+                className="absolute left-0 top-0 bottom-0 z-10 bg-gradient-to-r from-white via-white to-transparent px-2 flex items-center hover:bg-gray-50 transition-colors"
+                aria-label="Scroll left"
+              >
+                <div className="bg-white rounded-full p-1 shadow-md border border-gray-200">
+                  <ChevronLeft className="h-4 w-4 text-forest-600" />
+                </div>
+              </button>
+            )}
+
+            {/* Right Scroll Arrow */}
+            {showRightArrow && (
+              <button
+                onClick={() => scrollTabs('right')}
+                className="absolute right-0 top-0 bottom-0 z-10 bg-gradient-to-l from-white via-white to-transparent px-2 flex items-center hover:bg-gray-50 transition-colors"
+                aria-label="Scroll right"
+              >
+                <div className="bg-white rounded-full p-1 shadow-md border border-gray-200">
+                  <ChevronRight className="h-4 w-4 text-forest-600" />
+                </div>
+              </button>
+            )}
+
+            <nav ref={tabsRef} className="flex space-x-8 px-6 overflow-x-auto scrollbar-hide">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -497,10 +581,10 @@ const MyActivities = () => {
                       event.description?.toLowerCase().includes(searchTerm.toLowerCase())
                     )
                     .map((event) => (
-                      <EventCardV2 
-                        key={event.id} 
-                        event={event} 
-                        onViewDetails={setSelectedEventId}
+                      <EventCardV2
+                        key={event.id}
+                        event={event}
+                        onViewDetails={() => setSelectedEvent(event)}
                         isRegistered={true}
                       />
                     ))}
@@ -556,10 +640,10 @@ const MyActivities = () => {
               ) : hostingEvents.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {hostingEvents.map((event) => (
-                    <EventCardV2 
-                      key={event.id} 
-                      event={event} 
-                      onViewDetails={setSelectedEventId}
+                    <EventCardV2
+                      key={event.id}
+                      event={event}
+                      onViewDetails={() => setSelectedEvent(event)}
                     />
                   ))}
                 </div>
@@ -641,67 +725,38 @@ const MyActivities = () => {
         {/* Favorites Tab */}
         {activeTab === 'favorites' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-              <h3 className="text-xl font-semibold text-forest-800 mb-6">Favorite Events & Spaces</h3>
-              
-              <div className="space-y-4">
-                {favoriteEvents.map((event) => (
-                  <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="bg-gradient-to-br from-forest-100 to-earth-100 w-12 h-12 rounded-lg flex items-center justify-center">
-                          <Heart className="h-6 w-6 text-forest-600 fill-current" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-forest-800">{event.title}</h4>
-                          <p className="text-sm text-forest-600">{event.facilitator}</p>
-                          <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
-                            <span className="flex items-center space-x-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{event.nextDate}</span>
-                            </span>
-                            <span className="flex items-center space-x-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{event.time}</span>
-                            </span>
-                            <span className="flex items-center space-x-1">
-                              <MapPin className="h-3 w-3" />
-                              <span>{event.distance}</span>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button className="p-2 text-forest-600 hover:bg-forest-50 rounded-lg transition-colors">
-                          <MessageCircle className="h-4 w-4" />
-                        </button>
-                        <button className="p-2 text-forest-600 hover:bg-forest-50 rounded-lg transition-colors">
-                          <Share className="h-4 w-4" />
-                        </button>
-                        <button className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                          <Heart className="h-4 w-4 fill-current" />
-                        </button>
-                      </div>
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 animate-pulse">
+                    <div className="space-y-4">
+                      <div className="h-4 bg-gray-200 rounded"></div>
+                      <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                     </div>
                   </div>
                 ))}
               </div>
-
-              {favoriteEvents.length === 0 && (
-                <div className="text-center py-12">
-                  <Bookmark className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <h4 className="text-lg font-semibold text-gray-600 mb-2">No favorites yet</h4>
-                  <p className="text-gray-500 mb-6">Heart events and spaces you love to see them here!</p>
-                  <Link
-                    to="/map"
-                    className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center space-x-2"
-                  >
-                    <Search className="h-4 w-4" />
-                    <span>Discover Events</span>
-                  </Link>
-                </div>
-              )}
-            </div>
+            ) : favoriteEvents.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {favoriteEvents.map((event) => (
+                  <EventCardV2 key={event.id} event={event} onViewDetails={() => setSelectedEvent(event)} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Heart className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <h4 className="text-lg font-semibold text-gray-600 mb-2">No favorite events yet</h4>
+                <p className="text-gray-500 mb-6">Favorite events to easily find them here!</p>
+                <Link
+                  to="/"
+                  className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center space-x-2"
+                >
+                  <Heart className="h-4 w-4" />
+                  <span>Discover Events</span>
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
@@ -763,14 +818,15 @@ const MyActivities = () => {
       </div>
 
       {/* Event Details Modal */}
-      {selectedEventId && (
+      {selectedEvent && (
         <EventDetailsModal
-          eventId={selectedEventId}
-          isOpen={!!selectedEventId}
+          event={selectedEvent}
+          isOpen={!!selectedEvent}
           onClose={() => {
-            setSelectedEventId(null);
+            setSelectedEvent(null);
             loadActivities();
           }}
+          onUpdate={loadActivities}
         />
       )}
     </div>

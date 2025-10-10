@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, MapPin, Settings, Badge, Star, Calendar, CalendarPlus, Users, Heart, Edit, Camera, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Clock, Award, CheckCircle, MessageCircle, Share2, Image, Home as HomeIcon, Globe, Map, GraduationCap, Package, Briefcase, Languages, Accessibility, X, BarChart3, Mail, Lock, CreditCard, DollarSign, UserCircle, Activity, Smartphone, UserPlus, Crown } from 'lucide-react';
+import { User, MapPin, Settings, Badge, Star, Calendar, CalendarPlus, Users, Heart, Edit, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Clock, Award, CheckCircle, MessageCircle, Share2, Image, Home as HomeIcon, Globe, Map, GraduationCap, Package, Briefcase, Languages, Accessibility, X, BarChart3, Mail, Lock, CreditCard, DollarSign, UserCircle, Activity, Smartphone, UserPlus, Crown } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { updateProfile, supabase } from '../lib/supabase';
 import { Link, useLocation } from 'react-router-dom';
@@ -102,19 +102,14 @@ const Profile = () => {
         <div className="space-y-6">
           {/* Hero Section */}
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div className="bg-gradient-to-br from-forest-600 to-earth-500 h-40 lg:h-48 relative">
-              <button className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm p-2 rounded-lg text-white hover:bg-white/30 transition-colors">
-                <Camera className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="relative px-6 pb-6">
-              <div className="flex flex-col lg:flex-row lg:items-end lg:space-x-6">
+            <div className="relative px-6 py-6">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-6">
                 <div className="flex justify-center lg:justify-start">
-                  <div className="relative -mt-16">
+                  <div className="relative">
                     <img
                       src={profile.avatar_url || DEFAULT_AVATAR}
                       alt={profile.full_name || 'Profile'}
-                      className="w-32 h-32 rounded-full border-4 border-white object-cover"
+                      className="w-32 h-32 rounded-full border-4 border-forest-100 object-cover"
                     />
                     {profile.verified && (
                       <div className="absolute -bottom-1 -right-1 bg-forest-600 text-white p-1 rounded-full">
@@ -123,7 +118,7 @@ const Profile = () => {
                     )}
                   </div>
                 </div>
-                <div className="text-center lg:text-left mt-4 lg:mt-0 lg:pb-4 flex-1">
+                <div className="text-center lg:text-left mt-4 lg:mt-0 flex-1">
                   <h1 className="text-2xl lg:text-3xl font-bold text-forest-800">{profile.full_name || profile.username || 'Community Member'}</h1>
                   <p className="text-forest-600 text-lg mt-1">{profile.bio || 'Holistic wellness enthusiast'}</p>
                   <div className="flex items-center justify-center lg:justify-start mt-2 text-forest-600">
@@ -139,7 +134,7 @@ const Profile = () => {
                     <span className="ml-2 text-sm text-forest-600">{profile.rating.toFixed(1)} rating ({profile.total_reviews} reviews)</span>
                   </div>
                 </div>
-                <div className="flex justify-center lg:justify-end mt-4 lg:mt-0 lg:pb-4">
+                <div className="flex justify-center lg:justify-end mt-4 lg:mt-0">
                   <Link
                     to="/settings"
                     state={{ activeSection: 'edit-profile' }}

@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  X, 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Users, 
-  Star, 
-  Badge, 
-  Heart, 
-  Share2, 
-  MessageCircle, 
+import ReactDOM from 'react-dom';
+import { useNavigate } from 'react-router-dom';
+import {
+  X,
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  Star,
+  Badge,
+  Heart,
+  Share2,
+  MessageCircle,
   DollarSign,
   CheckCircle,
   AlertCircle,
@@ -19,40 +21,56 @@ import {
   Video,
   Tag,
   Book,
-  Package
+  Package,
+  Settings
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase, Event, EventParticipant, EventReview } from '../lib/supabase';
 import EventRegistrationModal from './EventRegistrationModal';
+import SpaceOwnerSignoffModal from './SpaceOwnerSignoffModal';
+import EventManagementModal from './EventManagementModal';
+import Avatar from './Avatar';
+import { getPractitionerRoleLabel, getRoleIcon } from '../utils/practitionerRoles';
 
 interface EventDetailsModalProps {
-  eventId: string;
+  event: any;
   isOpen: boolean;
   onClose: () => void;
+  onJoin?: (eventId: string) => void;
+  onLeave?: (eventId: string) => void;
+  onUpdate?: () => void;
 }
 
 const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
-  eventId,
+  event,
   isOpen,
-  onClose
+  onClose,
+  onJoin,
+  onLeave,
+  onUpdate
 }) => {
   const { user } = useAuthContext();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [participants, setParticipants] = useState<any[]>([]);
+  const [practitioners, setPractitioners] = useState<any[]>([]);
+  const [showSignoffModal, setShowSignoffModal] = useState(false);
+  const [isSpaceOwner, setIsSpaceOwner] = useState(false);
+  const [showManagementModal, setShowManagementModal] = useState(false);
 
   useEffect(() => {
-    if (event && user) {
+    if (event?.id && user?.id) {
       checkParticipationStatus();
       loadParticipants();
     }
-  }, [event, user]);
+  }, [event?.id, user?.id]);
 
   const checkParticipationStatus = async () => {
-    if (!event || !user) return;
+    if (!event?.id || !user?.id) return;
 
     try {
       const { data: participation } = await supabase
@@ -73,12 +91,12 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
 
       setIsFavorited(!!favorite);
     } catch (error) {
-      console.error('Error checking participation status:', error);
+      // Expected error when user hasn't joined or favorited
     }
   };
 
   const loadParticipants = async () => {
-    if (!event) return;
+    if (!event?.id) return;
 
     try {
       const { data } = await supabase
@@ -92,9 +110,64 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
 
       setParticipants(data || []);
     } catch (error) {
-      console.error('Error loading participants:', error);
+      // Error loading participants
     }
   };
+
+  const loadPractitioners = async () => {
+    if (!event?.id) return;
+
+    try {
+      const { data } = await supabase
+        .from('event_practitioners')
+        .select(`
+          *,
+          practitioner:profiles!event_practitioners_practitioner_id_fkey(
+            id,
+            full_name,
+            avatar_url,
+            is_facilitator
+          )
+        `)
+        .eq('event_id', event.id)
+        .order('role');
+
+      const formattedData = data?.map(item => ({
+        ...item,
+        full_name: item.practitioner?.full_name,
+        avatar_url: item.practitioner?.avatar_url,
+        is_facilitator: item.practitioner?.is_facilitator,
+        // facilitator_verified removed
+      })) || [];
+
+      setPractitioners(formattedData);
+    } catch (error) {
+      // Error loading practitioners
+    }
+  };
+
+  const checkSpaceOwnership = async () => {
+    if (!event?.space_id || !user?.id) return;
+
+    try {
+      const { data } = await supabase
+        .from('spaces')
+        .select('owner_id')
+        .eq('id', event.space_id)
+        .single();
+
+      setIsSpaceOwner(data?.owner_id === user.id);
+    } catch (error) {
+      setIsSpaceOwner(false);
+    }
+  };
+
+  useEffect(() => {
+    if (event?.id) {
+      loadPractitioners();
+      checkSpaceOwnership();
+    }
+  }, [event?.id, user?.id]);
 
   const handleJoinEvent = async () => {
     if (!event || !user) return;
@@ -179,12 +252,49 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
           }]);
         setIsFavorited(true);
       }
+
+      // Notify parent component to refresh favorites list
+      if (onUpdate) {
+        onUpdate();
+      }
     } catch (error) {
-      console.error('Error toggling favorite:', error);
+      // Error toggling favorite
+    }
+  };
+
+  const handleMessageOrganizer = async () => {
+    if (!event || !user || !event.organizer_id) return;
+
+    // Don't allow messaging yourself
+    if (event.organizer_id === user.id) {
+      setError('You cannot message yourself');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Create or get conversation with the organizer
+      const { data: conversationId, error: convError } = await supabase
+        .rpc('create_or_get_direct_conversation', {
+          p_user_a: user.id,
+          p_user_b: event.organizer_id
+        });
+
+      if (convError) throw convError;
+
+      // Close this modal and navigate to messages
+      onClose();
+      navigate(`/messages?conversation=${conversationId}`);
+    } catch (err: any) {
+      setError(err.message || 'Failed to open conversation');
+    } finally {
+      setLoading(false);
     }
   };
 
   const formatEventTime = (date: string, startTime: string, endTime: string) => {
+    if (!date) return 'Date TBA';  // Handle null/undefined date
     const eventDate = new Date(date);
     const today = new Date();
     const tomorrow = new Date(today);
@@ -205,6 +315,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
     }
 
     const formatTime = (time: string) => {
+      if (!time) return 'TBA';  // Handle null/undefined time
       const [hours, minutes] = time.split(':');
       const hour = parseInt(hours);
       const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -239,7 +350,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
 
   if (!isOpen || !event) return null;
 
-  return (
+  return ReactDOM.createPortal(
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         {/* Backdrop */}
@@ -259,6 +370,17 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
             
+            {/* Manage Event Button (for organizers) */}
+            {user?.id === event.organizer_id && (
+              <button
+                onClick={() => setShowManagementModal(true)}
+                className="absolute top-4 right-16 p-2 bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 rounded-lg transition-colors"
+                title="Manage Event"
+              >
+                <Settings className="h-5 w-5" />
+              </button>
+            )}
+
             {/* Close Button */}
             <button
               onClick={onClose}
@@ -383,6 +505,70 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                   </div>
                 )}
 
+                {/* Event Practitioners */}
+                {practitioners.length > 0 && (
+                  <div className="border-t pt-6">
+                    <h3 className="text-lg font-semibold text-forest-800 mb-3 flex items-center space-x-2">
+                      <Users className="h-5 w-5" />
+                      <span>Event Team ({practitioners.length})</span>
+                    </h3>
+                    <div className="space-y-3">
+                      {practitioners.map((practitioner) => (
+                        <div key={practitioner.practitioner_id} className="flex items-center justify-between p-4 bg-gradient-to-r from-forest-50 to-earth-50 rounded-lg border border-forest-200">
+                          <div className="flex items-center space-x-3">
+                            <Avatar
+                              name={practitioner.full_name}
+                              imageUrl={practitioner.avatar_url}
+                              size="md"
+                            />
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <p className="font-medium text-forest-900">
+                                  {practitioner.full_name}
+                                </p>
+                              </div>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                                  practitioner.role === 'activity_lead'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : practitioner.role === 'coordinator'
+                                    ? 'bg-purple-100 text-purple-800'
+                                    : practitioner.role === 'preparer' || practitioner.role === 'materials_manager'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : practitioner.role === 'greeter' || practitioner.role === 'food_service'
+                                    ? 'bg-green-100 text-green-800'
+                                    : practitioner.role === 'tech_support'
+                                    ? 'bg-indigo-100 text-indigo-800'
+                                    : practitioner.role === 'cleaner' || practitioner.role === 'post_event_cleanup'
+                                    ? 'bg-teal-100 text-teal-800'
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {getRoleIcon(practitioner.role)} {getPractitionerRoleLabel(practitioner.role)}
+                                </span>
+                                {practitioner.is_confirmed && (
+                                  <span className="text-xs text-green-600 flex items-center">
+                                    <CheckCircle className="h-3 w-3 mr-1" /> Confirmed
+                                  </span>
+                                )}
+                              </div>
+                              {practitioner.responsibilities && (
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {practitioner.responsibilities}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs text-blue-800">
+                        Each practitioner has a specific role to ensure the event runs smoothly. Large events can have 10+ team members with different responsibilities.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Participants List */}
                 {participants.length > 0 && (
                   <div>
@@ -475,10 +661,45 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                           <span>Share</span>
                         </button>
                       </div>
-                      
-                      <button className="w-full btn-outline btn-sm focus-ring !bg-earth-100 !text-earth-700 hover:!bg-earth-200 flex items-center justify-center space-x-2">
+
+                      {/* Space Owner Sign-off Button */}
+                      {isSpaceOwner && !event.space_owner_signoff && (
+                        <button
+                          onClick={() => setShowSignoffModal(true)}
+                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3 px-6 rounded-lg font-medium transition-all transform hover:scale-105 flex items-center justify-center space-x-2"
+                        >
+                          <CheckCircle className="h-5 w-5" />
+                          <span>Sign Off Event Completion</span>
+                        </button>
+                      )}
+
+                      {/* Event Completed Badge */}
+                      {event.space_owner_signoff && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <div className="flex items-start space-x-3">
+                            <CheckCircle className="h-6 w-6 text-green-600 mt-0.5" />
+                            <div>
+                              <p className="font-semibold text-green-900">Event Completed</p>
+                              <p className="text-sm text-green-700 mt-1">
+                                Space owner has signed off on this event
+                              </p>
+                              {event.space_owner_notes && (
+                                <p className="text-sm text-green-600 mt-2 italic">
+                                  "{event.space_owner_notes}"
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={handleMessageOrganizer}
+                        disabled={loading || event.organizer_id === user?.id}
+                        className="w-full btn-outline btn-sm focus-ring !bg-earth-100 !text-earth-700 hover:!bg-earth-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
                         <MessageCircle className="icon-sm" />
-                        <span>Message Organizer</span>
+                        <span>{event.organizer_id === user?.id ? 'You are the organizer' : 'Message Organizer'}</span>
                       </button>
                     </>
                   ) : (
@@ -541,7 +762,22 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Event Management Modal */}
+      {showManagementModal && (
+        <EventManagementModal
+          event={event}
+          isOpen={showManagementModal}
+          onClose={() => setShowManagementModal(false)}
+          onUpdate={() => {
+            // Reload event data after updates
+            loadParticipants();
+            loadPractitioners();
+          }}
+        />
+      )}
+    </div>,
+    document.body
   );
 };
 

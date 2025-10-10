@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Direct OTP Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h2>Direct OTP Verification Test</h2>
+
+  <div style="margin: 20px 0;">
+    <label>Email: <input type="email" id="email" value="cryptokoh@gmail.com" style="width: 300px;"></label><br><br>
+    <label>OTP Code: <input type="text" id="otp" placeholder="Enter 6-digit code" maxlength="6" style="width: 150px;"></label><br><br>
+    <button onclick="testVerify()">Test Verify OTP</button>
+  </div>
+
+  <div id="status" style="margin: 20px 0; padding: 10px; background: #f0f0f0;"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://vcbhqzwrmahdmfeamgtl.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjYmhxendybWFoZG1mZWFtZ3RsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIzNjMsImV4cCI6MjA3NDQ4ODM2M30.eeQo663Wa52xJ7mHmIQdhdxBNQBAzkRio0_pX4zx6yc';
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function testVerify() {
+      const email = document.getElementById('email').value;
+      const token = document.getElementById('otp').value;
+      const status = document.getElementById('status');
+
+      status.innerHTML = '<strong>Testing OTP verification...</strong><br>';
+
+      try {
+        console.log('Starting verification with:', { email, token });
+        status.innerHTML += `Email: ${email}<br>Token: ${token}<br><br>`;
+
+        // Set a timeout
+        const timeoutId = setTimeout(() => {
+          status.innerHTML += '<span style="color: red;">❌ Timeout after 10 seconds - verification hanging!</span><br>';
+        }, 10000);
+
+        const { data, error } = await supabaseClient.auth.verifyOtp({
+          email: email,
+          token: token,
+          type: 'email'
+        });
+
+        clearTimeout(timeoutId);
+
+        if (error) {
+          status.innerHTML += `<span style="color: red;">❌ Error: ${error.message}</span><br>`;
+          console.error('Error:', error);
+        } else {
+          status.innerHTML += `<span style="color: green;">✅ Success!</span><br>`;
+          status.innerHTML += `User: ${JSON.stringify(data.user, null, 2)}<br>`;
+          console.log('Success:', data);
+        }
+      } catch (err) {
+        status.innerHTML += `<span style="color: red;">❌ Exception: ${err.message}</span><br>`;
+        console.error('Exception:', err);
+      }
+    }
+
+    // Also test if we can request a new OTP
+    async function requestOTP() {
+      const email = document.getElementById('email').value;
+      const status = document.getElementById('status');
+
+      status.innerHTML = '<strong>Requesting new OTP...</strong><br>';
+
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithOtp({
+          email: email
+        });
+
+        if (error) {
+          status.innerHTML += `<span style="color: red;">❌ Error: ${error.message}</span><br>`;
+        } else {
+          status.innerHTML += `<span style="color: green;">✅ OTP sent to ${email}!</span><br>`;
+        }
+      } catch (err) {
+        status.innerHTML += `<span style="color: red;">❌ Exception: ${err.message}</span><br>`;
+      }
+    }
+  </script>
+
+  <button onclick="requestOTP()">Request New OTP</button>
+
+  <h3>Instructions:</h3>
+  <ol>
+    <li>Open this file in your browser</li>
+    <li>Click "Request New OTP" to get a fresh code</li>
+    <li>Enter the code you receive</li>
+    <li>Click "Test Verify OTP"</li>
+    <li>Check the browser console (F12) for detailed logs</li>
+  </ol>
+</body>
+</html>

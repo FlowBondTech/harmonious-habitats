@@ -41,6 +41,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../components/AuthProvider';
 import { updateProfile } from '../lib/supabase';
 import { FacilitatorAvailability } from '../components/FacilitatorAvailability';
+import { FacilitatorSettingsPage } from '../components/FacilitatorSettingsPage';
 import { LocationSettings } from '../components/LocationSettings';
 import { ConnectorsSection } from '../components/ConnectorsSection';
 
@@ -349,7 +350,9 @@ const Settings = () => {
         setError(error.message || 'Failed to update profile');
       } else {
         setSuccess('Profile updated successfully!');
-        await loadUserProfile();
+        if (user?.id) {
+          await loadUserProfile(user.id);
+        }
         setIsEditing(false);
         
         // Clear success message after 3 seconds
@@ -435,93 +438,136 @@ const Settings = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-forest-700 mb-2">Full Name</label>
-                  <input
-                    type="text"
-                    value={formData.full_name}
-                    onChange={(e) => handleInputChange('full_name', e.target.value)}
-                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    readOnly={!isEditing}
-                  />
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={formData.full_name}
+                      onChange={(e) => handleInputChange('full_name', e.target.value)}
+                      className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <div className="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg min-h-[42px] flex items-center">
+                      {formData.full_name || <span className="text-gray-400 italic">Not set</span>}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-forest-700 mb-2">Email</label>
-                  <input
-                    type="email"
-                    value={user?.email || ''}
-                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    readOnly
-                  />
+                  <div className="w-full px-3 py-2 bg-gray-100 text-gray-600 rounded-lg min-h-[42px] flex items-center">
+                    {user?.email || ''}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-forest-700 mb-2">Username</label>
-                  <input
-                    type="text"
-                    value={formData.username}
-                    onChange={(e) => handleInputChange('username', e.target.value)}
-                    placeholder="Choose a unique username"
-                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    readOnly={!isEditing}
-                  />
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={formData.username}
+                      onChange={(e) => handleInputChange('username', e.target.value)}
+                      placeholder="Choose a unique username"
+                      className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <div className="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg min-h-[42px] flex items-center">
+                      {formData.username || <span className="text-gray-400 italic">Not set</span>}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-forest-700 mb-2">Neighborhood</label>
-                  <input
-                    type="text"
-                    value={formData.neighborhood}
-                    onChange={(e) => handleInputChange('neighborhood', e.target.value)}
-                    placeholder="e.g., Downtown, Riverside, etc."
-                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                    readOnly={!isEditing}
-                  />
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={formData.neighborhood}
+                      onChange={(e) => handleInputChange('neighborhood', e.target.value)}
+                      placeholder="e.g., Downtown, Riverside, etc."
+                      className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <div className="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg min-h-[42px] flex items-center">
+                      {formData.neighborhood || <span className="text-gray-400 italic">Not set</span>}
+                    </div>
+                  )}
                 </div>
               </div>
-              
+
               <div className="mt-6">
                 <label className="block text-sm font-medium text-forest-700 mb-2">Bio</label>
-                <textarea
-                  rows={3}
-                  value={formData.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  placeholder="Tell your neighbors about yourself and your interests..."
-                  className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                  readOnly={!isEditing}
-                />
+                {isEditing ? (
+                  <textarea
+                    rows={3}
+                    value={formData.bio}
+                    onChange={(e) => handleInputChange('bio', e.target.value)}
+                    placeholder="Tell your neighbors about yourself and your interests..."
+                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                  />
+                ) : (
+                  <div className="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg min-h-[80px]">
+                    {formData.bio || <span className="text-gray-400 italic">Tell your neighbors about yourself...</span>}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Holistic Interests */}
             <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
               <h3 className="text-xl font-semibold text-forest-800 mb-6">Holistic Interests</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {[
-                  { id: 'gardening', name: 'Gardening', icon: Sprout },
-                  { id: 'yoga', name: 'Yoga & Meditation', icon: Lotus },
-                  { id: 'cooking', name: 'Cooking', icon: ChefHat },
-                  { id: 'art', name: 'Art & Creativity', icon: Palette },
-                  { id: 'healing', name: 'Healing & Wellness', icon: Stethoscope },
-                  { id: 'music', name: 'Music & Movement', icon: Music },
-                ].map(interest => {
-                  const Icon = interest.icon;
-                  const isSelected = formData.holistic_interests.includes(interest.id);
-                  return (
-                    <button
-                      key={interest.id}
-                      onClick={() => isEditing && toggleInterest(interest.id)}
-                      disabled={!isEditing}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        isSelected
-                          ? 'border-forest-500 bg-forest-50'
-                          : 'border-gray-200 hover:border-forest-300'
-                      } ${!isEditing ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}
-                    >
-                      <Icon className={`h-8 w-8 mx-auto mb-2 ${isSelected ? 'text-forest-600' : 'text-gray-400'}`} />
-                      <p className={`text-sm font-medium ${isSelected ? 'text-forest-700' : 'text-gray-600'}`}>
-                        {interest.name}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
+              {isEditing ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {[
+                    { id: 'gardening', name: 'Gardening', icon: Sprout },
+                    { id: 'yoga', name: 'Yoga & Meditation', icon: Lotus },
+                    { id: 'cooking', name: 'Cooking', icon: ChefHat },
+                    { id: 'art', name: 'Art & Creativity', icon: Palette },
+                    { id: 'healing', name: 'Healing & Wellness', icon: Stethoscope },
+                    { id: 'music', name: 'Music & Movement', icon: Music },
+                  ].map(interest => {
+                    const Icon = interest.icon;
+                    const isSelected = formData.holistic_interests.includes(interest.id);
+                    return (
+                      <button
+                        key={interest.id}
+                        onClick={() => toggleInterest(interest.id)}
+                        className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-forest-500 bg-forest-50'
+                            : 'border-gray-200 hover:border-forest-300'
+                        }`}
+                      >
+                        <Icon className={`h-8 w-8 mx-auto mb-2 ${isSelected ? 'text-forest-600' : 'text-gray-400'}`} />
+                        <p className={`text-sm font-medium ${isSelected ? 'text-forest-700' : 'text-gray-600'}`}>
+                          {interest.name}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {formData.holistic_interests.length > 0 ? (
+                    [
+                      { id: 'gardening', name: 'Gardening', icon: Sprout },
+                      { id: 'yoga', name: 'Yoga & Meditation', icon: Lotus },
+                      { id: 'cooking', name: 'Cooking', icon: ChefHat },
+                      { id: 'art', name: 'Art & Creativity', icon: Palette },
+                      { id: 'healing', name: 'Healing & Wellness', icon: Stethoscope },
+                      { id: 'music', name: 'Music & Movement', icon: Music },
+                    ]
+                      .filter(interest => formData.holistic_interests.includes(interest.id))
+                      .map(interest => {
+                        const Icon = interest.icon;
+                        return (
+                          <div key={interest.id} className="inline-flex items-center px-3 py-2 bg-forest-50 text-forest-700 rounded-lg">
+                            <Icon className="h-4 w-4 mr-2" />
+                            <span className="text-sm font-medium">{interest.name}</span>
+                          </div>
+                        );
+                      })
+                  ) : (
+                    <span className="text-gray-400 italic">No interests selected</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Discovery Radius */}
@@ -532,18 +578,24 @@ const Settings = () => {
                   <Globe className="h-4 w-4 inline mr-2" />
                   Discovery Radius
                 </label>
-                <select
-                  value={formData.discovery_radius}
-                  onChange={(e) => handleInputChange('discovery_radius', Number(e.target.value))}
-                  disabled={!isEditing}
-                  className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                >
-                  <option value={0.5}>0.5 miles (walking distance)</option>
-                  <option value={1}>1 mile</option>
-                  <option value={2}>2 miles</option>
-                  <option value={5}>5 miles</option>
-                  <option value={10}>10 miles</option>
-                </select>
+                {isEditing ? (
+                  <select
+                    value={formData.discovery_radius}
+                    onChange={(e) => handleInputChange('discovery_radius', Number(e.target.value))}
+                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                  >
+                    <option value={0.5}>0.5 miles (walking distance)</option>
+                    <option value={1}>1 mile</option>
+                    <option value={2}>2 miles</option>
+                    <option value={5}>5 miles</option>
+                    <option value={10}>10 miles</option>
+                  </select>
+                ) : (
+                  <div className="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg">
+                    {formData.discovery_radius} mile{formData.discovery_radius !== 1 ? 's' : ''}
+                    {formData.discovery_radius === 0.5 && ' (walking distance)'}
+                  </div>
+                )}
                 <p className="mt-2 text-sm text-forest-600">
                   This controls how far away events and neighbors will appear in your local feed.
                 </p>
@@ -582,15 +634,7 @@ const Settings = () => {
           </div>
         );
       case 'facilitator-settings':
-        return (
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-2xl font-bold text-forest-800 mb-6">Facilitator Settings</h2>
-            <p className="text-gray-600 mb-6">
-              Manage your availability, specialties, and preferences for hosting events and workshops.
-            </p>
-            <FacilitatorAvailability />
-          </div>
-        );
+        return <FacilitatorSettingsPage />;
       case 'mobile-notifications':
         return <MobileNotificationsSection />;
       case 'payment-methods':

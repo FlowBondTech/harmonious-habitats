@@ -139,35 +139,51 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (loading || !formData.otp) {
+    const cleanOtp = formData.otp.trim();
+
+    if (loading || !cleanOtp) {
       setError('Please enter the verification code');
       return;
     }
 
+    if (cleanOtp.length !== 6) {
+      setError('Please enter a 6-digit code');
+      return;
+    }
+
+    console.log('Starting verification with:', { email: formData.email, otp: cleanOtp });
     setLoading(true);
     setError(null);
 
     try {
-      const { error } = await verifyOTP(formData.email, formData.otp);
+      console.log('Calling verifyOTP...');
+      const result = await verifyOTP(formData.email, cleanOtp);
+      console.log('verifyOTP result:', result);
 
-      if (error) {
-        setError(error.message || 'Invalid code. Please try again.');
+      if (result.error) {
+        console.error('Verification error:', result.error);
+        setError(result.error.message || 'Invalid code. Please try again.');
+        setLoading(false);
       } else {
+        console.log('Verification successful!');
         setSuccess('Verified successfully!');
+        setLoading(false);
+
         setTimeout(() => {
           onClose();
           // Check if user needs onboarding, otherwise redirect to activities
           if (needsOnboarding) {
+            console.log('Starting onboarding...');
             startOnboarding();
           } else {
+            console.log('Navigating to activities...');
             navigate('/activities');
           }
         }, 1000);
       }
     } catch (error) {
       console.error('Verify code error:', error);
-      setError('An unexpected error occurred');
-    } finally {
+      setError('An unexpected error occurred. Please try again.');
       setLoading(false);
     }
   };
@@ -239,13 +255,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
               <div className="bg-white/20 p-2 rounded-xl">
                 <Sprout className="icon-md" />
               </div>
-              <h2 id="auth-title" className="text-2xl font-bold">Harmony Spaces</h2>
+              <h2 id="auth-title" className="text-2xl font-bold">Welcome to Harmony</h2>
             </div>
 
             <p className="text-forest-100">
               {step === 'email'
-                ? 'Welcome to your community'
-                : 'Enter the code sent to your email'
+                ? 'Join our mindful community space'
+                : 'Almost there! Check your email'
               }
             </p>
           </div>
@@ -266,9 +282,26 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
 
             {step === 'email' ? (
               <form onSubmit={handleSendCode} className="space-y-4">
+                {/* Informative Welcome Section */}
+                <div className="bg-gradient-to-br from-forest-50 to-earth-50 rounded-xl p-4 mb-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-forest-100 rounded-full p-2 mt-0.5">
+                      <Sprout className="h-4 w-4 text-forest-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-forest-800 mb-1">
+                        One Simple Step to Harmonize
+                      </h3>
+                      <p className="text-xs text-forest-600 leading-relaxed">
+                        No passwords needed! Whether you're new or returning, just enter your email and we'll send you a magic link to get started.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-forest-700 mb-2">
-                    Email Address *
+                    Email Address
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
@@ -279,10 +312,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                       className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent text-base"
                       placeholder="your@email.com"
                       required
+                      autoFocus
                     />
                   </div>
-                  <p className="mt-2 text-sm text-forest-600">
-                    We'll send you a code to sign in
+                  <p className="mt-2 text-xs text-forest-500">
+                    {mode === 'signin'
+                      ? "Welcome back! We'll send you a secure code to access your account."
+                      : "New here? We'll create your account and send you a secure code to get started."
+                    }
                   </p>
                 </div>
 
@@ -294,18 +331,43 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                   {loading ? (
                     <div className="flex items-center justify-center space-x-2">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Sending code...</span>
+                      <span>Sending magic link...</span>
                     </div>
                   ) : (
-                    'Send Verification Code'
+                    'Continue with Email'
                   )}
                 </button>
+
+                {/* Additional Info */}
+                <div className="text-center pt-2">
+                  <p className="text-xs text-forest-500">
+                    No password required • Secure authentication • Quick access
+                  </p>
+                </div>
               </form>
             ) : (
               <form onSubmit={handleVerifyCode} className="space-y-4">
+                {/* Email Sent Notification */}
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-green-100 rounded-full p-2 mt-0.5">
+                      <Mail className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-green-800 mb-1">
+                        Check Your Email!
+                      </h3>
+                      <p className="text-xs text-green-600 leading-relaxed">
+                        We've sent a 6-digit code to <strong className="font-semibold">{formData.email}</strong>.
+                        Enter it below to complete your harmonization.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-forest-700 mb-2">
-                    Verification Code
+                    Enter Your Code
                   </label>
                   <div className="relative">
                     <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-sm text-forest-400" />
@@ -323,8 +385,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                       autoFocus
                     />
                   </div>
-                  <p className="mt-2 text-sm text-forest-600">
-                    Enter the 6-digit code sent to <strong>{formData.email}</strong>
+                  <p className="mt-2 text-xs text-forest-500">
+                    The code expires in 10 minutes for security
                   </p>
                 </div>
 
@@ -339,7 +401,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                       <span>Verifying...</span>
                     </div>
                   ) : (
-                    'Verify & Continue'
+                    'Complete Harmonization'
                   )}
                 </button>
 
@@ -347,9 +409,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                   type="button"
                   onClick={handleSendCode}
                   disabled={loading}
-                  className="w-full text-sm text-forest-600 hover:text-forest-700 focus:underline py-2"
+                  className="w-full text-sm text-forest-600 hover:text-forest-700 focus:underline py-2 transition-colors"
                 >
-                  Didn't receive the code? Resend
+                  Didn't receive the code? <span className="font-semibold">Resend</span>
                 </button>
               </form>
             )}

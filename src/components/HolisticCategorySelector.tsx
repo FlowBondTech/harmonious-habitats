@@ -93,9 +93,11 @@ const HolisticCategorySelector: React.FC<HolisticCategorySelectorProps> = ({
     }
   ];
 
-  const centerX = 200;
-  const centerY = 200;
-  const radius = 120;
+  // Responsive sizing - smaller on mobile to fit viewport
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const centerX = isMobile ? 150 : 200;
+  const centerY = isMobile ? 150 : 200;
+  const radius = isMobile ? 90 : 120;
 
   const getPositionForIndex = (index: number, total: number) => {
     const angle = (index * 2 * Math.PI) / total - Math.PI / 2;
@@ -105,15 +107,15 @@ const HolisticCategorySelector: React.FC<HolisticCategorySelectorProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="text-center hidden sm:block">
         <h3 className="text-lg font-semibold text-forest-800 mb-2">Choose Your Holistic Path</h3>
         <p className="text-sm text-forest-600">Select the practice that calls to your soul</p>
       </div>
 
       {/* Mandala Selector */}
-      <div className="relative flex justify-center">
-        <div className="relative w-96 h-96">
+      <div className="relative flex justify-center overflow-hidden">
+        <div className="relative w-[300px] h-[300px] sm:w-96 sm:h-96">
           {/* Central Sacred Geometry */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-16 h-16 relative">
@@ -135,7 +137,7 @@ const HolisticCategorySelector: React.FC<HolisticCategorySelectorProps> = ({
             return (
               <div
                 key={category.id}
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-out"
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-out cursor-pointer"
                 style={{
                   left: x,
                   top: y,
@@ -147,7 +149,7 @@ const HolisticCategorySelector: React.FC<HolisticCategorySelectorProps> = ({
                   onClick={() => onCategorySelect(category.id)}
                   onMouseEnter={() => setHoveredCategory(category.id)}
                   onMouseLeave={() => setHoveredCategory(null)}
-                  className={`relative w-20 h-20 rounded-full border-3 transition-all duration-300 shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-forest-300 ${
+                  className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-full border-3 transition-all duration-300 shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-forest-300 cursor-pointer ${
                     isSelected
                       ? 'border-white shadow-2xl'
                       : 'border-white/50 hover:border-white'
@@ -156,26 +158,26 @@ const HolisticCategorySelector: React.FC<HolisticCategorySelectorProps> = ({
                   {/* Background Gradient */}
                   <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${category.gradient} ${
                     isSelected ? 'opacity-100' : 'opacity-80 hover:opacity-90'
-                  } transition-opacity duration-300`}></div>
-                  
+                  } transition-opacity duration-300 pointer-events-none`}></div>
+
                   {/* Icon */}
-                  <div className="relative z-10 flex items-center justify-center h-full">
-                    <Icon className="h-8 w-8 text-white drop-shadow-sm" />
+                  <div className="relative z-10 flex items-center justify-center h-full pointer-events-none">
+                    <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-white drop-shadow-sm" />
                   </div>
 
                   {/* Pulse Animation for Selected */}
                   {isSelected && (
-                    <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${category.gradient} animate-ping opacity-75`}></div>
+                    <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${category.gradient} animate-ping opacity-75 pointer-events-none`}></div>
                   )}
 
                   {/* Ripple Effect */}
                   {isHovered && (
-                    <div className="absolute inset-0 rounded-full border-2 border-white/30 animate-pulse"></div>
+                    <div className="absolute inset-0 rounded-full border-2 border-white/30 animate-pulse pointer-events-none"></div>
                   )}
                 </button>
 
-                {/* Category Name */}
-                <div className={`absolute top-24 left-1/2 transform -translate-x-1/2 transition-all duration-300 ${
+                {/* Category Name - Hidden on mobile, shown on desktop */}
+                <div className={`hidden sm:block absolute top-24 left-1/2 transform -translate-x-1/2 transition-all duration-300 pointer-events-none ${
                   isSelected || isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
                 }`}>
                   <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1 shadow-lg border border-white/20">
@@ -210,41 +212,6 @@ const HolisticCategorySelector: React.FC<HolisticCategorySelectorProps> = ({
         </div>
       </div>
 
-      {/* Selected Category Details */}
-      {selectedCategory && (
-        <div className="mt-8 p-6 bg-gradient-to-br from-white to-forest-50 rounded-xl border border-forest-200 shadow-sm">
-          {(() => {
-            const category = categories.find(c => c.id === selectedCategory);
-            if (!category) return null;
-            const Icon = category.icon;
-
-            return (
-              <div className="text-center space-y-4">
-                <div className="flex items-center justify-center space-x-3">
-                  <div className={`p-3 rounded-full bg-gradient-to-br ${category.gradient}`}>
-                    <Icon className="h-6 w-6 text-white" />
-                  </div>
-                  <h4 className="text-xl font-semibold text-forest-800">{category.name}</h4>
-                </div>
-                
-                <p className="text-forest-600 italic">"{category.mantra}"</p>
-                <p className="text-forest-700">{category.description}</p>
-                
-                <div className="flex items-center justify-center space-x-6 text-sm text-forest-600">
-                  <div className="flex items-center space-x-1">
-                    <span className="font-medium">Element:</span>
-                    <span>{category.element}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <span className="font-medium">Chakra:</span>
-                    <span>{category.chakra}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-      )}
     </div>
   );
 };

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  Map, 
-  Globe, 
-  CalendarPlus, 
-  Calendar, 
-  MessageCircle, 
-  User, 
+import {
+  Home,
+  Map,
+  Globe,
+  CalendarPlus,
+  Calendar,
+  MessageCircle,
+  User,
   LogOut,
   Shield,
   Star,
@@ -19,7 +19,8 @@ import {
   Menu,
   MapPin,
   LogIn,
-  Zap
+  Zap,
+  FileText
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import Avatar from './Avatar';
@@ -108,6 +109,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
     { path: '/global-feed', icon: Globe, label: 'Global Feed' },
     { path: '/calendar', icon: Calendar, label: 'Calendar' },
     { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
+    { path: '/event-templates', icon: FileText, label: 'My Templates' },
     { path: '/activities', icon: Calendar, label: 'My Activities' },
     { path: '/messages', icon: MessageCircle, label: 'Messages', badge: 3 },
     { path: '/profile', icon: User, label: 'Profile' },

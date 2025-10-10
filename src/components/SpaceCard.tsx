@@ -71,7 +71,6 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
           url: window.location.origin + `/spaces/${spaceSlug}`
         });
       } catch (error) {
-        console.log('Error sharing:', error);
       }
     }
   };

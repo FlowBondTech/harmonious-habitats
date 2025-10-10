@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { logError } from './logger'
+import { logError, logWarning } from './logger'
 import { DEMO_MODE, DEMO_EVENTS, DEMO_SPACES, DEMO_NEIGHBORHOODS, DEMO_PEOPLE, DEMO_MESSAGES, DEMO_NOTIFICATIONS } from './demo-mode'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -27,6 +27,9 @@ try {
     
     Current value: ${supabaseUrl}`)
 }
+
+// Log configuration (remove after debugging)
+console.log('Supabase configured with URL:', supabaseUrl.replace(/https:\/\/([^.]+).*/, 'https://$1.supabase.co'));
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -511,16 +514,76 @@ export interface EventMaterial {
   notes?: string
 }
 
+// Facilitator role types for events
+export type FacilitatorRole =
+  | 'activity_lead'      // Main facilitator running the activity
+  | 'co_facilitator'     // Co-facilitator assisting with the activity
+  | 'preparer'           // Sets up materials, space preparation
+  | 'setup'              // Sets up the venue/space before event
+  | 'cleaner'            // Cleans during/after event
+  | 'breakdown'          // Breaks down and packs up after event
+  | 'post_event_cleanup' // Post-event cleanup crew
+  | 'helper'             // General helper/assistant
+
+export type FacilitatorStatus = 'invited' | 'confirmed' | 'declined' | 'removed'
+
 export interface EventFacilitator {
   id: string
+  created_at: string
+  updated_at: string
+
+  // Relationships
   event_id: string
   user_id: string
-  role?: string
-  bio?: string
-  
+
+  // Role and status
+  role: FacilitatorRole
+  status: FacilitatorStatus
+
+  // Additional details
+  notes?: string
+  invited_by?: string
+  invited_at: string
+  confirmed_at?: string
+  declined_at?: string
+
   // Relations
   event?: Event
   user?: Profile
+  user_full_name?: string
+  user_avatar_url?: string
+  user_bio?: string
+}
+
+export type PractitionerRole =
+  | 'activity_lead'      // Main facilitator running the activity
+  | 'preparer'           // Sets up materials, space preparation
+  | 'cleaner'            // Cleans during/after event
+  | 'post_event_cleanup' // Post-event cleanup crew
+  | 'greeter'            // Welcomes participants
+  | 'food_service'       // Handles food/beverages
+  | 'materials_manager'  // Manages supplies and materials
+  | 'tech_support'       // Handles technical aspects (A/V, virtual, etc.)
+  | 'assistant'          // General assistant
+  | 'coordinator';       // Coordinates between different roles
+
+export interface EventPractitioner {
+  id: string
+  event_id: string
+  practitioner_id: string
+  role: PractitionerRole
+  responsibilities?: string
+  is_confirmed: boolean
+  confirmed_at?: string
+  preparation_tasks?: string[]
+  cleanup_tasks?: string[]
+  notes?: string
+  created_at: string
+  updated_at: string
+
+  // Relations
+  event?: Event
+  practitioner?: Profile
 }
 
 export interface Notification {
@@ -532,12 +595,16 @@ export interface Notification {
   user_id: string
   
   // Notification details
-  type: 'event_reminder_24h' | 'event_reminder_1h' | 'event_starting_soon' | 
-        'event_cancelled' | 'event_updated' | 'feedback_request' | 
+  type: 'event_reminder_24h' | 'event_reminder_1h' | 'event_starting_soon' |
+        'event_cancelled' | 'event_updated' | 'feedback_request' |
         'registration_confirmed' | 'waitlist_promoted' | 'space_booking_request' |
-        'space_booking_approved' | 'space_booking_rejected'
+        'space_booking_approved' | 'space_booking_rejected' | 'new_message' |
+        'facilitator_invitation' | 'facilitator_response'
   title: string
   message: string
+
+  // Additional context for specific notification types
+  conversation_id?: string  // For message notifications
   
   // Related entities
   event_id?: string
@@ -940,6 +1007,38 @@ export interface PlatformSetting {
   updated_by?: string
 }
 
+export type ConversationType = 'direct' | 'event' | 'space' | 'group';
+export type ConversationRole = 'admin' | 'member';
+
+export interface Conversation {
+  id: string
+  created_at: string
+  updated_at: string
+  name?: string
+  type: ConversationType
+  event_id?: string
+  space_id?: string
+  metadata?: any
+  // Extended properties from RPC
+  last_message?: string
+  last_message_at?: string
+  unread_count?: number
+  participants?: ConversationParticipant[]
+}
+
+export interface ConversationParticipant {
+  id: string
+  created_at: string
+  conversation_id: string
+  user_id: string
+  role: ConversationRole
+  joined_at: string
+  left_at?: string
+  last_read_at?: string
+  // Extended properties from joins
+  user?: Profile
+}
+
 export interface Message {
   id: string
   created_at: string
@@ -948,6 +1047,8 @@ export interface Message {
   recipient_id: string
   content: string
   read_at?: string
+  conversation_id?: string
+  delivered_at?: string
   context_type?: 'space' | 'event' | 'general'
   context_id?: string
   // Extended properties from joins
@@ -2869,4 +2970,100 @@ export const updateFacilitatorSpecialties = async (
   }
 
   return { data: [], error: null }
+}
+
+// Admin User Rating interfaces
+export interface AdminUserRating {
+  id: string
+  user_id: string
+  admin_id: string
+  rating: number
+  feedback_category?: string
+  feedback_text?: string
+  is_public: boolean
+  created_at: string
+  updated_at: string
+  
+  // Relations
+  user?: Profile
+  admin?: Profile
+}
+
+// Admin rating functions
+export const createAdminRating = async (rating: {
+  user_id: string
+  admin_id: string
+  rating: number
+  feedback_category?: string
+  feedback_text?: string
+  is_public?: boolean
+}) => {
+  const { data, error } = await supabase
+    .from('admin_user_ratings')
+    .insert(rating)
+    .select(`
+      *,
+      user:profiles!admin_user_ratings_user_id_fkey(id, full_name, avatar_url, email),
+      admin:profiles!admin_user_ratings_admin_id_fkey(id, full_name, avatar_url)
+    `)
+    .single()
+
+  return { data, error }
+}
+
+export const getAdminRatingsForUser = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('admin_user_ratings')
+    .select(`
+      *,
+      admin:profiles!admin_user_ratings_admin_id_fkey(id, full_name, avatar_url)
+    `)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+
+  return { data, error }
+}
+
+export const updateAdminRating = async (
+  ratingId: string,
+  updates: {
+    rating?: number
+    feedback_category?: string
+    feedback_text?: string
+    is_public?: boolean
+  }
+) => {
+  const { data, error } = await supabase
+    .from('admin_user_ratings')
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', ratingId)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const deleteAdminRating = async (ratingId: string) => {
+  const { error } = await supabase
+    .from('admin_user_ratings')
+    .delete()
+    .eq('id', ratingId)
+
+  return { error }
+}
+
+export const getMyAdminRatings = async (adminId: string) => {
+  const { data, error } = await supabase
+    .from('admin_user_ratings')
+    .select(`
+      *,
+      user:profiles!admin_user_ratings_user_id_fkey(id, full_name, avatar_url, email)
+    `)
+    .eq('admin_id', adminId)
+    .order('created_at', { ascending: false })
+
+  return { data, error }
 }

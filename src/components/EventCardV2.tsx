@@ -39,7 +39,7 @@ const EventCardV2: React.FC<EventCardV2Props> = ({
   };
 
   const getEventTypeIcon = () => {
-    switch (event.event_type) {
+    switch (event.event_type || 'local') {
       case 'virtual':
         return <Video className="h-4 w-4" />;
       case 'global_physical':
@@ -103,7 +103,7 @@ const EventCardV2: React.FC<EventCardV2Props> = ({
         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center space-x-1">
           {getEventTypeIcon()}
           <span className="text-xs font-medium capitalize">
-            {event.event_type.replace('_', ' ')}
+            {(event.event_type || 'local').replace('_', ' ')}
           </span>
         </div>
 

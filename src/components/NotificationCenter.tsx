@@ -18,6 +18,7 @@ interface Notification {
   read_at?: string;
   event_id?: string;
   space_id?: string;
+  conversation_id?: string;
   related_user_id?: string;
   metadata?: any;
   scheduled_for?: string;
@@ -30,7 +31,7 @@ const NotificationCenter: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'unread' | 'reminders' | 'feedback' | 'applications'>('all');
+  const [filter, setFilter] = useState<'all' | 'unread' | 'reminders' | 'feedback' | 'applications' | 'messages'>('all');
 
   const loadNotifications = useCallback(async () => {
     if (!user) return;
@@ -53,6 +54,8 @@ const NotificationCenter: React.FC = () => {
         query = query.eq('type', 'feedback_request');
       } else if (filter === 'applications') {
         query = query.in('type', ['space_booking_request', 'space_booking_approved', 'space_booking_rejected']);
+      } else if (filter === 'messages') {
+        query = query.eq('type', 'new_message');
       }
 
       const { data, error } = await query;
@@ -148,6 +151,7 @@ const NotificationCenter: React.FC = () => {
         return <CheckCircle className="h-4 w-4 text-green-600" />;
       case 'space_booking_rejected':
         return <XCircle className="h-4 w-4 text-red-600" />;
+      case 'new_message':
       case 'message':
         return <MessageSquare className="h-4 w-4 text-blue-500" />;
       case 'community':
@@ -177,6 +181,9 @@ const NotificationCenter: React.FC = () => {
         return 'bg-orange-100 text-orange-800';
       case 'space_booking_request':
         return 'bg-purple-100 text-purple-800';
+      case 'new_message':
+      case 'message':
+        return 'bg-blue-100 text-blue-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -208,12 +215,31 @@ const NotificationCenter: React.FC = () => {
         return 'Booking Approved';
       case 'space_booking_rejected':
         return 'Booking Declined';
+      case 'new_message':
+        return 'Message';
       default:
         return 'Notification';
     }
   };
 
   const getNotificationActions = (notification: Notification) => {
+    if (notification.type === 'new_message' && notification.conversation_id) {
+      return (
+        <div className="flex space-x-2 mt-2">
+          <button
+            onClick={() => {
+              navigate(`/messages?conversation=${notification.conversation_id}`);
+              setShowDropdown(false);
+            }}
+            className="flex items-center space-x-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-200 transition-colors"
+          >
+            <MessageSquare className="h-3 w-3" />
+            <span>View Message</span>
+          </button>
+        </div>
+      );
+    }
+
     if (notification.type === 'feedback_request' && notification.event_id) {
       return (
         <div className="flex space-x-2 mt-2">
@@ -324,12 +350,12 @@ const NotificationCenter: React.FC = () => {
 
       {showDropdown && (
         <>
-          <div 
-            className="fixed inset-0 z-[110] bg-black/20" 
+          <div
+            className="fixed inset-0 z-[110] bg-black/20"
             onClick={() => setShowDropdown(false)}
           />
-          <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-forest-100 z-[120] max-h-96 overflow-hidden">
-            <div className="p-4 border-b border-forest-100">
+          <div className="fixed right-2 sm:right-4 top-16 sm:top-20 w-[calc(100vw-1rem)] sm:w-80 max-w-md bg-white rounded-2xl shadow-xl border border-forest-100 z-[120] max-h-[calc(100vh-5rem)] sm:max-h-96 overflow-hidden flex flex-col">
+            <div className="p-3 sm:p-4 border-b border-forest-100 flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-forest-800">Notifications</h3>
                 <button
@@ -347,7 +373,8 @@ const NotificationCenter: React.FC = () => {
                   { key: 'unread', label: 'Unread' },
                   { key: 'reminders', label: 'Reminders' },
                   { key: 'feedback', label: 'Feedback' },
-                  { key: 'applications', label: 'Applications' }
+                  { key: 'applications', label: 'Applications' },
+                  { key: 'messages', label: 'Messages' }
                 ].map(({ key, label }) => (
                   <button
                     key={key}
@@ -374,7 +401,7 @@ const NotificationCenter: React.FC = () => {
               )}
             </div>
 
-            <div className="max-h-80 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto min-h-0">
               {loading ? (
                 <div className="p-8 text-center">
                   <div className="w-6 h-6 border-2 border-forest-200 border-t-forest-600 rounded-full animate-spin mx-auto mb-2"></div>
@@ -391,8 +418,8 @@ const NotificationCenter: React.FC = () => {
                   {notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`p-4 hover:bg-forest-25 transition-colors ${
-                        !notification.read_at ? 'bg-forest-50 border-l-4 border-l-forest-500' : ''
+                      className={`p-3 sm:p-4 hover:bg-forest-25 transition-colors ${
+                        !notification.read_at ? 'bg-forest-50 border-l-2 sm:border-l-4 border-l-forest-500' : ''
                       }`}
                     >
                       <div className="flex items-start space-x-3">
@@ -434,7 +461,7 @@ const NotificationCenter: React.FC = () => {
 
             {/* Admin Link for Admin Users */}
             {isAdmin && (
-              <div className="p-3 border-t border-forest-100 bg-gradient-to-r from-purple-50 to-blue-50">
+              <div className="p-3 border-t border-forest-100 bg-gradient-to-r from-purple-50 to-blue-50 flex-shrink-0">
                 <Link
                   to="/admin"
                   onClick={() => setShowDropdown(false)}
@@ -447,7 +474,7 @@ const NotificationCenter: React.FC = () => {
             )}
 
             {notifications.length > 0 && (
-              <div className="p-3 border-t border-forest-100 bg-forest-25">
+              <div className="p-3 border-t border-forest-100 bg-forest-25 flex-shrink-0">
                 <Link
                   to="/settings"
                   state={{ activeSection: 'notifications' }}

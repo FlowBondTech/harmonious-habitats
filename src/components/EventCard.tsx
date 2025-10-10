@@ -23,15 +23,14 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
   const [showManagementModal, setShowManagementModal] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (user && event?.id) {
       checkParticipationStatus();
     }
-  }, [user, event.id]);
+  }, [user, event?.id]);
 
   const checkParticipationStatus = async () => {
-    if (!user) return;
+    if (!user || !event?.id || !user?.id) return;
 
-    logger.log("Checking participation status for event", event.id);
     try {
       const { data } = await supabase
         .from('event_participants')
@@ -40,7 +39,6 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
         .eq('user_id', user.id)
         .single();
 
-      logger.log("Participation data:", data);
       if (data) {
         setHasJoined(true);
       }
@@ -169,7 +167,6 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
           url: window.location.origin
         });
       } catch (error) {
-        logger.log('Error sharing:', error);
       }
     }
   };
@@ -317,7 +314,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
               <div>
                 <span className="text-forest-500">Type: </span>
                 <span className="font-semibold text-forest-800 capitalize">
-                  {event.event_type.replace('_', ' ')}
+                  {(event.event_type || 'local').replace('_', ' ')}
                 </span>
               </div>
               <div>

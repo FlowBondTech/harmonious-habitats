@@ -145,7 +145,6 @@ const Home = () => {
           new Date(a.date).getTime() - new Date(b.date).getTime()
         ) || [];
         
-        console.log(`Found ${filteredEvents.length} upcoming events`);
         
         setTodayEvents(filteredEvents.slice(0, 3)); // Show max 3 events
         
@@ -154,14 +153,11 @@ const Home = () => {
           status: 'available',
           limit: 3
         });
-        console.log('Loaded spaces:', spacesData);
-        console.log('Spaces error:', spacesError);
         setFeaturedSpaces(spacesData || []);
         
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         setError(errorMessage);
-        console.error('Failed to load events:', err);
       } finally {
         setLoading(false);
       }
@@ -193,12 +189,9 @@ const Home = () => {
         status: 'available',
         limit: 3
       });
-      console.log('Loaded spaces in loadActivities:', spacesData);
-      console.log('Spaces error in loadActivities:', spacesError);
       setFeaturedSpaces(spacesData || []);
       
     } catch (err: unknown) {
-      console.error('Error reloading activities:', err);
     } finally {
       setLoading(false);
     }
@@ -242,7 +235,6 @@ const Home = () => {
 
   // Render mobile content if on small screen
   if (isMobile) {
-    console.log('Rendering mobile home content');
     return <HomeMobile />;
   }
 

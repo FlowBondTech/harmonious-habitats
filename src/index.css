@@ -200,6 +200,8 @@
   /* Gradient Text */
   .text-gradient {
     @apply bg-gradient-to-r from-forest-600 to-earth-500 bg-clip-text text-transparent;
+    /* Fallback for dark backgrounds */
+    @apply dark:from-forest-400 dark:to-earth-400;
   }
   
   .text-gradient-blue {
@@ -246,9 +248,45 @@
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari and Opera */
+  }
+
+  /* Custom scrollbar for time picker */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* Dark mode scrollbar for time picker */
+  .dark .custom-scrollbar {
+    scrollbar-color: #4b5563 transparent;
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
   }
   
   /* Status Badges */
@@ -586,4 +624,44 @@
 
 .isolate-layer {
   isolation: isolate;
+}
+
+/* Form Validation Radiate Animation */
+@keyframes fieldErrorRadiate {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7), 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  25% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.4), 0 0 0 16px rgba(239, 68, 68, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(239, 68, 68, 0.2), 0 0 0 24px rgba(239, 68, 68, 0.1);
+  }
+  75% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.4), 0 0 0 16px rgba(239, 68, 68, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0), 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.field-error-radiate {
+  animation: fieldErrorRadiate 2s ease-out;
+  border-color: #ef4444 !important;
+}
+
+/* Next Button Gentle Pulse */
+@keyframes nextButtonPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 10px 15px -3px rgba(77, 124, 42, 0.3), 0 4px 6px -2px rgba(77, 124, 42, 0.15);
+  }
+}
+
+.animate-next-pulse {
+  animation: nextButtonPulse 2s ease-in-out infinite;
 }

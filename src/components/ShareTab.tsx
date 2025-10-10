@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Home, Clock, ChevronRight, Plus, Calendar, MapPin, Users, Star, CheckCircle, X, AlertCircle } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
-import { HolderApplicationModal } from './HolderApplicationModal';
-import { SpaceManagementModal } from './SpaceManagementModal';
-import { TimeManagementModal } from './TimeManagementModal';
+// TODO: Create these modal components
+// import { HolderApplicationModal } from './HolderApplicationModal';
+// import { SpaceManagementModal } from './SpaceManagementModal';
+// import { TimeManagementModal } from './TimeManagementModal';
 
 interface ShareTabProps {}
 
@@ -309,8 +310,8 @@ export const ShareTab: React.FC<ShareTabProps> = () => {
         </div>
       )}
 
-      {/* Modals */}
-      {showApplicationModal && applicationType && (
+      {/* Modals - TODO: Create these modal components */}
+      {/* {showApplicationModal && applicationType && (
         <HolderApplicationModal
           isOpen={showApplicationModal}
           onClose={() => {
@@ -325,20 +326,20 @@ export const ShareTab: React.FC<ShareTabProps> = () => {
             window.location.reload();
           }}
         />
-      )}
+      )} */}
 
-      <SpaceManagementModal
+      {/* <SpaceManagementModal
         isOpen={showSpaceManagement}
         onClose={() => setShowSpaceManagement(false)}
-      />
+      /> */}
 
       {/* Time Management Modal - to be implemented */}
-      {showTimeManagement && (
+      {/* {showTimeManagement && (
         <TimeManagementModal
           isOpen={showTimeManagement}
           onClose={() => setShowTimeManagement(false)}
         />
-      )}
+      )} */}
     </div>
   );
 };

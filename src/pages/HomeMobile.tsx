@@ -54,7 +54,6 @@ const CompactEventCard: React.FC<{ event: Event }> = ({ event }) => {
 };
 
 const HomeMobile = () => {
-  console.log('HomeMobile component rendering');
   const { user, openAuthModalGlobal } = useAuthContext();
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +70,6 @@ const HomeMobile = () => {
         });
 
         if (error) {
-          console.error('Error loading events:', error);
           return;
         }
 
@@ -84,7 +82,6 @@ const HomeMobile = () => {
         
         setUpcomingEvents(filteredEvents);
       } catch (err) {
-        console.error('Failed to load events:', err);
       } finally {
         setLoading(false);
       }

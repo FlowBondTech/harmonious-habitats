@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { 
+import {
   Menu, User, Settings, LogOut, CalendarPlus, LayoutDashboard,
-  Bell, Search, ChevronDown
+  Bell, Search, ChevronDown, Sprout
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import Avatar from './Avatar';
@@ -105,44 +105,44 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick, isSidebarOpe
   const shouldHideMenuButton = !user;
 
   return (
-    <header className={`hidden lg:block fixed ${DEMO_MODE ? 'top-9' : 'top-0'} left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 transition-transform duration-300 ${
+    <header className={`hidden lg:block fixed ${DEMO_MODE ? 'top-9' : 'top-0'} left-0 right-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 transition-transform duration-300 ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
-      <div className="h-16 px-4 flex items-center justify-between">
+      <div className="h-16 px-4 grid grid-cols-3 items-center">
         {/* Left Section - Menu & Logo */}
         <div className="flex items-center space-x-3">
           {!shouldHideMenuButton && (
             <button
               onClick={onMenuClick}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
               aria-label="Toggle menu"
             >
-              <Menu className="h-6 w-6 text-gray-700" />
+              <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
             </button>
           )}
-          
+
           <Link to="/" className="flex items-center space-x-2">
-            <h1 className="text-lg font-bold text-gradient">Harmonious Habitats</h1>
+            <h1 className="text-lg font-bold text-forest-700 dark:text-forest-300">Harmonious Habitats</h1>
           </Link>
         </div>
 
         {/* Center Section - Search */}
-        <div className="flex-1 max-w-2xl mx-8">
-          <form onSubmit={handleSearch} className="relative">
+        <div className="flex justify-center">
+          <form onSubmit={handleSearch} className="relative w-full max-w-md">
             <input
               ref={searchRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search events, spaces, users..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 transition-all"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 transition-all"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           </form>
         </div>
 
         {/* Right Section - Notifications & Profile */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-end space-x-2">
           {/* Notification Bell */}
           {user && <NotificationCenter />}
 
@@ -287,20 +287,13 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick, isSidebarOpe
               )}
             </div>
           ) : (
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => openAuthModalGlobal('signin')}
-                className="h-9 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors inline-flex items-center"
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => openAuthModalGlobal('signup')}
-                className="h-9 px-3 py-2 text-sm font-medium text-white bg-forest-600 hover:bg-forest-700 rounded-lg transition-colors inline-flex items-center"
-              >
-                Join
-              </button>
-            </div>
+            <button
+              onClick={() => openAuthModalGlobal('signin')}
+              className="h-10 px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-forest-600 to-earth-600 hover:from-forest-700 hover:to-earth-700 rounded-lg transition-all transform hover:scale-105 inline-flex items-center shadow-md hover:shadow-lg"
+            >
+              <Sprout className="h-4 w-4 mr-2" />
+              Harmonize Now
+            </button>
           )}
         </div>
       </div>

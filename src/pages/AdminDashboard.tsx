@@ -43,14 +43,19 @@ import {
 } from '../lib/supabase';
 import { useAuthContext } from '../components/AuthProvider';
 import FeedbackModerationDashboard from '../components/FeedbackModerationDashboard';
+import { AnnouncementModal } from '../components/AnnouncementModal';
+import { UserRatingModal } from '../components/UserRatingModal';
 
 const AdminDashboard = () => {
   const { user, profile, loading: authLoading } = useAuthContext();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [ratingUserId, setRatingUserId] = useState<string | null>(null);
+  const [ratingUserName, setRatingUserName] = useState<string>('');
 
   // Dashboard stats state
   const [dashboardStats, setDashboardStats] = useState([
@@ -300,7 +305,10 @@ const AdminDashboard = () => {
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               <span>Refresh</span>
             </button>
-            <button className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-xl transition-colors flex items-center space-x-2">
+            <button
+              onClick={() => setShowAnnouncementModal(true)}
+              className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-xl transition-colors flex items-center space-x-2"
+            >
               <Bell className="h-4 w-4" />
               <span>Send Announcement</span>
             </button>
@@ -516,6 +524,16 @@ const AdminDashboard = () => {
                             <td className="px-6 py-4 text-forest-600">{formatDate(user.created_at)}</td>
                             <td className="px-6 py-4">
                               <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => {
+                                    setRatingUserId(user.id);
+                                    setRatingUserName(user.full_name || user.username || 'User');
+                                  }}
+                                  className="p-2 text-yellow-600 hover:bg-yellow-100 rounded-lg transition-colors"
+                                  title="Rate user"
+                                >
+                                  <Star className="h-4 w-4" />
+                                </button>
                                 <button className="p-2 text-forest-600 hover:bg-forest-100 rounded-lg transition-colors">
                                   <Eye className="h-4 w-4" />
                                 </button>
@@ -564,12 +582,12 @@ const AdminDashboard = () => {
                             <td className="px-6 py-4">
                               <div className="flex items-center space-x-2">
                                 {getTypeIcon(event.event_type)}
-                                <span className="text-forest-600 capitalize">{event.event_type.replace('_', ' ')}</span>
+                                <span className="text-forest-600 capitalize">{event.event_type?.replace('_', ' ') || 'Not set'}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4">
                               <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(event.status)}`}>
-                                {event.status.replace('_', ' ')}
+                                {event.status?.replace('_', ' ') || 'Unknown'}
                               </span>
                             </td>
                             <td className="px-6 py-4 text-forest-800">{event.category}</td>
@@ -804,6 +822,27 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Announcement Modal */}
+      <AnnouncementModal
+        isOpen={showAnnouncementModal}
+        onClose={() => setShowAnnouncementModal(false)}
+      />
+
+      {/* User Rating Modal */}
+      {ratingUserId && user && (
+        <UserRatingModal
+          userId={ratingUserId}
+          userName={ratingUserName}
+          adminId={user.id}
+          onClose={() => {
+            setRatingUserId(null);
+            setRatingUserName('');
+            // Refresh user data to show updated ratings
+            refreshData();
+          }}
+        />
+      )}
     </div>
   );
 };

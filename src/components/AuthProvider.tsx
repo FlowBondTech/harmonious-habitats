@@ -47,6 +47,3 @@ export const useAuthContext = () => {
   }
   return context
 }
-
-// Separate export for the hook to avoid React refresh issues
-export { useAuthContext as default }

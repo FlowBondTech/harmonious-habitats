@@ -327,30 +327,23 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onShareClick }
           <div className="border-t border-gray-100 p-4 md:p-6">
             <div className="space-y-3 mb-4">
               <p className="text-sm text-gray-600 text-center">
-                Join our community to create events, discover local spaces, and connect with neighbors.
+                Join our mindful community space to create events, discover local spaces, and connect with neighbors.
               </p>
             </div>
             <div className="space-y-3">
               <button
                 onClick={() => {
-                  openAuthModalGlobal('signup');
-                  onClose();
-                }}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors font-medium"
-              >
-                <User className="h-5 w-5" />
-                Join Harmonious Habitats
-              </button>
-              <button
-                onClick={() => {
                   openAuthModalGlobal('signin');
                   onClose();
                 }}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-forest-600 hover:bg-forest-50 border border-forest-200 rounded-lg transition-colors font-medium"
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-forest-600 to-earth-600 hover:from-forest-700 hover:to-earth-700 text-white rounded-lg transition-all transform hover:scale-105 font-semibold shadow-md hover:shadow-lg"
               >
-                <LogIn className="h-5 w-5" />
-                Sign In
+                <Sprout className="h-5 w-5" />
+                Harmonize Now
               </button>
+              <p className="text-xs text-center text-gray-500 mt-2">
+                One account for everything • No password needed
+              </p>
             </div>
           </div>
         )}
