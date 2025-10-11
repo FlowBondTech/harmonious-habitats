@@ -51,7 +51,8 @@ const CreateEvent = () => {
     tags: [] as string[],
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     space_id: '',
-    time_offering_id: ''
+    time_offering_id: '',
+    durationMinutes: 60
   });
 
   const [newMaterial, setNewMaterial] = useState('');
@@ -65,6 +66,7 @@ const CreateEvent = () => {
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [hasSelectedStart, setHasSelectedStart] = useState(false);
 
   // Check authentication and load user's spaces and time offerings
   useEffect(() => {
@@ -132,8 +134,49 @@ const CreateEvent = () => {
     }
   }, [location.state, templates]);
 
+  // Auto-advance when user makes a selection on Start step
+  useEffect(() => {
+    if (hasSelectedStart) {
+      // Small delay to ensure state updates, then click Next button
+      const timer = setTimeout(() => {
+        const nextButton = document.querySelector('[data-wizard-next]') as HTMLButtonElement;
+        if (nextButton) {
+          nextButton.click();
+          setHasSelectedStart(false);
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [hasSelectedStart]);
+
   const handleInputChange = (field: string, value: string | number | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+
+      // Calculate duration when start or end time changes
+      if (field === 'startTime' || field === 'endTime') {
+        const startTime = field === 'startTime' ? value as string : prev.startTime;
+        const endTime = field === 'endTime' ? value as string : prev.endTime;
+
+        if (startTime && endTime) {
+          const [startHour, startMin] = startTime.split(':').map(Number);
+          const [endHour, endMin] = endTime.split(':').map(Number);
+          const durationMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+          updated.durationMinutes = Math.max(0, durationMinutes);
+        }
+      }
+
+      // Update end time when duration changes
+      if (field === 'durationMinutes' && typeof value === 'number') {
+        const [startHour, startMin] = updated.startTime.split(':').map(Number);
+        const totalMinutes = startHour * 60 + startMin + value;
+        const endHour = Math.floor(totalMinutes / 60) % 24;
+        const endMin = totalMinutes % 60;
+        updated.endTime = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+      }
+
+      return updated;
+    });
 
     if (field === 'exchangeType') {
       setFormData(prev => ({
@@ -374,6 +417,7 @@ const CreateEvent = () => {
         date: formData.date,
         start_time: formData.startTime,
         end_time: formData.endTime,
+        duration_minutes: formData.durationMinutes,
         event_type: formData.eventType || 'local',
         location_name: formData.location.trim() || null,
         address: formData.address?.trim() || null,
@@ -469,6 +513,7 @@ const CreateEvent = () => {
             onClick={() => {
               setSelectedTemplate('');
               setError(null);
+              setHasSelectedStart(true);
             }}
             className="w-full p-6 rounded-xl border-2 border-forest-200 hover:border-forest-400 hover:bg-forest-50 transition-all group"
           >
@@ -498,6 +543,7 @@ const CreateEvent = () => {
                     onClick={() => {
                       loadTemplate(template.id);
                       setSelectedTemplate(template.id);
+                      setHasSelectedStart(true);
                     }}
                     className={`w-full p-4 rounded-xl border-2 transition-all text-left group ${
                       selectedTemplate === template.id

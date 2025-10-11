@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
+import {
   Menu,
   User,
   Settings,
@@ -11,7 +11,8 @@ import {
   ChevronDown,
   LogIn,
   X,
-  Home
+  Home,
+  Sprout
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import Avatar from './Avatar';
@@ -82,8 +83,8 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
     <header className={`lg:hidden fixed ${DEMO_MODE ? 'top-9' : 'top-0'} left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 transition-transform duration-300 ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
-      <div className="max-h-screen overflow-y-auto scrollbar-hide overflow-x-visible">
-        <div className="min-h-16 px-4 flex items-center justify-between py-2 relative overflow-visible">
+      <div className="max-h-screen overflow-y-auto scrollbar-hide">
+        <div className="min-h-16 px-4 flex items-center justify-between py-2 relative">
           {/* Left Section - Menu & Logo */}
           <div className="flex items-center space-x-3">
             {user && (
@@ -102,7 +103,7 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
           </div>
 
           {/* Right Section - Search, Notifications & Profile */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 relative">
           {/* Search Toggle */}
           <button
             onClick={() => setShowSearch(!showSearch)}
@@ -139,7 +140,7 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
 
               {/* Dropdown Menu */}
               {showProfileDropdown && (
-                <div className="fixed right-4 top-16 w-64 sm:w-72 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-[9999] max-w-[calc(100vw-2rem)]">
+                <div className="absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-[9999] max-w-[calc(100vw-2rem)]" style={{ top: '100%' }}>
                   {/* User Info */}
                   <div className="px-4 py-3 border-b border-gray-100">
                     <p className="text-sm font-medium text-gray-900">
@@ -201,20 +202,13 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
               )}
             </div>
           ) : (
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => openAuthModalGlobal('signin')}
-                className="h-9 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors inline-flex items-center"
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => openAuthModalGlobal('signup')}
-                className="h-9 px-3 py-2 text-sm font-medium text-white bg-forest-600 hover:bg-forest-700 rounded-lg transition-colors inline-flex items-center"
-              >
-                Join
-              </button>
-            </div>
+            <button
+              onClick={() => openAuthModalGlobal('signin')}
+              className="h-9 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-forest-600 to-earth-600 hover:from-forest-700 hover:to-earth-700 rounded-lg transition-all transform hover:scale-105 inline-flex items-center shadow-md hover:shadow-lg"
+            >
+              <Sprout className="h-4 w-4 mr-2" />
+              Harmonize Now
+            </button>
           )}
         </div>
         </div>

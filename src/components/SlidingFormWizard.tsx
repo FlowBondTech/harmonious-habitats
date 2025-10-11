@@ -263,6 +263,7 @@ export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
             <button
               onClick={handleNext}
               disabled={isValidating || isCompleting}
+              data-wizard-next
               className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base ${
                 !isValidating && !isCompleting ? 'animate-next-pulse' : ''
               }`}
