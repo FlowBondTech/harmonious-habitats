@@ -452,6 +452,109 @@ const CreateEvent = () => {
   // Wizard steps
   const wizardSteps: WizardStep[] = [
     {
+      id: 'start',
+      title: 'Start',
+      description: 'Begin from scratch or use a template',
+      icon: FileText,
+      component: (
+        <div className="space-y-6">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-forest-800 mb-2">Create Your Event</h2>
+            <p className="text-forest-600">Start from scratch or use a saved template</p>
+          </div>
+
+          {/* Start from Scratch Option */}
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedTemplate('');
+              setError(null);
+            }}
+            className="w-full p-6 rounded-xl border-2 border-forest-200 hover:border-forest-400 hover:bg-forest-50 transition-all group"
+          >
+            <div className="flex items-center space-x-4">
+              <div className="bg-forest-100 p-4 rounded-xl group-hover:bg-forest-200 transition-colors">
+                <Plus className="h-8 w-8 text-forest-600" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-lg font-semibold text-forest-800 mb-1">Start from Scratch</h3>
+                <p className="text-sm text-forest-600">Create a new event with a blank canvas</p>
+              </div>
+            </div>
+          </button>
+
+          {/* Templates Section */}
+          {templates.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-forest-700 mb-3 flex items-center">
+                <FileText className="h-4 w-4 mr-2" />
+                Your Templates
+              </h3>
+              <div className="space-y-3">
+                {templates.slice(0, 5).map(template => (
+                  <button
+                    key={template.id}
+                    type="button"
+                    onClick={() => {
+                      loadTemplate(template.id);
+                      setSelectedTemplate(template.id);
+                    }}
+                    className={`w-full p-4 rounded-xl border-2 transition-all text-left group ${
+                      selectedTemplate === template.id
+                        ? 'border-forest-500 bg-forest-50'
+                        : 'border-forest-100 hover:border-forest-300 hover:bg-forest-50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          {template.is_favorite && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
+                          <h4 className="font-semibold text-forest-800">{template.name}</h4>
+                        </div>
+                        {template.description && (
+                          <p className="text-sm text-forest-600 mb-2">{template.description}</p>
+                        )}
+                        <div className="flex items-center space-x-3 text-xs text-forest-500">
+                          <span className="capitalize">{template.category}</span>
+                          {template.use_count > 0 && (
+                            <>
+                              <span>•</span>
+                              <span>Used {template.use_count}x</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <CheckCircle className={`h-5 w-5 ${
+                        selectedTemplate === template.id ? 'text-forest-600' : 'text-gray-300'
+                      }`} />
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {templates.length > 5 && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/event-templates')}
+                  className="w-full mt-3 p-3 text-sm text-forest-600 hover:text-forest-700 hover:bg-forest-50 rounded-lg transition-colors"
+                >
+                  View all {templates.length} templates →
+                </button>
+              )}
+            </div>
+          )}
+
+          {templates.length === 0 && (
+            <div className="text-center py-8 bg-forest-50 rounded-xl border-2 border-dashed border-forest-200">
+              <FileText className="h-12 w-12 text-forest-300 mx-auto mb-3" />
+              <p className="text-sm text-forest-600 mb-2">No templates yet</p>
+              <p className="text-xs text-forest-500">Save your first event as a template to reuse it later</p>
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
       id: 'category',
       title: 'Category',
       description: 'Choose your event category',
@@ -1182,38 +1285,8 @@ const CreateEvent = () => {
               Review all details before submitting. You'll be able to edit your event after creation.
             </p>
           </div>
-        </div>
-      )
-    }
-  ];
 
-  return (
-    <div>
-      {/* Template Controls Bar */}
-      <div className="bg-white border-b border-forest-100 px-2 sm:px-4 py-2 sm:py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between flex-wrap gap-2 sm:gap-4">
-          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-            <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-forest-600 flex-shrink-0" />
-            <select
-              value={selectedTemplate}
-              onChange={(e) => {
-                setSelectedTemplate(e.target.value);
-                if (e.target.value) {
-                  loadTemplate(e.target.value);
-                }
-              }}
-              className="px-2 sm:px-3 py-1.5 sm:py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 text-xs sm:text-sm flex-1 min-w-0"
-            >
-              <option value="">Load template...</option>
-              {templates.map(template => (
-                <option key={template.id} value={template.id}>
-                  {template.is_favorite && '⭐ '}{template.name}
-                  {template.use_count > 0 && ` (${template.use_count}x)`}
-                </option>
-              ))}
-            </select>
-          </div>
-
+          {/* Save as Template Option */}
           <button
             type="button"
             onClick={() => {
@@ -1223,15 +1296,21 @@ const CreateEvent = () => {
               }
               setShowSaveTemplateModal(true);
             }}
-            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-forest-600 text-white rounded-lg hover:bg-forest-700 transition-colors text-xs sm:text-sm flex-shrink-0"
+            className="w-full p-4 rounded-xl border-2 border-forest-200 hover:border-forest-400 hover:bg-forest-50 transition-all group flex items-center justify-center space-x-3"
           >
-            <Save className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Save as Template</span>
-            <span className="sm:hidden">Save</span>
+            <Save className="h-5 w-5 text-forest-600" />
+            <div className="text-left">
+              <p className="font-semibold text-forest-800">Save as Template</p>
+              <p className="text-xs text-forest-600">Reuse these settings for future events</p>
+            </div>
           </button>
         </div>
-      </div>
+      )
+    }
+  ];
 
+  return (
+    <div>
       {/* Error/Success Messages */}
       {error && (
         <div className="max-w-4xl mx-auto px-2 sm:px-4 mt-2 sm:mt-4">
