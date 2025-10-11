@@ -214,52 +214,43 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
         </div>
       </div>
 
-      {/* Compact Search Bar - Slides out from search icon */}
+      {/* Mobile Search Overlay */}
       {showSearch && (
-        <div className="lg:hidden fixed top-0 left-0 right-0 h-16 z-50 pointer-events-none">
-          <div className="relative h-full">
-            <div className={`absolute top-1/2 -translate-y-1/2 transition-all duration-500 ease-out ${
-              user ? 'right-[180px]' : 'right-[140px]'
-            }`}>
-              <form onSubmit={handleSearch} className={`flex items-center bg-white rounded-full shadow-xl border border-gray-200 transition-all duration-500 transform ${
-                showSearch ? 'w-60 scale-100 opacity-100 pointer-events-auto' : 'w-0 scale-95 opacity-0 pointer-events-none'
-              }`}>
-                <div className="relative flex-1 flex items-center">
-                  <Search className={`absolute left-3 h-4 w-4 text-gray-400 transition-all duration-300 ${
-                    showSearch ? 'opacity-100' : 'opacity-0'
-                  }`} />
-                  <input
-                    ref={searchRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search events, spaces..."
-                    className={`w-full pl-10 pr-2 py-2.5 text-sm bg-transparent focus:outline-none transition-all duration-300 ${
-                      showSearch ? 'opacity-100' : 'opacity-0'
-                    }`}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowSearch(false)}
-                  className={`p-2 mr-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-300 ${
-                    showSearch ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'
-                  }`}
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </form>
-            </div>
+        <>
+          {/* Backdrop */}
+          <div
+            className="lg:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-50 transition-opacity duration-300"
+            onClick={() => setShowSearch(false)}
+          />
+
+          {/* Search Bar */}
+          <div className={`lg:hidden fixed ${DEMO_MODE ? 'top-[84px]' : 'top-16'} left-0 right-0 z-50 p-4 bg-white border-b border-gray-200 shadow-lg transition-transform duration-300 ${
+            showSearch ? 'translate-y-0' : '-translate-y-full'
+          }`}>
+            <form onSubmit={handleSearch} className="flex items-center space-x-2">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search events, spaces, users..."
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                  autoFocus
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSearch(false)}
+                className="p-3 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="Close search"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </form>
           </div>
-        </div>
-      )}
-      
-      {/* Backdrop for search */}
-      {showSearch && (
-        <div 
-          className="lg:hidden fixed inset-0 z-40 transition-opacity duration-300"
-          onClick={() => setShowSearch(false)}
-        />
+        </>
       )}
     </header>
   );
