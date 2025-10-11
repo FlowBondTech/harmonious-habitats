@@ -23,7 +23,6 @@ import { getEvents, getSpaces, Event, Space } from '../lib/supabase';
 import EventCard from '../components/EventCard';
 import SpaceCard from '../components/SpaceCard';
 import RadiusSelector from '../components/RadiusSelector';
-import HomeMobile from './HomeMobile';
 import { LocationBasedSuggestions } from '../components/LocationBasedSuggestions';
 
 
@@ -64,25 +63,7 @@ const Home = () => {
     freeEvents: 0,
     virtualEvents: 0
   });
-  const [isMobile, setIsMobile] = useState(() => {
-    // Check if window is available (client-side)
-    if (typeof window !== 'undefined') {
-      return window.innerWidth < 768;
-    }
-    return false; // Default to desktop for SSR
-  });
-
-  // Check if mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    // Initial check in case window wasn't available during useState
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  // Mobile detection removed - using fully responsive design instead
 
   useEffect(() => {
     const loadEvents = async () => {
@@ -230,13 +211,6 @@ const Home = () => {
     { title: 'Art & Wine Evening' },
     { title: 'Hiking Group Meetup' }
   ];
-
-  // Mobile detection for responsive layout
-
-  // Render mobile content if on small screen
-  if (isMobile) {
-    return <HomeMobile />;
-  }
 
   return (
     <>
