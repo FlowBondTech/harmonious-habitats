@@ -28,6 +28,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
   const modalRef = useRef<HTMLDivElement>(null);
   const initialFocusRef = useRef<HTMLButtonElement>(null);
   const lastActiveElement = useRef<Element | null>(null);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   // Trap focus within modal
   useEffect(() => {
@@ -222,29 +224,55 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
     });
   };
 
+  // Handle swipe down to dismiss on mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientY);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isDownSwipe = distance < -50; // Minimum swipe distance
+
+    if (isDownSwipe) {
+      onClose();
+    }
+
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-      <div className="flex min-h-screen items-end sm:items-center justify-center sm:p-4">
-        {/* Backdrop */}
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-          onClick={onClose}
-        />
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
 
-        {/* Modal */}
-        <div
-          ref={modalRef}
-          className="relative w-full sm:max-w-md transform overflow-hidden rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl transition-all animate-slide-up sm:animate-fade-in safe-area-bottom"
-        >
-          {/* Mobile drag handle */}
-          <div className="flex sm:hidden justify-center pt-2 pb-1">
-            <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
-          </div>
+      {/* Modal */}
+      <div
+        ref={modalRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="relative w-full sm:max-w-md transform overflow-hidden rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl transition-all animate-slide-up sm:animate-fade-in max-h-[90vh] flex flex-col"
+      >
+        {/* Mobile drag handle */}
+        <div className="flex sm:hidden justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing flex-shrink-0">
+          <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+        </div>
 
           {/* Header */}
-          <div className="bg-gradient-to-r from-forest-600 to-earth-500 px-6 py-6 sm:py-8 text-white">
+          <div className="bg-gradient-to-r from-forest-600 to-earth-500 px-6 py-6 sm:py-8 text-white flex-shrink-0">
             <button
               ref={initialFocusRef}
               onClick={onClose}
@@ -280,7 +308,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
           </div>
 
           {/* Form */}
-          <div className="px-6 py-6 sm:py-8 max-h-[70vh] overflow-y-auto">
+          <div className="px-6 py-6 sm:py-8 overflow-y-auto flex-1">
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-sm text-red-600">{error}</p>
