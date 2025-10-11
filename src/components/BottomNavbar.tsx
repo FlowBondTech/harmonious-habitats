@@ -60,6 +60,11 @@ const BottomNavbar: React.FC = () => {
     return null;
   }
 
+  // Only show bottom nav for logged-in users on mobile
+  if (!user) {
+    return null;
+  }
+
   return (
     <>
       {/* Spacer to prevent content from being hidden */}
