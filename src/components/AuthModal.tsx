@@ -209,6 +209,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
     setFormData(prev => ({ ...prev, otp: '' }));
   };
 
+  const changeEmail = () => {
+    setStep('email');
+    setError(null);
+    setSuccess(null);
+    setFormData({
+      email: '',
+      otp: '',
+      full_name: '',
+      username: '',
+      neighborhood: ''
+    });
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -361,6 +374,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
                         We've sent a 6-digit code to <strong className="font-semibold">{formData.email}</strong>.
                         Enter it below to complete your harmonization.
                       </p>
+                      <button
+                        type="button"
+                        onClick={changeEmail}
+                        className="mt-2 text-xs text-green-700 hover:text-green-800 font-medium hover:underline focus:underline"
+                      >
+                        Wrong email? Click to change
+                      </button>
                     </div>
                   </div>
                 </div>
