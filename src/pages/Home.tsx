@@ -53,6 +53,7 @@ const Home = () => {
   const { user, openAuthModalGlobal } = useAuthContext();
   const [todayEvents, setTodayEvents] = useState<Event[]>([]);
   const [featuredSpaces, setFeaturedSpaces] = useState<Space[]>([]);
+  const [recurringEvents, setRecurringEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [, setError] = useState<string | null>(null);
   const [eventStats, setEventStats] = useState({
@@ -135,7 +136,17 @@ const Home = () => {
           limit: 3
         });
         setFeaturedSpaces(spacesData || []);
-        
+
+        // Load recurring events for Weekly Regulars section
+        const { data: recurringData, error: recurringError } = await getEvents({
+          status: ['published'],
+          is_recurring: true,
+          limit: 3
+        });
+        if (!recurringError && recurringData) {
+          setRecurringEvents(recurringData);
+        }
+
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         setError(errorMessage);
@@ -171,36 +182,36 @@ const Home = () => {
         limit: 3
       });
       setFeaturedSpaces(spacesData || []);
-      
+
+      // Load recurring events
+      const { data: recurringData } = await getEvents({
+        status: 'published',
+        is_recurring: true,
+        limit: 3
+      });
+      setRecurringEvents(recurringData || []);
+
     } catch (err: unknown) {
     } finally {
       setLoading(false);
     }
   };
 
-  const weeklyRegulars = [
-    {
-      title: 'Tuesday Meditation Circle',
-      facilitator: 'The Mindful Neighbors',
-      time: 'Tuesdays 6:30 PM',
-      location: '0.4 miles away',
-      participants: 12
-    },
-    {
-      title: 'Saturday Permaculture Study',
-      facilitator: 'Green Thumb Collective',
-      time: 'Saturdays 10:00 AM',
-      location: '0.8 miles away',
-      participants: 18
-    },
-    {
-      title: 'Friday Art Circle',
-      facilitator: 'Creative Spirits',
-      time: 'Fridays 7:00 PM',
-      location: '0.6 miles away',
-      participants: 8
+  // Format recurring event for display
+  const formatRecurringTime = (event: Event) => {
+    // Parse recurrence rule if available, otherwise show event time
+    if (event.recurrence_rule) {
+      // Simple parsing - in production you'd use a library like rrule
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const eventDay = days[new Date(event.date).getDay()];
+      const time = event.start_time ? new Date(`2000-01-01T${event.start_time}`).toLocaleTimeString([], {
+        hour: 'numeric',
+        minute: '2-digit'
+      }) : '';
+      return `${eventDay}s ${time}`;
     }
-  ];
+    return `${event.date} at ${event.start_time}`;
+  };
 
   // Sample events for map preview (unauthenticated users)
   const sampleMapEvents = [
@@ -570,63 +581,70 @@ const Home = () => {
       )}
 
       {/* Weekly Regulars Section */}
-      <section className="section-padding bg-gradient-to-br from-forest-50 to-earth-50">
-        <div className="container-responsive">
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center mb-4">
-              <TrendingUp className="h-6 w-6 text-earth-500 mr-2" />
-              <h2 className="heading-lg text-forest-800">Weekly Regulars</h2>
-            </div>
-            <p className="body-lg text-forest-600 max-w-2xl mx-auto">
-              Consistent community gatherings you can count on
-            </p>
-          </div>
-
-          <div className="grid-responsive">
-            {weeklyRegulars.map((regular, index) => (
-              <div 
-                key={regular.title} 
-                className="card-interactive group animate-fade-in-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="p-6 space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="heading-md text-forest-800 mb-2 group-hover:text-forest-900 transition-colors">
-                        {regular.title}
-                      </h3>
-                      <p className="body-sm text-forest-600 mb-3">
-                        {regular.facilitator}
-                      </p>
-                    </div>
-                    <Star className="h-5 w-5 text-earth-400 group-hover:text-earth-500 transition-colors" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center text-forest-600">
-                      <Clock className="h-4 w-4 mr-2 text-forest-500" />
-                      <span className="body-sm">{regular.time}</span>
-                    </div>
-                    <div className="flex items-center text-forest-600">
-                      <MapPin className="h-4 w-4 mr-2 text-forest-500" />
-                      <span className="body-sm">{regular.location}</span>
-                    </div>
-                    <div className="flex items-center text-forest-600">
-                      <Users className="h-4 w-4 mr-2 text-forest-500" />
-                      <span className="body-sm">{regular.participants} regular participants</span>
-                    </div>
-                  </div>
-                  
-                  <button className="w-full btn-outline text-sm group-hover:bg-forest-50 group-hover:border-forest-400">
-                    Learn More
-                    <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </div>
+      {recurringEvents.length > 0 && (
+        <section className="section-padding bg-gradient-to-br from-forest-50 to-earth-50">
+          <div className="container-responsive">
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center mb-4">
+                <TrendingUp className="h-6 w-6 text-earth-500 mr-2" />
+                <h2 className="heading-lg text-forest-800">Weekly Regulars</h2>
               </div>
-            ))}
+              <p className="body-lg text-forest-600 max-w-2xl mx-auto">
+                Consistent community gatherings you can count on
+              </p>
+            </div>
+
+            <div className="grid-responsive">
+              {recurringEvents.map((event, index) => (
+                <Link
+                  key={event.id}
+                  to={`/events/${event.id}`}
+                  className="card-interactive group animate-fade-in-up"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="heading-md text-forest-800 mb-2 group-hover:text-forest-900 transition-colors">
+                          {event.title}
+                        </h3>
+                        <p className="body-sm text-forest-600 mb-3">
+                          {event.organizer?.full_name || 'Community Event'}
+                        </p>
+                      </div>
+                      <Star className="h-5 w-5 text-earth-400 group-hover:text-earth-500 transition-colors" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center text-forest-600">
+                        <Clock className="h-4 w-4 mr-2 text-forest-500" />
+                        <span className="body-sm">{formatRecurringTime(event)}</span>
+                      </div>
+                      {event.location_name && (
+                        <div className="flex items-center text-forest-600">
+                          <MapPin className="h-4 w-4 mr-2 text-forest-500" />
+                          <span className="body-sm">{event.location_name}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center text-forest-600">
+                        <Users className="h-4 w-4 mr-2 text-forest-500" />
+                        <span className="body-sm">
+                          {event.participant_count || event.participants?.filter(p => p.status === 'registered' || p.status === 'attended').length || 0} regular participants
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="w-full btn-outline text-sm group-hover:bg-forest-50 group-hover:border-forest-400 flex items-center justify-center">
+                      Learn More
+                      <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Community Values Section */}
       <section className="section-padding bg-gradient-to-br from-white to-forest-50/30">

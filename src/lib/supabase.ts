@@ -1154,6 +1154,7 @@ export const getEvents = async (filters?: {
   event_type?: string
   status?: string | string[]
   limit?: number
+  is_recurring?: boolean
 }) => {
   // Demo mode - return mock events
   if (DEMO_MODE) {
@@ -1169,6 +1170,9 @@ export const getEvents = async (filters?: {
     if (filters?.status) {
       const statusFilter = Array.isArray(filters.status) ? filters.status : [filters.status]
       events = events.filter(e => statusFilter.includes(e.status))
+    }
+    if (filters?.is_recurring !== undefined) {
+      events = events.filter(e => e.is_recurring === filters.is_recurring)
     }
     if (filters?.limit) {
       events = events.slice(0, filters.limit)
@@ -1203,7 +1207,10 @@ export const getEvents = async (filters?: {
   } else if (filters?.status && Array.isArray(filters.status)) {
     query = query.in('status', filters.status)
   }
-  
+  if (filters?.is_recurring !== undefined) {
+    query = query.eq('is_recurring', filters.is_recurring)
+  }
+
   if (filters?.limit) {
     query = query.limit(filters.limit)
   }
@@ -1211,11 +1218,11 @@ export const getEvents = async (filters?: {
   query = query.order('date', { ascending: true })
 
   const result = await query;
-  
+
   if (result.error) {
     logError(result.error as Error, 'getEvents');
   }
-  
+
   return result;
 }
 
