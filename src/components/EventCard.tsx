@@ -5,6 +5,7 @@ import { supabase, Event } from '../lib/supabase';
 import { logger } from '../lib/logger';
 import EventDetailsModal from './EventDetailsModal';
 import EventManagementModal from './EventManagementModal';
+import ShareContentModal from './ShareContentModal';
 
 interface EventCardProps {
   event: Event;
@@ -21,6 +22,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
   const [success, setSuccess] = useState<string | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showManagementModal, setShowManagementModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     if (user && event?.id) {
@@ -93,7 +95,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
           {
             event_id: event.id,
             user_id: user.id,
-            status: 'confirmed'
+            status: 'registered'
           }
         ]);
 
@@ -157,18 +159,9 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
     // Add bookmark functionality here
   };
 
-  const handleShare = async (e: React.MouseEvent) => {
+  const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: event.title,
-          text: `Join me at "${event.title}" in our community!`,
-          url: window.location.origin
-        });
-      } catch (error) {
-      }
-    }
+    setShowShareModal(true);
   };
 
   // Calculate event status
@@ -309,20 +302,18 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
           </div>
           
           {/* Event Meta */}
-          <div className="flex items-center justify-between mb-5 text-sm">
-            <div className="flex items-center space-x-4">
-              <div>
-                <span className="text-forest-500">Type: </span>
-                <span className="font-semibold text-forest-800 capitalize">
-                  {(event.event_type || 'local').replace('_', ' ')}
-                </span>
-              </div>
-              <div>
-                <span className="text-forest-500">Donation: </span>
-                <span className="font-semibold text-earth-600">
-                  {event.donation_suggested || 'Free'}
-                </span>
-              </div>
+          <div className="grid grid-cols-2 gap-3 mb-5 text-sm">
+            <div className="flex flex-col">
+              <span className="text-forest-500 text-xs mb-1">Type</span>
+              <span className="font-semibold text-forest-800 capitalize">
+                {(event.event_type || 'local').replace('_', ' ')}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-forest-500 text-xs mb-1">Donation</span>
+              <span className="font-semibold text-earth-600">
+                {event.donation_suggested || 'Free'}
+              </span>
             </div>
           </div>
           
@@ -408,6 +399,13 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
         isOpen={showManagementModal}
         onClose={() => setShowManagementModal(false)}
         onUpdate={handleModalUpdate}
+      />
+
+      <ShareContentModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        content={event}
+        contentType="event"
       />
     </>
   );

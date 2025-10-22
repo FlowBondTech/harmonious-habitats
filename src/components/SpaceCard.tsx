@@ -6,6 +6,7 @@ import { supabase, Space } from '../lib/supabase';
 import SpaceDetailsModal from './SpaceDetailsModal';
 import BookingSystem from './BookingSystem';
 import FacilitatorApplicationModal from './FacilitatorApplicationModal';
+import ShareContentModal from './ShareContentModal';
 
 interface SpaceCardProps {
   space: Space;
@@ -20,6 +21,7 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const formatSpaceType = (type: string) => {
     return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -60,19 +62,10 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
     // Add bookmark functionality here
   };
 
-  const handleShare = async (e: React.MouseEvent) => {
+  const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: space.name,
-          text: `Check out this beautiful space: "${space.name}" in our community!`,
-          url: window.location.origin + `/spaces/${spaceSlug}`
-        });
-      } catch (error) {
-      }
-    }
+    setShowShareModal(true);
   };
 
   const getAmenityIcon = (amenity: string) => {
@@ -217,20 +210,18 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
           )}
           
           {/* Space Meta */}
-          <div className="flex items-center justify-between mb-5 text-sm">
-            <div className="flex items-center space-x-4">
-              <div>
-                <span className="text-forest-500">Visibility: </span>
-                <span className="font-semibold text-forest-800">
-                  {space.list_publicly ? 'Global' : 'Local'}
-                </span>
-              </div>
-              <div>
-                <span className="text-forest-500">Contribution: </span>
-                <span className="font-semibold text-earth-600">
-                  {space.donation_suggested || 'Free'}
-                </span>
-              </div>
+          <div className="grid grid-cols-2 gap-3 mb-5 text-sm">
+            <div className="flex flex-col">
+              <span className="text-forest-500 text-xs mb-1">Visibility</span>
+              <span className="font-semibold text-forest-800">
+                {space.list_publicly ? 'Global' : 'Local'}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-forest-500 text-xs mb-1">Contribution</span>
+              <span className="font-semibold text-earth-600">
+                {space.donation_suggested || 'Free'}
+              </span>
             </div>
           </div>
           
@@ -367,6 +358,13 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onUpdate }) => {
           onUpdate?.();
           setShowApplicationModal(false);
         }}
+      />
+
+      <ShareContentModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        content={space}
+        contentType="space"
       />
     </>
   );

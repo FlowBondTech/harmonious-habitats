@@ -3,12 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Home,
   Map,
-  Calendar,
   MessageCircle,
   User,
   Plus,
   Search,
-  Globe,
   Zap
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
@@ -28,7 +26,7 @@ const BottomNavbar: React.FC = () => {
 
   // Define navigation items
   const navItems: NavItem[] = [
-    { path: '/', icon: Home, label: 'Home' },
+    { path: '/activities', icon: Home, label: 'Home' },
     { path: '/map', icon: Map, label: 'Discover' },
     { path: '/hyperlocal', icon: Zap, label: 'Local' },
     { path: '/messages', icon: MessageCircle, label: 'Messages', badge: unreadMessages, requiresAuth: true },
@@ -57,11 +55,6 @@ const BottomNavbar: React.FC = () => {
   // Don't show on certain pages
   const hiddenPaths = ['/admin', '/settings', '/create-event'];
   if (hiddenPaths.some(path => location.pathname.startsWith(path))) {
-    return null;
-  }
-
-  // Only show bottom nav for logged-in users on mobile
-  if (!user) {
     return null;
   }
 

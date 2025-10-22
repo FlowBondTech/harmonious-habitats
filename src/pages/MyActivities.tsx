@@ -561,8 +561,8 @@ const MyActivities = () => {
               </div>
 
               {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[1, 2, 3].map((i) => (
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="animate-pulse">
                       <div className="bg-gray-200 h-48 rounded-t-xl"></div>
                       <div className="p-4 space-y-3">
@@ -574,9 +574,9 @@ const MyActivities = () => {
                   ))}
                 </div>
               ) : attendingEvents.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {attendingEvents
-                    .filter(event => 
+                    .filter(event =>
                       event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                       event.description?.toLowerCase().includes(searchTerm.toLowerCase())
                     )
@@ -638,7 +638,7 @@ const MyActivities = () => {
                   ))}
                 </div>
               ) : hostingEvents.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {hostingEvents.map((event) => (
                     <EventCardV2
                       key={event.id}
@@ -681,8 +681,8 @@ const MyActivities = () => {
               </div>
 
               {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[1, 2].map((i) => (
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="animate-pulse">
                       <div className="bg-gray-200 h-48 rounded-t-xl"></div>
                       <div className="p-4 space-y-3">
@@ -694,7 +694,7 @@ const MyActivities = () => {
                   ))}
                 </div>
               ) : mySpaces.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {mySpaces.map((space) => (
                                          <SpaceCard key={space.id} space={space} onUpdate={loadActivities} />
                   ))}
@@ -726,8 +726,8 @@ const MyActivities = () => {
         {activeTab === 'favorites' && (
           <div className="space-y-6">
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(3)].map((_, i) => (
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(4)].map((_, i) => (
                   <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 animate-pulse">
                     <div className="space-y-4">
                       <div className="h-4 bg-gray-200 rounded"></div>
@@ -738,7 +738,7 @@ const MyActivities = () => {
                 ))}
               </div>
             ) : favoriteEvents.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {favoriteEvents.map((event) => (
                   <EventCardV2 key={event.id} event={event} onViewDetails={() => setSelectedEvent(event)} />
                 ))}

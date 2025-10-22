@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Menu, User, Settings, LogOut, CalendarPlus, LayoutDashboard,
-  Bell, Search, ChevronDown, Sprout
+  Search, Sprout
 } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import Avatar from './Avatar';
@@ -17,7 +17,6 @@ interface DesktopHeaderProps {
 const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick, isSidebarOpen }) => {
   const { user, profile, signOut, openAuthModalGlobal } = useAuthContext();
   const navigate = useNavigate();
-  const location = useLocation();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isVisible, setIsVisible] = useState(true);
@@ -108,7 +107,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick, isSidebarOpe
     <header className={`hidden lg:block fixed ${DEMO_MODE ? 'top-9' : 'top-0'} left-0 right-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 transition-transform duration-300 ${
       isVisible ? 'translate-y-0' : '-translate-y-full'
     }`}>
-      <div className="h-16 px-4 grid grid-cols-3 items-center">
+      <div className="h-16 px-4 grid grid-cols-3 items-center relative">
         {/* Left Section - Menu & Logo */}
         <div className="flex items-center space-x-3">
           {!shouldHideMenuButton && (
@@ -224,7 +223,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick, isSidebarOpe
 
               {/* Dropdown Menu */}
               {showProfileDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 animate-fade-in z-50">
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-1 animate-fade-in z-[100]">
                   {/* User Info */}
                   <div className="px-3 py-2 border-b border-gray-100">
                     <p className="text-sm font-medium text-gray-900 truncate">

@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState } from 'react';
-import { createBrowserRouter, RouterProvider, Outlet, Navigate, useLocation } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuthContext } from './components/AuthProvider';
 import KeyboardNavHelper from './components/KeyboardNavHelper';
 import AuthModal from './components/AuthModal';
@@ -7,11 +7,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import DesktopHeader from './components/DesktopHeader';
-import NotificationCenter from './components/NotificationCenter';
 import MobileOptimization from './components/MobileOptimization';
 import ScrollToTop from './components/ScrollToTop';
 import { LoadingSpinner } from './components/LoadingStates';
-import MobileMenu from './components/MobileMenu';
 import { ShareModal } from './components/ShareModal';
 import OnboardingModal from './components/OnboardingModal';
 import ShareOptionsModal from './components/ShareOptionsModal';
@@ -34,6 +32,7 @@ const GlobalFeed = lazy(() => import('./pages/GlobalFeed'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const EventFeedbackForm = lazy(() => import('./components/EventFeedbackForm'));
 const EventCalendarPage = lazy(() => import('./pages/EventCalendar'));
+const EventDetail = lazy(() => import('./pages/EventDetail'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Spaces = lazy(() => import('./pages/Spaces'));
 const SpaceDetail = lazy(() => import('./pages/SpaceDetail'));
@@ -57,7 +56,6 @@ const RootLayout = () => {
     completeOnboarding,
     closeShareOptions
   } = useAuthContext();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -98,7 +96,7 @@ const RootLayout = () => {
 
 
           {/* Main Content with responsive padding - add padding for bottom nav on mobile */}
-          <main id="main" className={`pt-16 lg:pt-16 pb-20 md:pb-8 relative z-10 ${
+          <main id="main" className={`pt-12 lg:pt-16 pb-20 md:pb-8 relative z-10 ${
             !shouldHideSidebar && isSidebarOpen ? 'lg:ml-64' : ''
           }`}>
             <Suspense fallback={
@@ -277,6 +275,10 @@ const router = createBrowserRouter([
       {
         path: 'calendar',
         element: <EventCalendarPage />
+      },
+      {
+        path: 'events/:eventId',
+        element: <EventDetail />
       },
       {
         path: 'spaces',

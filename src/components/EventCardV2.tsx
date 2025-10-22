@@ -1,6 +1,7 @@
-import React from 'react';
-import { Calendar, MapPin, Users, Clock, DollarSign, Star, Video, Globe, Tag } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, MapPin, Users, Clock, DollarSign, Star, Video, Globe, Tag, Share2 } from 'lucide-react';
 import { Event, EventParticipant } from '../lib/supabase';
+import ShareContentModal from './ShareContentModal';
 
 interface EventCardV2Props {
   event: Event & {
@@ -25,6 +26,7 @@ const EventCardV2: React.FC<EventCardV2Props> = ({
   isRegistered = false,
   className = ''
 }) => {
+  const [showShareModal, setShowShareModal] = useState(false);
   const eventDate = new Date(event.date + 'T' + event.start_time);
   const endTime = new Date(event.date + 'T' + event.end_time);
   const isUpcoming = eventDate > new Date();
@@ -225,6 +227,16 @@ const EventCardV2: React.FC<EventCardV2Props> = ({
               View Details
             </button>
           )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowShareModal(true);
+            }}
+            className="px-4 py-2 border border-forest-300 text-forest-700 rounded-lg hover:bg-forest-50 transition-colors"
+            aria-label="Share event"
+          >
+            <Share2 className="h-4 w-4" />
+          </button>
           {onRegister && isUpcoming && !isRegistered && (
             <button
               onClick={() => onRegister(event.id)}
@@ -245,6 +257,13 @@ const EventCardV2: React.FC<EventCardV2Props> = ({
           )}
         </div>
       </div>
+
+      <ShareContentModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        content={event}
+        contentType="event"
+      />
     </div>
   );
 };

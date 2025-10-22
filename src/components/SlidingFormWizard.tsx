@@ -143,7 +143,7 @@ export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-forest-50 to-earth-50 py-4 sm:py-12 px-2 sm:px-4 ${className}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-forest-50 to-earth-50 py-4 sm:py-12 px-2 sm:px-4 pb-24 sm:pb-12 ${className}`}>
       <div className="max-w-4xl mx-auto">
         {/* Progress Indicator */}
         {showStepIndicator && (
@@ -212,7 +212,7 @@ export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
         )}
 
         {/* Content Card */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[80vh]">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[calc(100vh-12rem)] sm:max-h-[80vh]">
           {/* Step Header */}
           <div className="bg-gradient-to-r from-forest-50 to-earth-50 px-4 sm:px-8 py-4 sm:py-6 border-b border-gray-200 flex-shrink-0">
             <h2 className="text-xl sm:text-2xl font-bold text-forest-800 mb-1 sm:mb-2">{currentStep.title}</h2>
@@ -222,7 +222,7 @@ export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
           </div>
 
           {/* Step Content with Sliding Animation - Scrollable */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-8">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-8 min-h-0">
             <div className="overflow-x-hidden">
               <div
                 className="transition-transform duration-300 ease-in-out"
@@ -245,8 +245,8 @@ export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
             </div>
           </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+          {/* Navigation Buttons - Fixed/Sticky */}
+          <div className="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-6 border-t border-gray-200 bg-gray-50 flex-shrink-0 sticky bottom-0 z-10">
             <button
               onClick={handleBack}
               disabled={isValidating || isCompleting}
