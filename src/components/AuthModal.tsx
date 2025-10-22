@@ -31,6 +31,24 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
+  // Reset modal state when opening
+  useEffect(() => {
+    if (isOpen) {
+      // Reset to email step and clear form
+      setStep('email');
+      setMode(initialMode);
+      setError(null);
+      setSuccess(null);
+      setFormData({
+        email: '',
+        otp: '',
+        full_name: '',
+        username: '',
+        neighborhood: ''
+      });
+    }
+  }, [isOpen, initialMode]);
+
   // Trap focus within modal
   useEffect(() => {
     if (isOpen) {
@@ -271,6 +289,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
           <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
         </div>
 
+        {/* Modal Content Wrapper */}
+        <div className="flex flex-col flex-1 overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-forest-600 to-earth-500 px-6 py-6 sm:py-8 text-white flex-shrink-0">
             <button
