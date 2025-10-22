@@ -72,6 +72,16 @@ const Home = () => {
     newThisWeek: 89,
     communitiesConnected: 156
   };
+
+  // Fake event statistics for engagement (minimum baseline)
+  const fakeEventStats = {
+    totalEvents: 127,
+    thisWeekEvents: 12,
+    totalParticipants: 456,
+    activeNeighborhoods: 8,
+    freeEvents: 89,
+    virtualEvents: 23
+  };
   // Mobile detection removed - using fully responsive design instead
 
   useEffect(() => {
@@ -308,16 +318,16 @@ const Home = () => {
                 <HighlightCard
                   icon={Calendar}
                   title="Events This Week"
-                  description={`${eventStats.totalEvents} total events`}
+                  description={`${Math.max(eventStats.totalEvents, fakeEventStats.totalEvents)} total events`}
                   color="bg-gradient-to-br from-earth-500 to-earth-600"
-                  value={eventStats.thisWeekEvents}
+                  value={Math.max(eventStats.thisWeekEvents, fakeEventStats.thisWeekEvents)}
                 />
                 <HighlightCard
                   icon={MapPin}
                   title="Local Communities"
                   description={`${userStats.communitiesConnected} neighborhoods connected`}
                   color="bg-gradient-to-br from-blue-500 to-purple-600"
-                  value={eventStats.activeNeighborhoods}
+                  value={Math.max(eventStats.activeNeighborhoods, fakeEventStats.activeNeighborhoods)}
                 />
               </div>
 
@@ -328,11 +338,11 @@ const Home = () => {
                   <div className="text-sm text-forest-600 mt-1">New This Week</div>
                 </div>
                 <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center border border-forest-100 hover:shadow-lg transition-shadow">
-                  <div className="text-2xl font-bold text-forest-700">{eventStats.totalEvents}</div>
+                  <div className="text-2xl font-bold text-forest-700">{Math.max(eventStats.totalEvents, fakeEventStats.totalEvents)}</div>
                   <div className="text-sm text-forest-600 mt-1">Total Events</div>
                 </div>
                 <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center border border-forest-100 hover:shadow-lg transition-shadow">
-                  <div className="text-2xl font-bold text-forest-700">{eventStats.freeEvents}</div>
+                  <div className="text-2xl font-bold text-forest-700">{Math.max(eventStats.freeEvents, fakeEventStats.freeEvents)}</div>
                   <div className="text-sm text-forest-600 mt-1">Free Events</div>
                 </div>
                 <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center border border-forest-100 hover:shadow-lg transition-shadow">
