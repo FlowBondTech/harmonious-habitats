@@ -4,11 +4,10 @@ import {
   supabase,
   verifyRegistrationToken,
   completeOnboarding,
-  updateProfile,
-  trackReferral
+  updateProfile
 } from '../lib/supabase'
 import type { Profile } from '../lib/supabase'
-import { CheckCircle, Loader2, ArrowRight, ArrowLeft } from 'lucide-react'
+import { CheckCircle, Loader2, ArrowRight, ArrowLeft, Mail, Send } from 'lucide-react'
 
 interface OnboardingStepsProps {
   profile: Profile
@@ -304,6 +303,139 @@ const OnboardingSteps: React.FC<OnboardingStepsProps> = ({
   )
 }
 
+const EmailCollectionForm: React.FC = () => {
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim()) return
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Send magic link to user's email
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim().toLowerCase(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/onboard`
+        }
+      })
+
+      if (error) throw error
+
+      setSent(true)
+    } catch (err: any) {
+      console.error('Error sending magic link:', err)
+      setError(err.message || 'Failed to send login link. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (sent) {
+    return (
+      <div className="min-h-screen bg-sand flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email!</h2>
+            <p className="text-gray-600 mb-6">
+              We've sent a login link to <strong>{email}</strong>
+            </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-blue-900">
+                Click the link in your email to continue setting up your profile on your own device.
+              </p>
+            </div>
+            <p className="text-sm text-gray-500">
+              Didn't receive it? Check your spam folder or{' '}
+              <button
+                onClick={() => {
+                  setSent(false)
+                  setEmail('')
+                }}
+                className="text-forest font-medium hover:underline"
+              >
+                try again
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-sand flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-forest/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Mail className="w-8 h-8 text-forest" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Setup</h1>
+          <p className="text-gray-600">
+            Enter your email to receive a secure login link and complete your profile on your device
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-forest focus:border-transparent"
+              placeholder="your@email.com"
+              required
+            />
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || !email.trim()}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-forest text-white rounded-lg font-medium hover:bg-forest/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send className="w-5 h-5" />
+                Send Login Link
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <p className="text-xs text-gray-500 text-center">
+            By continuing, you'll receive a secure magic link to log in and complete your profile.
+            No password required!
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const Onboard: React.FC = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -321,21 +453,12 @@ const Onboard: React.FC = () => {
         // Get current user
         const { data: { user } } = await supabase.auth.getUser()
 
-        // Check for verification token in URL
+        // Check for verification token in URL (from event check-in)
         const token = searchParams.get('token')
-        const source = searchParams.get('source')
-        const eventId = searchParams.get('event_id')
 
-        if (token && !user) {
-          // User needs to verify token but isn't logged in
-          setError('Please sign in first to verify your registration')
-          setLoading(false)
-          return
-        }
-
+        // If no user logged in, show email collection form
         if (!user) {
-          // No user and no token - redirect to auth
-          navigate('/auth')
+          setLoading(false)
           return
         }
 
@@ -348,7 +471,7 @@ const Onboard: React.FC = () => {
 
         if (profileError) throw profileError
 
-        // If token is present, verify it
+        // If token is present (from event check-in), verify it
         if (token) {
           const { data: verificationData, error: verificationError } = await verifyRegistrationToken(
             token,
@@ -416,26 +539,22 @@ const Onboard: React.FC = () => {
           <h2 className="text-xl font-semibold text-red-900 mb-2">Oops!</h2>
           <p className="text-red-700 mb-4">{error}</p>
           <button
-            onClick={() => navigate('/auth')}
+            onClick={() => navigate('/')}
             className="w-full px-4 py-2 bg-forest text-white rounded-lg hover:bg-forest/90 transition-colors"
           >
-            Go to Sign In
+            Go to Home
           </button>
         </div>
       </div>
     )
   }
 
+  // Show email collection form if no user is logged in
   if (!profile) {
-    return (
-      <div className="min-h-screen bg-sand flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <p className="text-gray-700">Unable to load profile</p>
-        </div>
-      </div>
-    )
+    return <EmailCollectionForm />
   }
 
+  // Show onboarding wizard for logged-in users
   return (
     <div className="min-h-screen bg-sand">
       <OnboardingSteps
