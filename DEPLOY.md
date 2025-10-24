@@ -1,4 +1,4 @@
-# Deployment Guide for Harmonious Habitats
+# Deployment Guide for Harmonik Space
 
 ## Netlify Deployment
 

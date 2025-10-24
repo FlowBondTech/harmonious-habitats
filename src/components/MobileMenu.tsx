@@ -196,7 +196,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onShareClick }
                 <Sprout className="h-6 w-6 text-forest-600" />
               </div>
               <div>
-                <h2 className="text-lg md:text-xl font-bold text-forest-800">Harmonious Habitats</h2>
+                <h2 className="text-lg md:text-xl font-bold text-forest-800">Harmonik Space</h2>
                 <p className="text-xs md:text-sm text-gray-600">Community Connection</p>
               </div>
             </div>

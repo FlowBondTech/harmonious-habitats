@@ -76,7 +76,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
             mapTypeControl: false,
             streetViewControl: false,
             fullscreenControl: true,
-            mapId: 'harmonious-habitats-map' // For advanced markers
+            mapId: 'harmonik-space-map' // For advanced markers
           });
         }
       } catch (err) {

@@ -121,7 +121,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick, isSidebarOpe
           )}
 
           <Link to="/" className="flex items-center space-x-2">
-            <h1 className="text-lg font-bold text-forest-700 dark:text-forest-300">Harmonious Habitats</h1>
+            <h1 className="text-lg font-bold text-forest-700 dark:text-forest-300">Harmonik Space</h1>
           </Link>
         </div>
 

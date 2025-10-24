@@ -4,7 +4,7 @@ import App from './App.tsx';
 import 'focus-visible';
 import './index.css';
 
-console.log('🚀 Starting Harmonious Habitats...');
+console.log('🚀 Starting Harmonik Space...');
 
 const root = document.getElementById('root');
 if (!root) {

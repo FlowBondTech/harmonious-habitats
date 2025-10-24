@@ -294,7 +294,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
                 className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-forest-600 hover:bg-forest-700 text-white rounded-lg transition-colors font-medium text-sm"
               >
                 <User className="h-5 w-5" />
-                Join Harmonious Habitats
+                Join Harmonik Space
               </button>
               <button
                 onClick={() => openAuthModalGlobal('signin')}

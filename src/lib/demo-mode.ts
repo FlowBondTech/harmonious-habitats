@@ -4,7 +4,7 @@ export const DEMO_MODE = false; // Set to false to use real Supabase
 // Demo user for auto-login
 export const DEMO_USER = {
   id: 'demo-user-001',
-  email: 'demo@harmonioushabitats.com',
+  email: 'demo@harmonikspace.com',
   full_name: 'Sunflower Lily',
   username: 'sunflowerlily',
   avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sunflower',

@@ -1,5 +1,5 @@
 -- ============================================
--- HARMONIOUS HABITATS - Expanded Database Schema
+-- HARMONIK SPACE - Expanded Database Schema
 -- A comprehensive community wellness & connection platform
 -- ============================================
 
@@ -933,7 +933,7 @@ CREATE INDEX idx_volunteer_date ON volunteer_hours(volunteer_date);
 CREATE INDEX idx_sustainability_date ON sustainability_tracking(tracking_date);
 
 -- ============================================
--- HELPFUL VIEWS FOR HARMONIOUS HABITATS
+-- HELPFUL VIEWS FOR HARMONIK SPACE
 -- ============================================
 
 -- Active Wellness Providers View
@@ -993,7 +993,7 @@ GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 
 DO $$
 BEGIN
-  RAISE NOTICE '🌿 Harmonious Habitats Expansion Complete! 🌿';
+  RAISE NOTICE '🌿 Harmonik Space Expansion Complete! 🌿';
   RAISE NOTICE '';
   RAISE NOTICE 'New modules added:';
   RAISE NOTICE '✅ Wellness & Healing (4 tables)';

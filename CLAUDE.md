@@ -1,10 +1,10 @@
-# CLAUDE.md - Claude Code Assistant Guide for Harmonious Habitats
+# CLAUDE.md - Claude Code Assistant Guide for Harmonik Space
 
-This document provides essential information for Claude Code instances working on the Harmonious Habitats codebase.
+This document provides essential information for Claude Code instances working on the Harmonik Space codebase.
 
 ## 🎯 Project Overview
 
-**Harmonious Habitats** is a community platform for discovering and sharing holistic practices, events, and spaces within neighborhoods. It connects neighbors through mindful practices, wellness events, and shared spaces with a focus on local community building.
+**Harmonik Space** is a community platform for discovering and sharing holistic practices, events, and spaces within neighborhoods. It connects neighbors through mindful practices, wellness events, and shared spaces with a focus on local community building.
 
 **Tech Stack:**
 - Frontend: React 18, TypeScript, Tailwind CSS

@@ -1,4 +1,4 @@
--- Fix RLS Policies for Harmonious Habitats
+-- Fix RLS Policies for Harmonik Space
 -- This script ensures users can properly create and manage their profiles
 
 -- First, ensure RLS is enabled on all tables

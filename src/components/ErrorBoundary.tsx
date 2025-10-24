@@ -124,7 +124,7 @@ export function ErrorBoundary() {
           {/* Footer */}
           <div className="bg-gray-50 px-8 py-4 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
-              Error ID: {Date.now().toString(36)} • Harmonious Habitats
+              Error ID: {Date.now().toString(36)} • Harmonik Space
             </p>
           </div>
         </div>

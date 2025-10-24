@@ -1,4 +1,4 @@
--- Fix RLS Policies for Harmonious Habitats (Safe Version)
+-- Fix RLS Policies for Harmonik Space (Safe Version)
 -- This script safely updates RLS policies, handling existing ones
 
 -- First, ensure RLS is enabled on all tables

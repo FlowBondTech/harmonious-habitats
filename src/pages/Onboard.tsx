@@ -143,7 +143,7 @@ const OnboardingSteps: React.FC<OnboardingStepsProps> = ({
       {/* Step 1: Basic Info */}
       {step === 1 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Harmonious Habitats!</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Harmonik Space!</h2>
           <p className="text-gray-600 mb-6">Let's get to know you better</p>
 
           <div className="space-y-4">

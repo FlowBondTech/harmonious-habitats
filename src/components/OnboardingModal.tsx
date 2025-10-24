@@ -293,7 +293,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose, onCo
             
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold">Welcome to Harmonious Habitats!</h2>
+                <h2 className="text-2xl font-bold">Welcome to Harmonik Space!</h2>
                 <p className="text-forest-100 mt-1">Let's set up your profile</p>
               </div>
               <div className="text-right">

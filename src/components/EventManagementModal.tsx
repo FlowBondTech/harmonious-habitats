@@ -149,7 +149,7 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
         .insert([{
           event_id: event.id,
           user_id: userId,
-          status: 'confirmed'
+          status: 'registered'
         }]);
 
       if (addError) throw addError;
@@ -239,7 +239,7 @@ const EventManagementModal: React.FC<EventManagementModalProps> = ({
 
   if (!isOpen || !event) return null;
 
-  const confirmedParticipants = participants.filter(p => p.status === 'confirmed');
+  const confirmedParticipants = participants.filter(p => p.status === 'registered');
   const cancelledParticipants = participants.filter(p => p.status === 'cancelled');
 
   return ReactDOM.createPortal(

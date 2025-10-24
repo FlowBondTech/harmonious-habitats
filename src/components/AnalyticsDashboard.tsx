@@ -91,8 +91,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
     // Calculate metrics
     const totalEvents = userEvents?.length || 0;
-    const totalParticipants = userEvents?.reduce((sum, event) => 
-      sum + (event.participants?.filter(p => p.status === 'confirmed').length || 0), 0) || 0;
+    const totalParticipants = userEvents?.reduce((sum, event) =>
+      sum + (event.participants?.filter(p => p.status === 'registered').length || 0), 0) || 0;
     const totalSpaces = userSpaces?.length || 0;
 
     // Mock data for demonstration

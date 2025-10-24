@@ -17,21 +17,24 @@ interface ConversationListProps {
   onNewConversation: () => void;
 }
 
+interface Conversation {
+  id: string;
+  name: string;
+  type: string;
+  participants: { user_id: string; user: { full_name: string; avatar_url: string } }[];
+  last_message?: { content: string; sent_at?: string };
+  last_message_at?: string;
+  updated_at?: string;
+  unread_count: number;
+}
+
 const ConversationList: React.FC<ConversationListProps> = ({
   onSelectConversation,
   selectedConversationId,
   onNewConversation
 }) => {
   const { user } = useAuthContext();
-  const [conversations, setConversations] = useState<{
-    id: string;
-    name: string;
-    type: string;
-    participants: { user_id: string; user: { full_name: string; avatar_url: string } }[];
-    last_message: string;
-    last_message_at: string;
-    unread_count: number;
-  }[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, direct, group, event, space
@@ -153,9 +156,9 @@ const ConversationList: React.FC<ConversationListProps> = ({
     }
   };
 
-  const getLastMessagePreview = (conversation: any) => {
+  const getLastMessagePreview = (conversation: Conversation) => {
     if (!conversation.last_message) return 'No messages yet';
-    
+
     const content = conversation.last_message.content;
     if (content.length > 30) {
       return content.substring(0, 30) + '...';

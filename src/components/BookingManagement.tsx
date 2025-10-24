@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Calendar, 
-  Clock, 
-  Users, 
-  Check, 
-  X, 
-  MessageCircle, 
-  Eye,
+import {
+  Calendar,
+  Clock,
+  Users,
+  Check,
+  X,
   AlertCircle,
   DollarSign
 } from 'lucide-react';

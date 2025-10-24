@@ -1,7 +1,7 @@
 export default function SimpleApp() {
   return (
     <div style={{ padding: '2rem', fontFamily: 'system-ui' }}>
-      <h1>Harmonious Habitats</h1>
+      <h1>Harmonik Space</h1>
       <p>✅ React is working!</p>
       <p>If you can see this, the app is loading successfully.</p>
 

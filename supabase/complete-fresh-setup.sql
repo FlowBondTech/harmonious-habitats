@@ -1,5 +1,5 @@
 -- ============================================
--- HARMONIOUS HABITATS - Complete Fresh Database Setup
+-- HARMONIK SPACE - Complete Fresh Database Setup
 -- Version 1.0 - Clean Install
 -- ============================================
 --
@@ -841,7 +841,7 @@ GRANT SELECT ON public.neighborhoods TO anon;
 -- Create a default neighborhood (optional)
 INSERT INTO public.neighborhoods (name, slug, description, city, state, is_private)
 VALUES
-  ('Harmonious Habitats Community', 'harmonious-habitats-community', 'Our founding community for wellness and connection', 'San Francisco', 'CA', false)
+  ('Harmonik Space Community', 'harmonik-space-community', 'Our founding community for wellness and connection', 'San Francisco', 'CA', false)
 ON CONFLICT (slug) DO NOTHING;
 
 -- ============================================
@@ -851,7 +851,7 @@ ON CONFLICT (slug) DO NOTHING;
 DO $$
 BEGIN
   RAISE NOTICE '
-    ✅ Harmonious Habitats Database Setup Complete!
+    ✅ Harmonik Space Database Setup Complete!
 
     Database ready with:
     - User profiles with auto-creation on signup

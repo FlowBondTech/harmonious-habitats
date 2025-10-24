@@ -11,6 +11,7 @@ const ShareSpace = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [neighborhoods, setNeighborhoods] = useState<Array<{ id: string; name: string; slug: string }>>([]);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -32,6 +33,8 @@ const ShareSpace = () => {
     guidelines: '',
     donationSuggested: '',
     maxRadius: 2,
+    bookingRestriction: 'radius' as 'radius' | 'neighborhoods' | 'public',
+    selectedNeighborhoods: [] as string[],
     animals: {
       allowed: false,
       types: []
@@ -100,6 +103,23 @@ const ShareSpace = () => {
     { id: 'healing', name: 'Healing & Wellness', icon: Stethoscope },
     { id: 'music', name: 'Music & Movement', icon: Music }
   ];
+
+  // Load neighborhoods on mount
+  React.useEffect(() => {
+    const loadNeighborhoods = async () => {
+      const { data, error } = await supabase
+        .from('neighborhoods')
+        .select('id, name, slug')
+        .eq('is_active', true)
+        .order('name');
+
+      if (!error && data) {
+        setNeighborhoods(data);
+      }
+    };
+
+    loadNeighborhoods();
+  }, []);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -260,8 +280,14 @@ const ShareSpace = () => {
         description: formData.description.trim() || null,
         address: formData.address.trim(),
         capacity: parseInt(formData.capacity),
-        max_radius: formData.listPublicly ? null : formData.maxRadius,
-        list_publicly: formData.listPublicly,
+        // Handle booking restrictions
+        max_radius: formData.bookingRestriction === 'radius' ? formData.maxRadius : null,
+        list_publicly: formData.bookingRestriction === 'public',
+        // Store selected neighborhoods if neighborhood restriction is selected
+        ...(formData.bookingRestriction === 'neighborhoods' && {
+          booking_restriction_type: 'neighborhoods',
+          allowed_neighborhoods: formData.selectedNeighborhoods
+        }),
         guidelines: formData.guidelines.trim() || null,
         animals_allowed: formData.animals.allowed,
         // Temporarily disabled due to schema cache issue
@@ -502,63 +528,160 @@ const ShareSpace = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-forest-700 mb-2">
-                    <Users className="h-4 w-4 inline mr-1" />
-                    Capacity
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.capacity}
-                    onChange={(e) => handleInputChange('capacity', e.target.value)}
-                    placeholder="Maximum number of people"
-                    min="1"
-                    required
-                    className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-forest-700 mb-2">
-                    <Shield className="h-4 w-4 inline mr-1" />
-                    Maximum Booking Radius
-                  </label>
-                  <select
-                    value={formData.maxRadius}
-                    onChange={(e) => handleInputChange('maxRadius', Number(e.target.value))}
-                    disabled={formData.listPublicly}
-                    className={`w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent ${
-                      formData.listPublicly ? 'bg-gray-100 text-gray-500' : ''
-                    }`}
-                  >
-                    <option value={1}>1 mile (close neighbors)</option>
-                    <option value={2}>2 miles (neighborhood)</option>
-                    <option value={3}>3 miles (extended community)</option>
-                  </select>
-                </div>
+              {/* Capacity */}
+              <div>
+                <label className="block text-sm font-medium text-forest-700 mb-2">
+                  <Users className="h-4 w-4 inline mr-1" />
+                  Capacity
+                </label>
+                <input
+                  type="number"
+                  value={formData.capacity}
+                  onChange={(e) => handleInputChange('capacity', e.target.value)}
+                  placeholder="Maximum number of people"
+                  min="1"
+                  required
+                  className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                />
               </div>
 
-              {/* Public Listing Option */}
-              <div className="bg-gradient-to-r from-earth-50 to-forest-50 rounded-lg p-6 border border-earth-200">
-                <label className="flex items-start space-x-4 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.listPublicly}
-                    onChange={(e) => handleInputChange('listPublicly', e.target.checked)}
-                    className="w-5 h-5 text-forest-600 bg-forest-100 border-forest-300 rounded focus:ring-forest-500 focus:ring-2 mt-1"
-                  />
-                  <div className="flex-1">
+              {/* Booking Restrictions */}
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-forest-700">
+                  <Shield className="h-4 w-4 inline mr-1" />
+                  Who Can Book Your Space?
+                </label>
+
+                {/* Restriction Type Selection */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange('bookingRestriction', 'radius')}
+                    className={`p-4 rounded-lg border-2 text-left transition-all ${
+                      formData.bookingRestriction === 'radius'
+                        ? 'border-forest-500 bg-forest-50'
+                        : 'border-forest-200 hover:border-forest-300'
+                    }`}
+                  >
                     <div className="flex items-center space-x-2 mb-2">
-                      <Globe className="h-5 w-5 text-earth-500" />
-                      <span className="font-semibold text-forest-800">List publicly (no radius restriction)</span>
+                      <MapPin className="h-5 w-5 text-forest-600" />
+                      <span className="font-medium text-forest-800">By Distance</span>
                     </div>
-                    <p className="text-sm text-forest-600 leading-relaxed">
-                      Make your space available to the global community. This will override the radius setting and 
-                      allow anyone worldwide to book your space for events. Great for virtual events or when you 
-                      want to welcome travelers and distant community members.
+                    <p className="text-xs text-forest-600">Set a radius around your location</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange('bookingRestriction', 'neighborhoods')}
+                    className={`p-4 rounded-lg border-2 text-left transition-all ${
+                      formData.bookingRestriction === 'neighborhoods'
+                        ? 'border-forest-500 bg-forest-50'
+                        : 'border-forest-200 hover:border-forest-300'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Home className="h-5 w-5 text-forest-600" />
+                      <span className="font-medium text-forest-800">By Neighborhood</span>
+                    </div>
+                    <p className="text-xs text-forest-600">Select specific neighborhoods</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange('bookingRestriction', 'public')}
+                    className={`p-4 rounded-lg border-2 text-left transition-all ${
+                      formData.bookingRestriction === 'public'
+                        ? 'border-earth-500 bg-earth-50'
+                        : 'border-forest-200 hover:border-forest-300'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Globe className="h-5 w-5 text-earth-600" />
+                      <span className="font-medium text-forest-800">Public</span>
+                    </div>
+                    <p className="text-xs text-forest-600">Open to everyone globally</p>
+                  </button>
+                </div>
+
+                {/* Radius Options */}
+                {formData.bookingRestriction === 'radius' && (
+                  <div>
+                    <label className="block text-sm font-medium text-forest-700 mb-2">
+                      Maximum Distance
+                    </label>
+                    <select
+                      value={formData.maxRadius}
+                      onChange={(e) => handleInputChange('maxRadius', Number(e.target.value))}
+                      className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    >
+                      <option value={0.5}>0.5 miles (immediate neighbors)</option>
+                      <option value={1}>1 mile (close neighbors)</option>
+                      <option value={2}>2 miles (neighborhood)</option>
+                      <option value={3}>3 miles (extended neighborhood)</option>
+                      <option value={5}>5 miles (local area)</option>
+                      <option value={10}>10 miles (city-wide)</option>
+                      <option value={25}>25 miles (regional)</option>
+                      <option value={50}>50 miles (metro area)</option>
+                    </select>
+                    <p className="text-xs text-forest-600 mt-2">
+                      Only users within this distance can see and book your space
                     </p>
                   </div>
-                </label>
+                )}
+
+                {/* Neighborhood Selection */}
+                {formData.bookingRestriction === 'neighborhoods' && (
+                  <div>
+                    <label className="block text-sm font-medium text-forest-700 mb-2">
+                      Select Neighborhoods
+                    </label>
+                    {neighborhoods.length === 0 ? (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p className="text-sm text-yellow-800">
+                          No neighborhoods available yet. Contact an admin to set up neighborhoods in your area.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto p-1">
+                        {neighborhoods.map((neighborhood) => (
+                          <label
+                            key={neighborhood.id}
+                            className="flex items-center space-x-3 p-3 bg-forest-50 rounded-lg hover:bg-forest-100 transition-colors cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={formData.selectedNeighborhoods.includes(neighborhood.id)}
+                              onChange={(e) => {
+                                const updated = e.target.checked
+                                  ? [...formData.selectedNeighborhoods, neighborhood.id]
+                                  : formData.selectedNeighborhoods.filter(id => id !== neighborhood.id);
+                                handleInputChange('selectedNeighborhoods', updated);
+                              }}
+                              className="w-4 h-4 text-forest-600 bg-forest-100 border-forest-300 rounded focus:ring-forest-500 focus:ring-2"
+                            />
+                            <span className="text-sm text-forest-700">{neighborhood.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    {formData.selectedNeighborhoods.length > 0 && (
+                      <p className="text-xs text-forest-600 mt-2">
+                        {formData.selectedNeighborhoods.length} neighborhood(s) selected
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Public Listing Info */}
+                {formData.bookingRestriction === 'public' && (
+                  <div className="bg-gradient-to-r from-earth-50 to-forest-50 rounded-lg p-4 border border-earth-200">
+                    <p className="text-sm text-forest-700 leading-relaxed">
+                      <strong>Your space will be available to everyone globally.</strong> This is great for virtual events,
+                      welcoming travelers, or when you want to connect with the broader community. Your exact address
+                      will still only be shared with confirmed bookings.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 

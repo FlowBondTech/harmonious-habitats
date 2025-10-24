@@ -65,8 +65,11 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
   }, [isVisible]);
 
   const handleSignOut = async () => {
-    await signOut();
+    // Close dropdown immediately to prevent awkward animation
     setShowProfileDropdown(false);
+    // Wait a moment for animation to complete
+    await new Promise(resolve => setTimeout(resolve, 200));
+    await signOut();
     navigate('/');
   };
 
@@ -98,7 +101,7 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
             )}
             
             <Link to="/" className="flex items-center">
-              <h1 className="text-lg font-bold text-forest-700 dark:text-forest-300">Harmonious Habitats</h1>
+              <h1 className="text-lg font-bold text-forest-700 dark:text-forest-300">Harmonik Space</h1>
             </Link>
           </div>
 
@@ -138,67 +141,88 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                 />
               </button>
 
-              {/* Dropdown Menu */}
+              {/* Profile Menu - Mobile Full Screen Modal */}
               {showProfileDropdown && (
-                <div className="absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-[9999] max-w-[calc(100vw-2rem)]" style={{ top: '100%' }}>
-                  {/* User Info */}
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="text-sm font-medium text-gray-900">
-                      {profile?.full_name || 'User'}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                  </div>
+                <>
+                  {/* Backdrop - Mobile Only */}
+                  <div
+                    className="sm:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] transition-opacity duration-300"
+                    onClick={() => setShowProfileDropdown(false)}
+                  />
 
-                  {/* Menu Items */}
-                  <div className="py-1">
-                    <Link
-                      to="/profile"
-                      onClick={() => setShowProfileDropdown(false)}
-                      className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <User className="h-4 w-4" />
-                      <span>Profile</span>
-                    </Link>
-
-                    <Link
-                      to="/create-event"
-                      onClick={() => setShowProfileDropdown(false)}
-                      className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <CalendarPlus className="h-4 w-4" />
-                      <span>Create Event</span>
-                    </Link>
-
-                    <Link
-                      to="/"
-                      onClick={() => setShowProfileDropdown(false)}
-                      className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Home className="h-4 w-4" />
-                      <span>Home</span>
-                    </Link>
-
-                    <Link
-                      to="/settings"
-                      onClick={() => setShowProfileDropdown(false)}
-                      className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Settings className="h-4 w-4" />
-                      <span>Settings</span>
-                    </Link>
-                  </div>
-
-                  {/* Sign Out */}
-                  <div className="border-t border-gray-100 pt-1">
+                  {/* Menu Content */}
+                  <div className="sm:absolute fixed sm:right-0 sm:mt-2 inset-x-0 bottom-0 sm:inset-auto sm:w-72 bg-white sm:rounded-xl rounded-t-3xl shadow-2xl border-t sm:border border-gray-200 py-2 z-[70] animate-slide-up sm:animate-none sm:max-h-[90vh] sm:overflow-y-auto">
+                    {/* Close Button - Mobile Only */}
                     <button
-                      onClick={handleSignOut}
-                      className="flex items-center space-x-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
+                      onClick={() => setShowProfileDropdown(false)}
+                      className="sm:hidden absolute top-2 right-2 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                      aria-label="Close menu"
                     >
-                      <LogOut className="h-4 w-4" />
-                      <span>Sign Out</span>
+                      <X className="h-5 w-5" />
                     </button>
+
+                    {/* User Info */}
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-900">
+                        {profile?.full_name || 'User'}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="py-1">
+                      <Link
+                        to="/profile"
+                        onClick={() => setShowProfileDropdown(false)}
+                        className="flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                      >
+                        <User className="h-5 w-5" />
+                        <span>Profile</span>
+                      </Link>
+
+                      <Link
+                        to="/create-event"
+                        onClick={() => setShowProfileDropdown(false)}
+                        className="flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                      >
+                        <CalendarPlus className="h-5 w-5" />
+                        <span>Create Event</span>
+                      </Link>
+
+                      <Link
+                        to="/"
+                        onClick={() => setShowProfileDropdown(false)}
+                        className="flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                      >
+                        <Home className="h-5 w-5" />
+                        <span>Home</span>
+                      </Link>
+
+                      <Link
+                        to="/settings"
+                        onClick={() => setShowProfileDropdown(false)}
+                        className="flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                      >
+                        <Settings className="h-5 w-5" />
+                        <span>Settings</span>
+                      </Link>
+                    </div>
+
+                    {/* Sign Out */}
+                    <div className="border-t border-gray-100 pt-1">
+                      <button
+                        onClick={handleSignOut}
+                        className="flex items-center space-x-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 active:bg-red-100 transition-colors w-full text-left"
+                      >
+                        <LogOut className="h-5 w-5" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+
+                    {/* Safe Area Padding - Mobile Only */}
+                    <div className="sm:hidden h-safe-area-inset-bottom" />
                   </div>
-                </div>
+                </>
               )}
             </div>
           ) : (

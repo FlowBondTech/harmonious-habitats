@@ -40,7 +40,7 @@ export default function TestApp() {
 
   return (
     <div style={{ padding: '2rem', fontFamily: 'system-ui' }}>
-      <h1>Harmonious Habitats - Test Page</h1>
+      <h1>Harmonik Space - Test Page</h1>
       <div>
         <h2>Status:</h2>
         {status.map((msg, i) => (

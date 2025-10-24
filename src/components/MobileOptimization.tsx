@@ -81,7 +81,7 @@ const MobileOptimization: React.FC<MobileOptimizationProps> = ({ children }) => 
                 <Smartphone className="h-6 w-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="heading-md text-forest-800 mb-2">Install Harmonious Habitats</h4>
+                <h4 className="heading-md text-forest-800 mb-2">Install Harmonik Space</h4>
                 <p className="body-sm text-forest-600 mb-4 leading-relaxed">
                   Get quick access, offline features, and native notifications by installing our app!
                 </p>

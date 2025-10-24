@@ -206,7 +206,7 @@ export const FacilitatorOnboardingWizard: React.FC<{
 
             <div>
               <h2 className="text-3xl font-bold text-forest-800 mb-3">
-                Welcome to Harmonious Habitats Facilitators
+                Welcome to Harmonik Space Facilitators
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 Join our community of passionate facilitators and share your gifts with the world

@@ -94,7 +94,7 @@ const CommunityFeatures: React.FC<CommunityFeaturesProps> = ({ isOpen, onClose }
           .from('event_participants')
           .select('participant_id, event_id', { count: 'exact' })
           .gte('created_at', weekAgoISO)
-          .eq('status', 'confirmed')
+          .eq('status', 'registered')
           .then(res => res.data?.length || 0)
           .catch(() => 0),
         

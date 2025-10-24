@@ -290,7 +290,7 @@ const AdminDashboard = () => {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-forest-800">Admin Dashboard</h1>
-              <p className="text-forest-600">Manage your Harmonious Habitats community</p>
+              <p className="text-forest-600">Manage your Harmonik Space community</p>
             </div>
           </div>
 
