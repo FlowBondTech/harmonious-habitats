@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Clock, Users, Badge, BookmarkPlus, Share2, Heart, Star } from 'lucide-react';
+import { MapPin, Clock, Users, Badge, BookmarkPlus, Share2, Heart, Star, Crown, Trophy, Medal, Award } from 'lucide-react';
 import { useAuthContext } from './AuthProvider';
 import { supabase, Event } from '../lib/supabase';
 import { logger } from '../lib/logger';
@@ -63,21 +63,36 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     let dateStr = '';
     if (eventDate.toDateString() === today.toDateString()) {
       dateStr = 'Today';
     } else if (eventDate.toDateString() === tomorrow.toDateString()) {
       dateStr = 'Tomorrow';
     } else {
-      dateStr = eventDate.toLocaleDateString('en-US', { 
-        weekday: 'short', 
-        month: 'short', 
-        day: 'numeric' 
+      dateStr = eventDate.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
       });
     }
-    
+
     return `${dateStr}, ${startTime}${endTime ? ` - ${endTime}` : ''}`;
+  };
+
+  const getAmbassadorBadge = (tier?: string) => {
+    switch (tier) {
+      case 'platinum':
+        return { icon: Crown, color: 'text-purple-600', bg: 'bg-purple-100', label: 'Platinum Ambassador' };
+      case 'gold':
+        return { icon: Trophy, color: 'text-yellow-600', bg: 'bg-yellow-100', label: 'Gold Ambassador' };
+      case 'silver':
+        return { icon: Medal, color: 'text-gray-500', bg: 'bg-gray-100', label: 'Silver Ambassador' };
+      case 'bronze':
+        return { icon: Award, color: 'text-orange-600', bg: 'bg-orange-100', label: 'Bronze Ambassador' };
+      default:
+        return null;
+    }
   };
 
   const handleJoinEvent = async (e?: React.MouseEvent) => {
@@ -257,6 +272,22 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
             <div className="flex items-center text-forest-600">
               <Star className="h-4 w-4 mr-1.5 text-earth-400 fill-current" />
               <span className="body-sm font-medium">{event.organizer?.full_name || 'Community Organizer'}</span>
+              {event.organizer?.is_brand_ambassador && event.organizer?.ambassador_tier && (() => {
+                const badge = getAmbassadorBadge(event.organizer.ambassador_tier);
+                if (!badge) return null;
+                const BadgeIcon = badge.icon;
+                return (
+                  <div
+                    className={`ml-2 ${badge.bg} ${badge.color} px-2 py-0.5 rounded-full flex items-center gap-1`}
+                    title={badge.label}
+                  >
+                    <BadgeIcon className="h-3 w-3" />
+                    <span className="text-[10px] font-bold uppercase">
+                      {event.organizer.ambassador_tier}
+                    </span>
+                  </div>
+                );
+              })()}
             </div>
           </div>
           

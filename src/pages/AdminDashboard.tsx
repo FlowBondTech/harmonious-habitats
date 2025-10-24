@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Shield, 
-  Users, 
-  Calendar, 
-  Home, 
-  MessageSquare, 
-  AlertTriangle, 
-  TrendingUp, 
+import { useNavigate } from 'react-router-dom';
+import {
+  Shield,
+  Users,
+  Calendar,
+  Home,
+  MessageSquare,
+  AlertTriangle,
+  TrendingUp,
   Settings,
   Search,
   MoreVertical,
@@ -25,7 +26,8 @@ import {
   RefreshCw,
   Bell,
   Globe,
-  Zap
+  Zap,
+  Award
 } from 'lucide-react';
 import { 
   getProfilesCountWithChange, 
@@ -48,6 +50,7 @@ import { UserRatingModal } from '../components/UserRatingModal';
 
 const AdminDashboard = () => {
   const { user, profile, loading: authLoading } = useAuthContext();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
@@ -293,11 +296,18 @@ const AdminDashboard = () => {
 
           {/* Quick Actions */}
           <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => navigate('/admin/brand-ambassadors')}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-2 rounded-xl transition-colors flex items-center space-x-2"
+            >
+              <Award className="h-4 w-4" />
+              <span>Brand Ambassadors</span>
+            </button>
             <button className="bg-white hover:bg-forest-50 text-forest-700 px-4 py-2 rounded-xl border border-forest-200 transition-colors flex items-center space-x-2">
               <Download className="h-4 w-4" />
               <span>Export Data</span>
             </button>
-            <button 
+            <button
               onClick={refreshData}
               disabled={refreshing}
               className="bg-white hover:bg-forest-50 text-forest-700 px-4 py-2 rounded-xl border border-forest-200 transition-colors flex items-center space-x-2 disabled:opacity-50"

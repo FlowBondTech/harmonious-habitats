@@ -106,7 +106,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
           user:profiles!event_participants_user_id_fkey(id, full_name, avatar_url, verified)
         `)
         .eq('event_id', event.id)
-        .eq('status', 'confirmed');
+        .eq('status', 'registered');
 
       setParticipants(data || []);
     } catch (error) {
@@ -182,7 +182,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
         .insert([{
           event_id: event.id,
           user_id: user.id,
-          status: 'confirmed'
+          status: 'registered'
         }]);
 
       if (joinError) {
@@ -642,7 +642,18 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                           {loading ? 'Leaving...' : 'Leave Event'}
                         </button>
                       )}
-                      
+
+                      {/* Check-In Attendees Button (for organizers) */}
+                      {user?.id === event.organizer_id && (
+                        <button
+                          onClick={() => navigate(`/events/${event.id}/checkin`)}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+                        >
+                          <Users className="h-5 w-5" />
+                          <span>Check-In Attendees</span>
+                        </button>
+                      )}
+
                       <div className="flex space-x-2">
                         <button
                           onClick={toggleFavorite}
@@ -655,7 +666,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                           <Heart className={`icon-sm ${isFavorited ? 'fill-current' : ''}`} />
                           <span>{isFavorited ? 'Favorited' : 'Favorite'}</span>
                         </button>
-                        
+
                         <button className="flex-1 btn-outline btn-sm focus-ring !bg-forest-100 !text-forest-700 hover:!bg-forest-200 flex items-center justify-center space-x-2">
                           <Share2 className="icon-sm" />
                           <span>Share</span>

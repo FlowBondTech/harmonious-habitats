@@ -42,6 +42,9 @@ const SpaceHolderDashboard = lazy(() => import('./pages/SpaceHolderDashboard'));
 const BecomeFacilitator = lazy(() => import('./pages/BecomeFacilitator'));
 const HyperlocalEvents = lazy(() => import('./pages/HyperlocalEvents'));
 const LocationStats = lazy(() => import('./pages/LocationStats'));
+const EventCheckIn = lazy(() => import('./pages/EventCheckIn'));
+const Onboard = lazy(() => import('./pages/Onboard'));
+const BrandAmbassadors = lazy(() => import('./pages/BrandAmbassadors'));
 
 // Layout component that wraps all routes
 const RootLayout = () => {
@@ -265,12 +268,32 @@ const router = createBrowserRouter([
         )
       },
       {
+        path: 'admin/brand-ambassadors',
+        element: (
+          <ProtectedRoute>
+            <BrandAmbassadors />
+          </ProtectedRoute>
+        )
+      },
+      {
         path: 'events/:eventId/feedback',
         element: (
           <ProtectedRoute>
             <EventFeedbackForm />
           </ProtectedRoute>
         )
+      },
+      {
+        path: 'events/:eventId/checkin',
+        element: (
+          <ProtectedRoute>
+            <EventCheckIn />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: 'onboard',
+        element: <Onboard />
       },
       {
         path: 'calendar',

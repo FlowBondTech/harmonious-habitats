@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, MapPin, Settings, Badge, Star, Calendar, CalendarPlus, Users, Heart, Edit, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Clock, Award, CheckCircle, MessageCircle, Share2, Image, Home as HomeIcon, Globe, Map, GraduationCap, Package, Briefcase, Languages, Accessibility, X, BarChart3, Mail, Lock, CreditCard, DollarSign, UserCircle, Activity, Smartphone, UserPlus, Crown } from 'lucide-react';
+import { User, MapPin, Settings, Badge, Star, Calendar, CalendarPlus, Users, Heart, Edit, Target, Sprout, Bot as Lotus, ChefHat, Palette, Stethoscope, Music, Shield, Bell, Clock, Award, CheckCircle, MessageCircle, Share2, Image, Home as HomeIcon, Globe, Map, GraduationCap, Package, Briefcase, Languages, Accessibility, X, BarChart3, Mail, Lock, CreditCard, DollarSign, UserCircle, Activity, Smartphone, UserPlus, Crown, Trophy, Medal } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
 import { updateProfile, supabase } from '../lib/supabase';
 import { Link, useLocation } from 'react-router-dom';
@@ -75,6 +75,21 @@ const Profile = () => {
 
   const [showAchievements, setShowAchievements] = useState(false);
 
+  const getAmbassadorBadge = (tier?: string | null) => {
+    switch (tier) {
+      case 'platinum':
+        return { icon: Crown, color: 'text-purple-600', bg: 'bg-purple-100', border: 'border-purple-300', label: 'Platinum Ambassador' };
+      case 'gold':
+        return { icon: Trophy, color: 'text-yellow-600', bg: 'bg-yellow-100', border: 'border-yellow-300', label: 'Gold Ambassador' };
+      case 'silver':
+        return { icon: Medal, color: 'text-gray-500', bg: 'bg-gray-100', border: 'border-gray-300', label: 'Silver Ambassador' };
+      case 'bronze':
+        return { icon: Award, color: 'text-orange-600', bg: 'bg-orange-100', border: 'border-orange-300', label: 'Bronze Ambassador' };
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-forest-50 to-earth-50">
       <div className="container-responsive py-6 sm:py-8">
@@ -119,7 +134,27 @@ const Profile = () => {
                   </div>
                 </div>
                 <div className="text-center lg:text-left mt-4 lg:mt-0 flex-1">
-                  <h1 className="text-2xl lg:text-3xl font-bold text-forest-800">{profile.full_name || profile.username || 'Community Member'}</h1>
+                  <div className="flex items-center justify-center lg:justify-start gap-3">
+                    <h1 className="text-2xl lg:text-3xl font-bold text-forest-800">
+                      {profile.full_name || profile.username || 'Community Member'}
+                    </h1>
+                    {profile.is_brand_ambassador && profile.ambassador_tier && (() => {
+                      const badge = getAmbassadorBadge(profile.ambassador_tier);
+                      if (!badge) return null;
+                      const BadgeIcon = badge.icon;
+                      return (
+                        <div
+                          className={`${badge.bg} ${badge.color} px-3 py-1.5 rounded-full flex items-center gap-2 border ${badge.border}`}
+                          title={badge.label}
+                        >
+                          <BadgeIcon className="h-4 w-4" />
+                          <span className="text-xs font-bold uppercase">
+                            {profile.ambassador_tier}
+                          </span>
+                        </div>
+                      );
+                    })()}
+                  </div>
                   <p className="text-forest-600 text-lg mt-1">{profile.bio || 'Holistic wellness enthusiast'}</p>
                   <div className="flex items-center justify-center lg:justify-start mt-2 text-forest-600">
                     <MapPin className="h-4 w-4 mr-1" />

@@ -1395,7 +1395,7 @@ export const getNeighborhoods = async (filters?: {
     .from('neighborhoods')
     .select(`
       *,
-      creator:profiles!neighborhoods_created_by_fkey(id, full_name, avatar_url, verified)
+      creator:created_by(id, full_name, avatar_url, verified)
     `)
   
   if (filters?.is_active !== undefined) {
@@ -1422,7 +1422,7 @@ export const getNeighborhoodBySlug = async (slug: string) => {
     .from('neighborhoods')
     .select(`
       *,
-      creator:profiles!neighborhoods_created_by_fkey(id, full_name, avatar_url, verified)
+      creator:created_by(id, full_name, avatar_url, verified)
     `)
     .eq('slug', slug)
     .single()
@@ -3073,4 +3073,411 @@ export const getMyAdminRatings = async (adminId: string) => {
     .order('created_at', { ascending: false })
 
   return { data, error }
+}
+
+// ======================================================================
+// QUICK REGISTRATION & REFERRAL TRACKING SYSTEM
+// ======================================================================
+
+// Extend EventParticipant interface with new quick registration fields
+export interface EventParticipantWithQuickReg extends EventParticipant {
+  verification_status?: 'pending' | 'verified' | 'expired'
+  verification_token?: string
+  verification_sent_at?: string
+  verified_at?: string
+  pending_name?: string
+  pending_email?: string
+  referred_by?: string
+  registered_via?: 'in-person' | 'online' | 'qr-code'
+}
+
+// Referral stats interface
+export interface ReferralStats {
+  user_id: string
+  total_referrals: number
+  completed_referrals: number
+  pending_referrals: number
+  conversion_rate: number
+  last_referral_at?: string
+  updated_at: string
+}
+
+// Quick registration response interface
+export interface QuickRegistrationResponse {
+  registration_id: string
+  verification_token: string | null
+  success: boolean
+  message: string
+}
+
+// Verification response interface
+export interface VerificationResponse {
+  success: boolean
+  message: string
+  event_id: string | null
+  event_title: string | null
+}
+
+// Referral leaderboard entry interface
+export interface ReferralLeaderboardEntry {
+  user_id: string
+  full_name: string
+  avatar_url?: string
+  total_referrals: number
+  completed_referrals: number
+  conversion_rate: number
+  rank: number
+}
+
+// User referral details interface
+export interface UserReferralDetails {
+  referred_user_id: string
+  full_name?: string
+  email?: string
+  avatar_url?: string
+  referral_source?: 'event' | 'direct_link' | 'ambassador' | 'organic'
+  referral_event_id?: string
+  event_title?: string
+  onboarding_completed: boolean
+  created_at: string
+}
+
+// ======================================================================
+// QUICK REGISTRATION FUNCTIONS
+// ======================================================================
+
+/**
+ * Create a quick registration for an in-person event check-in
+ * Generates magic link verification token for new users
+ */
+export const createQuickRegistration = async (
+  eventId: string,
+  name: string,
+  email: string,
+  referrerId: string
+): Promise<{ data: QuickRegistrationResponse | null; error: any }> => {
+  try {
+    const { data, error } = await supabase
+      .rpc('create_quick_registration', {
+        p_event_id: eventId,
+        p_name: name,
+        p_email: email,
+        p_referrer_id: referrerId
+      })
+
+    if (error) throw error
+
+    // Return first row from the result
+    return { data: data?.[0] || null, error: null }
+  } catch (error) {
+    logError(error as Error, 'createQuickRegistration')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Verify a registration token and complete event registration
+ */
+export const verifyRegistrationToken = async (
+  token: string,
+  userId: string
+): Promise<{ data: VerificationResponse | null; error: any }> => {
+  try {
+    const { data, error } = await supabase
+      .rpc('verify_registration_token', {
+        p_token: token,
+        p_user_id: userId
+      })
+
+    if (error) throw error
+
+    // Return first row from the result
+    return { data: data?.[0] || null, error: null }
+  } catch (error) {
+    logError(error as Error, 'verifyRegistrationToken')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Get pending registrations for an event (organizers only)
+ */
+export const getPendingRegistrations = async (eventId: string) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_pending_registrations', {
+        p_event_id: eventId
+      })
+
+    if (error) throw error
+
+    return { data: data || [], error: null }
+  } catch (error) {
+    logError(error as Error, 'getPendingRegistrations')
+    return { data: [], error }
+  }
+}
+
+// ======================================================================
+// REFERRAL TRACKING FUNCTIONS
+// ======================================================================
+
+/**
+ * Get referral stats for a user
+ */
+export const getReferralStats = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('referral_stats')
+    .select('*')
+    .eq('user_id', userId)
+    .single()
+
+  return { data, error }
+}
+
+/**
+ * Get referral leaderboard (top referrers)
+ */
+export const getReferralLeaderboard = async (limit: number = 10) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_referral_leaderboard', {
+        p_limit: limit
+      })
+
+    if (error) throw error
+
+    return { data: data || [], error: null }
+  } catch (error) {
+    logError(error as Error, 'getReferralLeaderboard')
+    return { data: [], error }
+  }
+}
+
+/**
+ * Get details of users referred by a specific user
+ */
+export const getUserReferrals = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_user_referrals', {
+        p_user_id: userId
+      })
+
+    if (error) throw error
+
+    return { data: data || [], error: null }
+  } catch (error) {
+    logError(error as Error, 'getUserReferrals')
+    return { data: [], error }
+  }
+}
+
+/**
+ * Mark user's onboarding as completed
+ * This updates referral stats automatically via database triggers
+ */
+export const completeOnboarding = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('complete_onboarding', {
+        p_user_id: userId
+      })
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error) {
+    logError(error as Error, 'completeOnboarding')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Track a referral when a user registers
+ * Used during the registration flow
+ */
+export const trackReferral = async (
+  userId: string,
+  referredBy: string,
+  referralSource: 'event' | 'direct_link' | 'ambassador' | 'organic',
+  referralEventId?: string
+) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('track_referral_on_registration', {
+        p_user_id: userId,
+        p_referred_by: referredBy,
+        p_referral_source: referralSource,
+        p_referral_event_id: referralEventId || null
+      })
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error) {
+    logError(error as Error, 'trackReferral')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Manually update referral stats for a user
+ * (Usually handled automatically by database triggers)
+ */
+export const updateReferralStats = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('update_referral_stats', {
+        p_user_id: userId
+      })
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error) {
+    logError(error as Error, 'updateReferralStats')
+    return { data: null, error }
+  }
+}
+
+// ======================================================================
+// BRAND AMBASSADOR SYSTEM
+// ======================================================================
+
+// Brand ambassador tier type
+export type AmbassadorTier = 'bronze' | 'silver' | 'gold' | 'platinum'
+
+// Brand ambassador interface
+export interface BrandAmbassador {
+  user_id: string
+  full_name?: string
+  email?: string
+  avatar_url?: string
+  ambassador_tier?: AmbassadorTier
+  ambassador_since?: string
+  total_referrals: number
+  completed_referrals: number
+  conversion_rate: number
+}
+
+// Ambassador event interface
+export interface AmbassadorEvent {
+  event_id: string
+  title: string
+  description?: string
+  date: string
+  start_time: string
+  end_time: string
+  location_name?: string
+  organizer_name?: string
+  participant_count: number
+}
+
+/**
+ * Get all brand ambassadors
+ * Optionally filter by tier
+ */
+export const getBrandAmbassadors = async (tier?: AmbassadorTier) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_brand_ambassadors', {
+        p_tier: tier || null
+      })
+
+    if (error) throw error
+
+    return { data: data || [], error: null }
+  } catch (error: any) {
+    logError(error as Error, 'getBrandAmbassadors')
+    return { data: [], error }
+  }
+}
+
+/**
+ * Get ambassador-only events for a user
+ * Only returns events if user is an ambassador
+ */
+export const getAmbassadorEvents = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_ambassador_events', {
+        p_user_id: userId
+      })
+
+    if (error) throw error
+
+    return { data: data || [], error: null }
+  } catch (error: any) {
+    logError(error as Error, 'getAmbassadorEvents')
+    return { data: [], error }
+  }
+}
+
+/**
+ * Manually promote a user to brand ambassador (admin only)
+ */
+export const adminPromoteToAmbassador = async (
+  userId: string,
+  tier: AmbassadorTier = 'bronze',
+  notes?: string
+) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('admin_promote_to_ambassador', {
+        p_user_id: userId,
+        p_tier: tier,
+        p_notes: notes || null
+      })
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'adminPromoteToAmbassador')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Remove ambassador status from a user (admin only)
+ */
+export const adminRemoveAmbassador = async (
+  userId: string,
+  reason?: string
+) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('admin_remove_ambassador', {
+        p_user_id: userId,
+        p_reason: reason || null
+      })
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'adminRemoveAmbassador')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Update ambassador status based on current referral stats (manual trigger)
+ * Normally handled automatically by database triggers
+ */
+export const updateAmbassadorStatus = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('update_ambassador_status', {
+        p_user_id: userId
+      })
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'updateAmbassadorStatus')
+    return { data: null, error }
+  }
 }
