@@ -65,6 +65,13 @@ const EmailCollectionForm: React.FC = () => {
       if (error) throw error
 
       setSent(true)
+
+      // Auto-reset after 5 seconds for public/shared devices
+      setTimeout(() => {
+        setSent(false)
+        setEmail('')
+        setError(null)
+      }, 5000)
     } catch (err: any) {
       console.error('Error sending magic link:', err)
       setError(err.message || 'Failed to send login link. Please try again.')
@@ -82,10 +89,13 @@ const EmailCollectionForm: React.FC = () => {
           </div>
           <h3 className="text-xl font-semibold text-forest-800 mb-2">Check Your Email!</h3>
           <p className="text-forest-600 mb-4">
-            We've sent a magic link to <span className="font-semibold">{email}</span>
+            We've sent you a secure login link.
           </p>
           <p className="text-sm text-forest-500">
             Click the link in your email to continue setting up your profile on your device.
+          </p>
+          <p className="text-xs text-forest-400 mt-4">
+            This form will reset in a few seconds...
           </p>
         </div>
       </div>
