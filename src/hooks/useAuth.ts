@@ -75,7 +75,7 @@ export const useAuth = () => {
 
     try {
       // First ensure profile exists
-      const { data: ensureData, error: ensureError } = await supabase
+      const { error: ensureError } = await supabase
         .rpc('ensure_profile_exists', { user_id: userId })
 
       if (ensureError) {
@@ -134,7 +134,7 @@ export const useAuth = () => {
       return { data, error }
     } catch (error) {
       logError(error as Error, 'signInWithOTP')
-      return { data: null, error: error as any }
+      return { data: null, error: error instanceof Error ? error : new Error('Unknown error') }
     }
   }
 

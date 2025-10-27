@@ -1,6 +1,7 @@
 import React from 'react';
 import { useRouteError, useNavigate, isRouteErrorResponse } from 'react-router-dom';
 import { AlertTriangle, Home, RefreshCw, Bug } from 'lucide-react';
+import { logError } from '../lib/logger';
 
 export function ErrorBoundary() {
   const error = useRouteError();
@@ -148,7 +149,10 @@ export class ErrorBoundaryClass extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    logError(error, 'ErrorBoundaryClass', {
+      componentStack: errorInfo.componentStack,
+      errorInfo
+    });
   }
 
   render() {

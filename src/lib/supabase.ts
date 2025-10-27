@@ -34,6 +34,13 @@ console.log('Supabase configured with URL:', supabaseUrl.replace(/https:\/\/([^.
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Database types
+export interface Activity {
+  type: 'event_attended' | 'space_shared' | 'message_sent' | 'profile_updated' | 'review_given'
+  timestamp: string
+  description: string
+  related_id?: string
+}
+
 export interface Profile {
   id: string
   created_at: string
@@ -100,7 +107,7 @@ export interface Profile {
   hours_contributed?: number
   neighbors_met_count?: number
   // Activity & Achievements
-  recent_activities?: any[]
+  recent_activities?: Activity[]
   achievements?: {
     first_event: boolean
     host_event: boolean
@@ -335,7 +342,7 @@ export interface Event {
   // Metadata
   tags?: string[]
   holistic_categories?: string[]
-  submission_metadata?: any
+  submission_metadata?: Record<string, unknown>
   cancellation_reason?: string
   cancellation_date?: string
   completion_notes?: string
