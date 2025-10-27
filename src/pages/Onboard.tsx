@@ -46,6 +46,26 @@ const EmailCollectionForm: React.FC = () => {
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Cleanup timer on unmount to prevent memory leaks
+  useEffect(() => {
+    let resetTimer: NodeJS.Timeout | null = null
+
+    if (sent) {
+      // Auto-reset after 5 seconds for public/shared devices
+      resetTimer = setTimeout(() => {
+        setSent(false)
+        setEmail('')
+        setError(null)
+      }, 5000)
+    }
+
+    return () => {
+      if (resetTimer) {
+        clearTimeout(resetTimer)
+      }
+    }
+  }, [sent])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim()) return
@@ -65,16 +85,10 @@ const EmailCollectionForm: React.FC = () => {
       if (error) throw error
 
       setSent(true)
-
-      // Auto-reset after 5 seconds for public/shared devices
-      setTimeout(() => {
-        setSent(false)
-        setEmail('')
-        setError(null)
-      }, 5000)
-    } catch (err: any) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'
       console.error('Error sending magic link:', err)
-      setError(err.message || 'Failed to send login link. Please try again.')
+      setError(errorMessage || 'Failed to send login link. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -82,9 +96,13 @@ const EmailCollectionForm: React.FC = () => {
 
   if (sent) {
     return (
-      <div className="bg-white rounded-2xl p-8 shadow-xl border border-forest-200 max-w-md mx-auto">
+      <div
+        className="bg-white rounded-2xl p-8 shadow-xl border border-forest-200 max-w-md mx-auto"
+        role="status"
+        aria-live="polite"
+      >
         <div className="text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
           <h3 className="text-xl font-semibold text-forest-800 mb-2">Check Your Email!</h3>
@@ -94,7 +112,7 @@ const EmailCollectionForm: React.FC = () => {
           <p className="text-sm text-forest-500">
             Click the link in your email to continue setting up your profile on your device.
           </p>
-          <p className="text-xs text-forest-400 mt-4">
+          <p className="text-xs text-forest-400 mt-4" aria-live="polite">
             This form will reset in a few seconds...
           </p>
         </div>
@@ -105,7 +123,7 @@ const EmailCollectionForm: React.FC = () => {
   return (
     <div className="bg-white rounded-2xl p-8 shadow-xl border border-forest-200 max-w-md mx-auto">
       <div className="text-center mb-6">
-        <div className="w-16 h-16 bg-gradient-to-br from-forest-500 to-earth-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-gradient-to-br from-forest-500 to-earth-500 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
           <Mail className="w-8 h-8 text-white" />
         </div>
         <h3 className="text-2xl font-bold text-forest-800 mb-2">Get Started</h3>
@@ -114,7 +132,7 @@ const EmailCollectionForm: React.FC = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" aria-label="Email login form">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-forest-700 mb-2">
             Email Address
@@ -122,16 +140,26 @@ const EmailCollectionForm: React.FC = () => {
           <input
             type="email"
             id="email"
+            name="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             required
+            autoComplete="email"
+            aria-required="true"
+            aria-invalid={!!error}
+            aria-describedby={error ? 'email-error' : undefined}
             className="w-full px-4 py-3 border border-forest-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
           />
         </div>
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          <div
+            id="email-error"
+            role="alert"
+            aria-live="assertive"
+            className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"
+          >
             {error}
           </div>
         )}
@@ -139,16 +167,18 @@ const EmailCollectionForm: React.FC = () => {
         <button
           type="submit"
           disabled={loading || !email.trim()}
+          aria-busy={loading}
+          aria-label={loading ? 'Sending login link' : 'Send login link to your email'}
           className="w-full bg-gradient-to-r from-forest-600 to-earth-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-forest-700 hover:to-earth-700 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
         >
           {loading ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
               <span>Sending...</span>
             </>
           ) : (
             <>
-              <Send className="w-5 h-5" />
+              <Send className="w-5 h-5" aria-hidden="true" />
               <span>Send Login Link</span>
             </>
           )}
