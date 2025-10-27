@@ -486,9 +486,10 @@ const Onboard: React.FC = () => {
 
         // Show onboarding wizard
         setProfile(profileData)
-      } catch (error: any) {
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load onboarding'
         console.error('Onboarding error:', error)
-        setError(error.message || 'Failed to load onboarding')
+        setError(errorMessage)
       } finally {
         setLoading(false)
       }
