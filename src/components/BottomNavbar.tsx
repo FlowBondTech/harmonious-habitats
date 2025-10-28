@@ -22,7 +22,7 @@ interface NavItem {
 const BottomNavbar: React.FC = () => {
   const location = useLocation();
   const { user, openAuthModalGlobal } = useAuthContext();
-  const [unreadMessages] = React.useState(2); // TODO: Get from actual data
+  const [unreadMessages] = React.useState(1); // TODO: Get from actual data
 
   // Define navigation items
   const navItems: NavItem[] = [

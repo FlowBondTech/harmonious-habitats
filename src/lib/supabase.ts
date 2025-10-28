@@ -2717,7 +2717,7 @@ export const markMessageAsRead = async (messageId: string) => {
 export const getUnreadMessageCount = async (userId: string) => {
   // Demo mode - return mock unread count
   if (DEMO_MODE) {
-    return { count: 2, error: null }
+    return { count: 1, error: null }
   }
 
   const { count, error } = await supabase

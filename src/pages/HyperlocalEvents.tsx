@@ -286,7 +286,7 @@ const mockEvents: ExternalEvent[] = [
     location: 'Brooklyn Community Garden',
     url: 'https://eventbrite.com/event/456',
     imageUrl: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400',
-    attendees: 15,
+    attendees: 18,
     distance: 2.1
   },
   {
@@ -297,7 +297,7 @@ const mockEvents: ExternalEvent[] = [
     date: new Date(Date.now() + 259200000).toISOString(),
     location: '123 Main St, Apt 4B',
     url: 'https://partiful.com/event/789',
-    attendees: 30,
+    attendees: 42,
     distance: 0.3
   },
   {
@@ -309,7 +309,7 @@ const mockEvents: ExternalEvent[] = [
     location: 'Riverside Gallery',
     url: 'https://facebook.com/events/012',
     imageUrl: 'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?w=400',
-    attendees: 75,
+    attendees: 48,
     distance: 1.5
   },
   {

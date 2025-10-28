@@ -111,7 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
     { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
     { path: '/event-templates', icon: FileText, label: 'My Templates' },
     { path: '/activities', icon: Calendar, label: 'My Activities' },
-    { path: '/messages', icon: MessageCircle, label: 'Messages', badge: 3 },
+    { path: '/messages', icon: MessageCircle, label: 'Messages', badge: 1 },
     { path: '/profile', icon: User, label: 'Profile' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ] : [

@@ -160,7 +160,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onShareClick }
     { path: '/calendar', icon: Calendar, label: 'Calendar' },
     { path: '/create-event', icon: CalendarPlus, label: 'Create Event' },
     { path: '/activities', icon: Calendar, label: 'Activities' },
-    { path: '/messages', icon: MessageCircle, label: 'Messages', badge: 3 },
+    { path: '/messages', icon: MessageCircle, label: 'Messages', badge: 1 },
     { path: '/profile', icon: User, label: 'Profile' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];

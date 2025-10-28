@@ -367,9 +367,9 @@ const CommunityFeatures: React.FC<CommunityFeaturesProps> = ({ isOpen, onClose }
                     <h4 className="font-semibold text-forest-800 mb-4">Top Contributors</h4>
                     <div className="space-y-3">
                       {[
-                        { name: 'Sarah Chen', events: 12, rating: 4.9 },
-                        { name: 'Michael Rodriguez', events: 8, rating: 4.8 },
-                        { name: 'Emma Thompson', events: 6, rating: 4.9 }
+                        { name: 'Sarah Chen', events: 7, rating: 4.9 },
+                        { name: 'Michael Rodriguez', events: 6, rating: 4.8 },
+                        { name: 'Emma Thompson', events: 5, rating: 4.9 }
                       ].map((contributor, index) => (
                         <div key={index} className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">

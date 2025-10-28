@@ -24,9 +24,9 @@ const Search = () => {
   const [activeTab, setActiveTab] = useState('all');
   
   const savedSearches = [
-    { query: 'Yoga near me', date: '2 days ago', count: 12 },
-    { query: 'Community gardens', date: '1 week ago', count: 8 },
-    { query: 'Meditation spaces', date: '2 weeks ago', count: 5 }
+    { query: 'Yoga near me', date: '2 days ago', count: 7 },
+    { query: 'Community gardens', date: '1 week ago', count: 5 },
+    { query: 'Meditation spaces', date: '2 weeks ago', count: 4 }
   ];
 
   return (
