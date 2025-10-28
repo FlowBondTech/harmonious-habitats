@@ -52,6 +52,11 @@ const BottomNavbar: React.FC = () => {
     return true;
   };
 
+  // Don't show for unauthenticated users
+  if (!user) {
+    return null;
+  }
+
   // Don't show on certain pages
   const hiddenPaths = ['/admin', '/settings', '/create-event'];
   if (hiddenPaths.some(path => location.pathname.startsWith(path))) {
