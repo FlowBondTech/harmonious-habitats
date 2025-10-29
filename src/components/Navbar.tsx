@@ -231,7 +231,7 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
               className="h-9 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-forest-600 to-earth-600 hover:from-forest-700 hover:to-earth-700 rounded-lg transition-all transform hover:scale-105 inline-flex items-center shadow-md hover:shadow-lg"
             >
               <Sprout className="h-4 w-4 mr-2" />
-              Harmonize Now
+              Login
             </button>
           )}
         </div>

@@ -339,7 +339,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onShareClick }
                 className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-forest-600 to-earth-600 hover:from-forest-700 hover:to-earth-700 text-white rounded-lg transition-all transform hover:scale-105 font-semibold shadow-md hover:shadow-lg"
               >
                 <Sprout className="h-5 w-5" />
-                Harmonize Now
+                Login
               </button>
               <p className="text-xs text-center text-gray-500 mt-2">
                 One account for everything • No password needed
