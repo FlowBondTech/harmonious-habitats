@@ -465,7 +465,7 @@ const CreateEvent = () => {
     } catch (err: unknown) {
       console.error('Error in handleComplete:', err);
 
-      let errorMessage = 'Failed to create event';
+      let errorMessage = 'Unable to create event. Please try again or contact support if the problem persists.';
 
       if (err instanceof Error) {
         errorMessage = err.message;
@@ -476,13 +476,13 @@ const CreateEvent = () => {
           console.error('Error hint:', (err as any).hint);
 
           if ((err as any).code === '23505') {
-            errorMessage = 'An event with similar details already exists';
+            errorMessage = 'An event with these details already exists. Please check your event title and date, or try editing the existing event instead.';
           } else if ((err as any).code === '23503') {
-            errorMessage = 'Invalid reference to related data';
+            errorMessage = 'Invalid data reference. Please check that your space or template selections are valid and try again.';
           } else if ((err as any).code === '42501') {
-            errorMessage = 'You do not have permission to create events';
+            errorMessage = 'You don\'t have permission to create events. Please ensure your account is fully set up in your profile settings.';
           } else if ((err as any).code === 'PGRST301') {
-            errorMessage = 'Authentication error - please sign in again';
+            errorMessage = 'Your session has expired. Please sign in again to continue creating your event.';
           }
         }
       }

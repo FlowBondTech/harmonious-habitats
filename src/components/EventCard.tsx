@@ -240,22 +240,25 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
           </div>
           
           {/* Action Buttons */}
-          <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-y-0 translate-y-2">
-            <button 
+          <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 md:opacity-0 opacity-100">
+            <button
               onClick={handleBookmark}
-              className={`glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg focus-ring ${isBookmarked ? 'bg-earth-500 text-white' : 'text-forest-600'}`}
+              className={`glass p-3.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg focus-ring ${isBookmarked ? 'bg-earth-500 text-white' : 'text-forest-600'}`}
+              aria-label={isBookmarked ? "Remove bookmark" : "Bookmark event"}
             >
               <BookmarkPlus className="icon-sm" />
             </button>
-            <button 
+            <button
               onClick={handleShare}
-              className="glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg text-forest-600 focus-ring"
+              className="glass p-3.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg text-forest-600 focus-ring"
+              aria-label="Share event"
             >
               <Share2 className="icon-sm" />
             </button>
-            <button 
+            <button
               onClick={handleBookmark}
-              className={`glass p-2.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg focus-ring ${isBookmarked ? 'bg-red-500 text-white' : 'text-forest-600'}`}
+              className={`glass p-3.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg focus-ring ${isBookmarked ? 'bg-red-500 text-white' : 'text-forest-600'}`}
+              aria-label={isBookmarked ? "Unlike event" : "Like event"}
             >
               <Heart className="icon-sm" />
             </button>
