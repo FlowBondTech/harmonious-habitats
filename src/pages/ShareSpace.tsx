@@ -493,6 +493,31 @@ const ShareSpace = () => {
                 </div>
               </div>
 
+              {/* Holistic Categories */}
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-forest-800 border-b border-forest-100 pb-3">
+                  Use space for:
+                </h2>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {holisticCategories.map((category) => {
+                    const Icon = category.icon;
+                    return (
+                      <label key={category.id} className="flex items-center space-x-3 p-4 bg-forest-50 rounded-lg hover:bg-forest-100 transition-colors cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.holisticFriendly.includes(category.id)}
+                          onChange={() => toggleArrayItem('holisticFriendly', category.id)}
+                          className="w-4 h-4 text-forest-600 bg-forest-100 border-forest-300 rounded focus:ring-forest-500 focus:ring-2"
+                        />
+                        <Icon className="h-5 w-5 text-forest-600" />
+                        <span className="text-sm text-forest-700">{category.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-forest-700 mb-2">Description</label>
                 <textarea
@@ -862,31 +887,6 @@ const ShareSpace = () => {
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Holistic Categories */}
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-forest-800 border-b border-forest-100 pb-3">
-                Ideal for These Activities
-              </h2>
-              
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {holisticCategories.map((category) => {
-                  const Icon = category.icon;
-                  return (
-                    <label key={category.id} className="flex items-center space-x-3 p-4 bg-forest-50 rounded-lg hover:bg-forest-100 transition-colors cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.holisticFriendly.includes(category.id)}
-                        onChange={() => toggleArrayItem('holisticFriendly', category.id)}
-                        className="w-4 h-4 text-forest-600 bg-forest-100 border-forest-300 rounded focus:ring-forest-500 focus:ring-2"
-                      />
-                      <Icon className="h-5 w-5 text-forest-600" />
-                      <span className="text-sm text-forest-700">{category.name}</span>
-                    </label>
-                  );
-                })}
-              </div>
             </div>
 
             {/* Community Guidelines */}
