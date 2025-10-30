@@ -7,6 +7,7 @@ export interface FormFieldProps {
   type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'date' | 'time' | 'textarea' | 'select';
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   error?: string;
   helpText?: string;
   placeholder?: string;
@@ -27,6 +28,7 @@ export const FormField = forwardRef<HTMLInputElement | HTMLTextAreaElement | HTM
     type = 'text',
     value,
     onChange,
+    onBlur,
     error,
     helpText,
     placeholder,
@@ -61,6 +63,7 @@ export const FormField = forwardRef<HTMLInputElement | HTMLTextAreaElement | HTM
             name={name}
             value={value}
             onChange={onChange}
+            onBlur={onBlur}
             placeholder={placeholder}
             required={required}
             disabled={disabled}
@@ -78,6 +81,7 @@ export const FormField = forwardRef<HTMLInputElement | HTMLTextAreaElement | HTM
             name={name}
             value={value}
             onChange={onChange}
+            onBlur={onBlur}
             required={required}
             disabled={disabled}
             className={baseInputClasses}
@@ -99,6 +103,7 @@ export const FormField = forwardRef<HTMLInputElement | HTMLTextAreaElement | HTM
           name={name}
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
           placeholder={placeholder}
           required={required}
           disabled={disabled}

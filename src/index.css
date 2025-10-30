@@ -9,6 +9,25 @@
 @tailwind utilities;
 
 @layer base {
+  /* Semantic Design Tokens */
+  :root {
+    /* Gray Scale Tokens */
+    --gray-border: theme('colors.gray.200');
+    --gray-border-hover: theme('colors.gray.300');
+    --gray-text-muted: theme('colors.gray.500');
+    --gray-text-secondary: theme('colors.gray.600');
+    --gray-bg-subtle: theme('colors.gray.50');
+    --gray-bg-hover: theme('colors.gray.100');
+    --gray-bg-active: theme('colors.gray.200');
+
+    /* Border Radius Tokens */
+    --radius-input: theme('borderRadius.lg');
+    --radius-button: theme('borderRadius.xl');
+    --radius-card: theme('borderRadius.2xl');
+    --radius-modal: theme('borderRadius.3xl');
+    --radius-pill: theme('borderRadius.full');
+  }
+
   /* Enhanced Typography */
   html {
     scroll-behavior: smooth;
@@ -375,7 +394,44 @@
   .animate-gradient {
     animation: gradientShift 3s ease infinite;
   }
-  
+
+  /* Semantic Design Utilities */
+  .border-semantic {
+    border-color: var(--gray-border);
+  }
+
+  .text-muted {
+    color: var(--gray-text-muted);
+  }
+
+  .text-secondary {
+    color: var(--gray-text-secondary);
+  }
+
+  .bg-subtle {
+    background-color: var(--gray-bg-subtle);
+  }
+
+  .hover\:bg-subtle-hover:hover {
+    background-color: var(--gray-bg-hover);
+  }
+
+  .rounded-input {
+    border-radius: var(--radius-input);
+  }
+
+  .rounded-button {
+    border-radius: var(--radius-button);
+  }
+
+  .rounded-card {
+    border-radius: var(--radius-card);
+  }
+
+  .rounded-modal {
+    border-radius: var(--radius-modal);
+  }
+
   /* Responsive Text Sizes */
   .text-responsive-xl {
     @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl;

@@ -240,7 +240,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, showManagement = false, on
           </div>
           
           {/* Action Buttons */}
-          <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 md:opacity-0 opacity-100">
+          <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 md:opacity-0 opacity-100">
             <button
               onClick={handleBookmark}
               className={`glass p-3.5 rounded-full hover:scale-110 transition-all duration-200 shadow-lg focus-ring ${isBookmarked ? 'bg-earth-500 text-white' : 'text-forest-600'}`}

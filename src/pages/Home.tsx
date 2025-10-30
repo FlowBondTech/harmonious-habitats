@@ -24,6 +24,7 @@ import EventCard from '../components/EventCard';
 import SpaceCard from '../components/SpaceCard';
 import RadiusSelector from '../components/RadiusSelector';
 import { LocationBasedSuggestions } from '../components/LocationBasedSuggestions';
+import { EventCardSkeleton, SpaceCardSkeleton } from '../components/LoadingSkeleton';
 
 
 interface HighlightCardProps {
@@ -506,14 +507,7 @@ const Home = () => {
             {loading ? (
               <div className="grid-responsive">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="card h-80">
-                    <div className="loading-skeleton h-48 rounded-t-2xl"></div>
-                    <div className="p-6 space-y-4">
-                      <div className="loading-skeleton h-6 w-3/4"></div>
-                      <div className="loading-skeleton h-4 w-1/2"></div>
-                      <div className="loading-skeleton h-10 w-full"></div>
-                    </div>
-                  </div>
+                  <EventCardSkeleton key={i} />
                 ))}
               </div>
             ) : todayEvents.length > 0 ? (

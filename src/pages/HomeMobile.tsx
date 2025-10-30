@@ -14,6 +14,7 @@ import {
 import { useAuthContext } from '../components/AuthProvider';
 import { getEvents, Event } from '../lib/supabase';
 import EventCard from '../components/EventCard';
+import { ListItemSkeleton } from '../components/LoadingSkeleton';
 
 // Compact event card for mobile
 const CompactEventCard: React.FC<{ event: Event }> = ({ event }) => {
@@ -223,10 +224,7 @@ const HomeMobile = () => {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-lg p-4 shadow-sm animate-pulse">
-                <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              </div>
+              <ListItemSkeleton key={i} />
             ))}
           </div>
         ) : upcomingEvents.length > 0 ? (
