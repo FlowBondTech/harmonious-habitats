@@ -138,6 +138,31 @@ export const useAuth = () => {
     }
   }
 
+  // Sign in with Google OAuth
+  const signInWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
+      });
+
+      if (error) {
+        logError(error, 'signInWithGoogle');
+      }
+
+      return { data, error };
+    } catch (error) {
+      logError(error as Error, 'signInWithGoogle');
+      return { data: null, error: error instanceof Error ? error : new Error('Unknown error') };
+    }
+  };
+
   // Verify OTP code
   const verifyOTP = async (email: string, token: string) => {
     console.log('verifyOTP called with:', { email, token });
@@ -335,6 +360,7 @@ export const useAuth = () => {
     signUp,
     signIn,
     signInWithOTP,
+    signInWithGoogle,
     verifyOTP,
     signOut,
     loadUserProfile,

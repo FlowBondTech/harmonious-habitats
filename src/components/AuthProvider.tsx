@@ -17,6 +17,9 @@ interface AuthContextType {
   needsOnboarding: boolean
   signUp: (email: string, password: string, userData: Record<string, unknown>) => Promise<{ user: User | null; error: Error | null }>
   signIn: (email: string, password: string) => Promise<{ user: User | null; error: Error | null }>
+  signInWithOTP: (email: string) => Promise<{ data?: any; error: Error | null }>
+  signInWithGoogle: () => Promise<{ data?: any; error: Error | null }>
+  verifyOTP: (email: string, token: string) => Promise<any>
   signOut: () => Promise<{ error: Error | null }>
   loadUserProfile: (userId: string) => Promise<void>
   updateProfile: (profileData: Partial<Profile>) => Promise<{ data?: Profile; error: Error | null }>
