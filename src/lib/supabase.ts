@@ -41,6 +41,84 @@ export interface Activity {
   related_id?: string
 }
 
+// Community Features Types
+export type SpaceMemberStatus = 'pending' | 'approved' | 'rejected' | 'removed'
+export type SpaceMemberRole = 'member' | 'moderator' | 'admin'
+export type CommunityRequestCategory = 'help_needed' | 'resource_request' | 'skill_sharing' | 'event_idea'
+export type CommunityRequestStatus = 'open' | 'in_progress' | 'fulfilled' | 'declined' | 'cancelled'
+export type CommunityRequestPriority = 'low' | 'medium' | 'high' | 'urgent'
+
+export interface SpaceMember {
+  id: string
+  created_at: string
+  updated_at: string
+  space_id: string
+  user_id: string
+  status: SpaceMemberStatus
+  role: SpaceMemberRole
+  application_message?: string
+  approved_by?: string
+  approved_at?: string
+  rejection_reason?: string
+  last_active_at?: string
+  contributions_count: number
+  requests_count: number
+  // Relations
+  user?: Profile
+  space?: Space
+  approved_by_user?: Profile
+}
+
+export interface CommunityRequest {
+  id: string
+  created_at: string
+  updated_at: string
+  space_id: string
+  requester_id: string
+  assigned_to?: string
+  title: string
+  description: string
+  category: CommunityRequestCategory
+  status: CommunityRequestStatus
+  priority: CommunityRequestPriority
+  is_private: boolean
+  fulfilled_by?: string
+  fulfilled_at?: string
+  fulfillment_notes?: string
+  views_count: number
+  responses_count: number
+  upvotes_count: number
+  ai_assisted: boolean
+  ai_suggestions: any[]
+  // Relations
+  space?: Space
+  requester?: Profile
+  assigned_to_user?: Profile
+  fulfilled_by_user?: Profile
+  responses?: CommunityRequestResponse[]
+  has_upvoted?: boolean
+}
+
+export interface CommunityRequestResponse {
+  id: string
+  created_at: string
+  updated_at: string
+  request_id: string
+  user_id: string
+  message: string
+  is_offer_to_help: boolean
+  ai_assisted: boolean
+  // Relations
+  user?: Profile
+}
+
+export interface CommunityRequestUpvote {
+  id: string
+  created_at: string
+  request_id: string
+  user_id: string
+}
+
 // Custom Page Settings for white-label pages
 export type CustomPageTemplate = 'minimal' | 'professional' | 'bold' | 'modern'
 
@@ -807,6 +885,8 @@ export interface Space {
   }
   // Custom page settings for white-label space pages
   custom_page_settings?: CustomPageSettings
+  // Community features
+  community_features_enabled: boolean
 }
 
 export interface SpaceAmenity {
@@ -3702,5 +3782,415 @@ export const deleteCustomPageImage = async (
   } catch (error: any) {
     logError(error as Error, 'deleteCustomPageImage')
     return { success: false, error }
+  }
+}
+
+// ============================================================================
+// Community Features Functions
+// ============================================================================
+
+/**
+ * Apply for space community membership
+ */
+export const applyForSpaceMembership = async (
+  spaceId: string,
+  applicationMessage?: string
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('space_members')
+      .insert({
+        space_id: spaceId,
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        status: 'pending',
+        application_message: applicationMessage
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'applyForSpaceMembership')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Get space members with optional status filter
+ */
+export const getSpaceMembers = async (
+  spaceId: string,
+  status?: SpaceMemberStatus
+) => {
+  try {
+    let query = supabase
+      .from('space_members')
+      .select(`
+        *,
+        user:profiles(id, username, full_name, avatar_url, bio, rating, verified),
+        approved_by_user:profiles!approved_by(id, username, full_name)
+      `)
+      .eq('space_id', spaceId)
+      .order('created_at', { ascending: false })
+
+    if (status) {
+      query = query.eq('status', status)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'getSpaceMembers')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Update space member status (approve/reject)
+ */
+export const updateSpaceMemberStatus = async (
+  memberId: string,
+  status: SpaceMemberStatus,
+  rejectionReason?: string
+) => {
+  try {
+    const { data: userData } = await supabase.auth.getUser()
+
+    const updateData: any = {
+      status,
+      updated_at: new Date().toISOString()
+    }
+
+    if (status === 'approved') {
+      updateData.approved_by = userData.user?.id
+      updateData.approved_at = new Date().toISOString()
+    } else if (status === 'rejected' && rejectionReason) {
+      updateData.rejection_reason = rejectionReason
+    }
+
+    const { data, error } = await supabase
+      .from('space_members')
+      .update(updateData)
+      .eq('id', memberId)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'updateSpaceMemberStatus')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Check if user is a member of a space
+ */
+export const checkSpaceMembership = async (spaceId: string, userId?: string) => {
+  try {
+    const { data: userData } = await supabase.auth.getUser()
+    const checkUserId = userId || userData.user?.id
+
+    if (!checkUserId) {
+      return { isMember: false, membership: null, error: null }
+    }
+
+    const { data, error } = await supabase
+      .from('space_members')
+      .select('*')
+      .eq('space_id', spaceId)
+      .eq('user_id', checkUserId)
+      .single()
+
+    if (error && error.code !== 'PGRST116') throw error
+
+    return {
+      isMember: data?.status === 'approved',
+      membership: data,
+      error: null
+    }
+  } catch (error: any) {
+    logError(error as Error, 'checkSpaceMembership')
+    return { isMember: false, membership: null, error }
+  }
+}
+
+/**
+ * Create a community request
+ */
+export const createCommunityRequest = async (
+  spaceId: string,
+  requestData: {
+    title: string
+    description: string
+    category: CommunityRequestCategory
+    priority?: CommunityRequestPriority
+    is_private?: boolean
+    ai_assisted?: boolean
+    ai_suggestions?: any[]
+  }
+) => {
+  try {
+    const { data: userData } = await supabase.auth.getUser()
+
+    const { data, error } = await supabase
+      .from('community_requests')
+      .insert({
+        space_id: spaceId,
+        requester_id: userData.user?.id,
+        ...requestData
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'createCommunityRequest')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Get community requests for a space
+ */
+export const getCommunityRequests = async (
+  spaceId: string,
+  filters?: {
+    category?: CommunityRequestCategory
+    status?: CommunityRequestStatus
+    is_private?: boolean
+  }
+) => {
+  try {
+    const { data: userData } = await supabase.auth.getUser()
+
+    let query = supabase
+      .from('community_requests')
+      .select(`
+        *,
+        space:spaces(id, name, slug),
+        requester:profiles!requester_id(id, username, full_name, avatar_url, verified),
+        assigned_to_user:profiles!assigned_to(id, username, full_name),
+        fulfilled_by_user:profiles!fulfilled_by(id, username, full_name)
+      `)
+      .eq('space_id', spaceId)
+      .order('created_at', { ascending: false })
+
+    if (filters?.category) {
+      query = query.eq('category', filters.category)
+    }
+    if (filters?.status) {
+      query = query.eq('status', filters.status)
+    }
+    if (filters?.is_private !== undefined) {
+      query = query.eq('is_private', filters.is_private)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    // Check if user has upvoted each request
+    if (userData.user?.id && data) {
+      const requestIds = data.map(r => r.id)
+      const { data: upvotes } = await supabase
+        .from('community_request_upvotes')
+        .select('request_id')
+        .in('request_id', requestIds)
+        .eq('user_id', userData.user.id)
+
+      const upvotedIds = new Set(upvotes?.map(u => u.request_id) || [])
+
+      return {
+        data: data.map(request => ({
+          ...request,
+          has_upvoted: upvotedIds.has(request.id)
+        })),
+        error: null
+      }
+    }
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'getCommunityRequests')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Get a single community request with details
+ */
+export const getCommunityRequest = async (requestId: string) => {
+  try {
+    const { data: userData } = await supabase.auth.getUser()
+
+    const { data, error } = await supabase
+      .from('community_requests')
+      .select(`
+        *,
+        space:spaces(id, name, slug, owner_id),
+        requester:profiles!requester_id(id, username, full_name, avatar_url, bio, verified),
+        assigned_to_user:profiles!assigned_to(id, username, full_name),
+        fulfilled_by_user:profiles!fulfilled_by(id, username, full_name),
+        responses:community_request_responses(
+          *,
+          user:profiles(id, username, full_name, avatar_url, verified)
+        )
+      `)
+      .eq('id', requestId)
+      .single()
+
+    if (error) throw error
+
+    // Check if user has upvoted
+    if (userData.user?.id) {
+      const { data: upvote } = await supabase
+        .from('community_request_upvotes')
+        .select('id')
+        .eq('request_id', requestId)
+        .eq('user_id', userData.user.id)
+        .single()
+
+      return {
+        data: {
+          ...data,
+          has_upvoted: !!upvote
+        },
+        error: null
+      }
+    }
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'getCommunityRequest')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Respond to a community request
+ */
+export const respondToCommunityRequest = async (
+  requestId: string,
+  message: string,
+  isOfferToHelp: boolean = false,
+  aiAssisted: boolean = false
+) => {
+  try {
+    const { data: userData } = await supabase.auth.getUser()
+
+    const { data, error } = await supabase
+      .from('community_request_responses')
+      .insert({
+        request_id: requestId,
+        user_id: userData.user?.id,
+        message,
+        is_offer_to_help: isOfferToHelp,
+        ai_assisted: aiAssisted
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'respondToCommunityRequest')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Upvote a community request
+ */
+export const upvoteCommunityRequest = async (requestId: string) => {
+  try {
+    const { data: userData } = await supabase.auth.getUser()
+
+    const { data, error } = await supabase
+      .from('community_request_upvotes')
+      .insert({
+        request_id: requestId,
+        user_id: userData.user?.id
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'upvoteCommunityRequest')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Remove upvote from a community request
+ */
+export const removeUpvoteCommunityRequest = async (requestId: string) => {
+  try {
+    const { data: userData } = await supabase.auth.getUser()
+
+    const { error } = await supabase
+      .from('community_request_upvotes')
+      .delete()
+      .eq('request_id', requestId)
+      .eq('user_id', userData.user?.id)
+
+    if (error) throw error
+
+    return { success: true, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'removeUpvoteCommunityRequest')
+    return { success: false, error }
+  }
+}
+
+/**
+ * Update community request status
+ */
+export const updateCommunityRequestStatus = async (
+  requestId: string,
+  status: CommunityRequestStatus,
+  fulfillmentNotes?: string
+) => {
+  try {
+    const { data: userData } = await supabase.auth.getUser()
+
+    const updateData: any = {
+      status,
+      updated_at: new Date().toISOString()
+    }
+
+    if (status === 'fulfilled') {
+      updateData.fulfilled_by = userData.user?.id
+      updateData.fulfilled_at = new Date().toISOString()
+      if (fulfillmentNotes) {
+        updateData.fulfillment_notes = fulfillmentNotes
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('community_requests')
+      .update(updateData)
+      .eq('id', requestId)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'updateCommunityRequestStatus')
+    return { data: null, error }
   }
 }
