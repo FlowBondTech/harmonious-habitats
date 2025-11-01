@@ -41,6 +41,48 @@ export interface Activity {
   related_id?: string
 }
 
+// Custom Page Settings for white-label pages
+export type CustomPageTemplate = 'minimal' | 'professional' | 'bold' | 'modern'
+
+export type CustomBlockType = 'text' | 'gallery' | 'testimonials' | 'services'
+
+export interface CustomBlock {
+  id: string
+  type: CustomBlockType
+  title: string
+  content: string | object
+  order: number
+}
+
+export interface CustomPageBranding {
+  primaryColor: string
+  accentColor: string
+  logoUrl: string | null
+  bannerUrl: string | null
+}
+
+export interface CustomPageSEO {
+  metaTitle: string
+  metaDescription: string
+}
+
+export interface CustomPageSocialLinks {
+  website?: string
+  instagram?: string
+  facebook?: string
+  twitter?: string
+  linkedin?: string
+}
+
+export interface CustomPageSettings {
+  enabled: boolean
+  template: CustomPageTemplate
+  branding: CustomPageBranding
+  customBlocks: CustomBlock[]
+  seo: CustomPageSEO
+  socialLinks: CustomPageSocialLinks
+}
+
 export interface Profile {
   id: string
   created_at: string
@@ -210,6 +252,8 @@ export interface Profile {
     languages_taught?: string[]
     accessibility_accommodations?: string[]
   }
+  // Custom page settings for white-label facilitator pages
+  custom_page_settings?: CustomPageSettings
 }
 
 export interface ProfileSkill {
@@ -761,6 +805,8 @@ export interface Space {
     }[]
     auto_approve_verified?: boolean
   }
+  // Custom page settings for white-label space pages
+  custom_page_settings?: CustomPageSettings
 }
 
 export interface SpaceAmenity {
@@ -3486,5 +3532,175 @@ export const updateAmbassadorStatus = async (userId: string) => {
   } catch (error: any) {
     logError(error as Error, 'updateAmbassadorStatus')
     return { data: null, error }
+  }
+}
+
+// ============================================================================
+// Custom Page / White-Label Functions
+// ============================================================================
+
+/**
+ * Get space by slug including custom page settings
+ */
+export const getSpaceBySlugWithCustomPage = async (slug: string): Promise<Space | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('spaces')
+      .select(`
+        *,
+        owner:profiles(id, username, full_name, avatar_url, bio, rating, total_reviews, verified),
+        neighborhood:neighborhoods(id, name, slug, description),
+        amenities:space_amenities(amenity),
+        accessibility_features:space_accessibility_features(feature),
+        holistic_categories:space_holistic_categories(category),
+        animal_types:space_animal_types(type)
+      `)
+      .eq('slug', slug)
+      .single()
+
+    if (error) throw error
+
+    return data
+  } catch (error: any) {
+    logError(error as Error, 'getSpaceBySlugWithCustomPage')
+    return null
+  }
+}
+
+/**
+ * Get facilitator profile by user ID including custom page settings
+ */
+export const getFacilitatorBySlugWithCustomPage = async (username: string): Promise<Profile | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('username', username)
+      .eq('is_facilitator', true)
+      .single()
+
+    if (error) throw error
+
+    return data
+  } catch (error: any) {
+    logError(error as Error, 'getFacilitatorBySlugWithCustomPage')
+    return null
+  }
+}
+
+/**
+ * Update custom page settings for a space
+ */
+export const updateSpaceCustomPage = async (
+  spaceId: string,
+  settings: Partial<CustomPageSettings>
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('spaces')
+      .update({ custom_page_settings: settings })
+      .eq('id', spaceId)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'updateSpaceCustomPage')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Update custom page settings for a facilitator
+ */
+export const updateFacilitatorCustomPage = async (
+  userId: string,
+  settings: Partial<CustomPageSettings>
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ custom_page_settings: settings })
+      .eq('id', userId)
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return { data, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'updateFacilitatorCustomPage')
+    return { data: null, error }
+  }
+}
+
+/**
+ * Upload image for custom page (logo, banner, or block image)
+ */
+export const uploadCustomPageImage = async (
+  entityType: 'space' | 'facilitator',
+  entityId: string,
+  file: File,
+  imageType: 'logo' | 'banner' | 'block'
+): Promise<{ url: string | null; error: Error | null }> => {
+  try {
+    // Create file path
+    const fileExt = file.name.split('.').pop()
+    const timestamp = Date.now()
+    const fileName = `${imageType}-${timestamp}.${fileExt}`
+    const filePath = `custom-pages/${entityType}s/${entityId}/${fileName}`
+
+    // Upload file
+    const { error: uploadError } = await supabase.storage
+      .from('public')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      })
+
+    if (uploadError) throw uploadError
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('public')
+      .getPublicUrl(filePath)
+
+    return { url: publicUrl, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'uploadCustomPageImage')
+    return { url: null, error }
+  }
+}
+
+/**
+ * Delete custom page image from storage
+ */
+export const deleteCustomPageImage = async (
+  imageUrl: string
+): Promise<{ success: boolean; error: Error | null }> => {
+  try {
+    // Extract file path from URL
+    const url = new URL(imageUrl)
+    const pathParts = url.pathname.split('/storage/v1/object/public/')
+    if (pathParts.length < 2) {
+      throw new Error('Invalid image URL format')
+    }
+    const fullPath = pathParts[1]
+    const bucketAndPath = fullPath.split('/')
+    const bucket = bucketAndPath[0]
+    const filePath = bucketAndPath.slice(1).join('/')
+
+    const { error } = await supabase.storage
+      .from(bucket)
+      .remove([filePath])
+
+    if (error) throw error
+
+    return { success: true, error: null }
+  } catch (error: any) {
+    logError(error as Error, 'deleteCustomPageImage')
+    return { success: false, error }
   }
 }

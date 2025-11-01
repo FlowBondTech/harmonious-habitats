@@ -1003,36 +1003,130 @@
                         `
                     },
                     {
-                        type: 'problem',
+                        type: 'austin-map',
                         content: `
                             <div class="slide slide-dark active">
                                 <div class="slide-content animate-in">
-                                    <h2 class="mega-title">The <span class="gradient-text">$4.5 Trillion</span> Problem</h2>
-                                    <p class="subtitle">Wellness is booming, but connection is broken</p>
+                                    <h2 class="mega-title">Austin's <span class="gradient-text">Wellness</span> Ecosystem</h2>
+                                    <p class="subtitle">Thriving communities across the city</p>
 
-                                    <div class="stats-container">
-                                        <div class="stat-box">
-                                            <div class="stat-number">68%</div>
-                                            <div class="stat-label">Feel disconnected from community</div>
+                                    <div style="position: relative; max-width: 1000px; margin: 2rem auto; padding: 3rem; background: var(--glass); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 30px;">
+                                        <!-- Austin Map SVG -->
+                                        <svg viewBox="0 0 800 600" style="width: 100%; height: auto;">
+                                            <!-- Austin City Shape (simplified) -->
+                                            <path d="M 200 300 Q 250 200, 350 180 L 450 200 Q 550 220, 580 280 L 600 350 Q 590 420, 520 470 L 420 490 Q 320 500, 250 450 L 200 380 Z"
+                                                  fill="rgba(16, 185, 129, 0.1)"
+                                                  stroke="rgba(16, 185, 129, 0.3)"
+                                                  stroke-width="2"/>
+
+                                            <!-- Neighborhoods & Communities -->
+                                            <!-- Downtown -->
+                                            <circle cx="400" cy="300" r="45" fill="rgba(139, 92, 246, 0.2)" stroke="var(--secondary)" stroke-width="2"/>
+                                            <text x="400" y="295" text-anchor="middle" fill="white" font-size="14" font-weight="600">Downtown</text>
+                                            <text x="400" y="312" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="11">28 spaces</text>
+
+                                            <!-- East Austin -->
+                                            <circle cx="520" cy="320" r="40" fill="rgba(245, 158, 11, 0.2)" stroke="var(--accent)" stroke-width="2"/>
+                                            <text x="520" y="318" text-anchor="middle" fill="white" font-size="14" font-weight="600">East Austin</text>
+                                            <text x="520" y="332" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="11">18 spaces</text>
+
+                                            <!-- South Congress -->
+                                            <circle cx="380" cy="400" r="35" fill="rgba(16, 185, 129, 0.2)" stroke="var(--primary)" stroke-width="2"/>
+                                            <text x="380" y="398" text-anchor="middle" fill="white" font-size="13" font-weight="600">SoCo</text>
+                                            <text x="380" y="410" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="11">15 spaces</text>
+
+                                            <!-- Hyde Park -->
+                                            <circle cx="340" cy="220" r="35" fill="rgba(139, 92, 246, 0.2)" stroke="var(--secondary)" stroke-width="2"/>
+                                            <text x="340" y="218" text-anchor="middle" fill="white" font-size="13" font-weight="600">Hyde Park</text>
+                                            <text x="340" y="230" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="11">12 spaces</text>
+
+                                            <!-- Zilker -->
+                                            <circle cx="300" cy="380" r="33" fill="rgba(16, 185, 129, 0.2)" stroke="var(--primary)" stroke-width="2"/>
+                                            <text x="300" y="378" text-anchor="middle" fill="white" font-size="13" font-weight="600">Zilker</text>
+                                            <text x="300" y="390" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="11">22 spaces</text>
+
+                                            <!-- Mueller -->
+                                            <circle cx="480" cy="240" r="32" fill="rgba(245, 158, 11, 0.2)" stroke="var(--accent)" stroke-width="2"/>
+                                            <text x="480" y="238" text-anchor="middle" fill="white" font-size="13" font-weight="600">Mueller</text>
+                                            <text x="480" y="250" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="11">14 spaces</text>
+
+                                            <!-- Space Markers (animated pulse) -->
+                                            <g id="spaces">
+                                                <!-- Yoga Studios -->
+                                                <circle cx="395" cy="295" r="6" fill="#10B981">
+                                                    <animate attributeName="r" values="6;8;6" dur="2s" repeatCount="indefinite"/>
+                                                    <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
+                                                </circle>
+                                                <circle cx="525" cy="315" r="6" fill="#10B981">
+                                                    <animate attributeName="r" values="6;8;6" dur="2.2s" repeatCount="indefinite"/>
+                                                </circle>
+                                                <circle cx="295" cy="375" r="6" fill="#10B981">
+                                                    <animate attributeName="r" values="6;8;6" dur="1.8s" repeatCount="indefinite"/>
+                                                </circle>
+
+                                                <!-- Meditation Centers -->
+                                                <circle cx="340" cy="215" r="6" fill="#8B5CF6">
+                                                    <animate attributeName="r" values="6;8;6" dur="2.4s" repeatCount="indefinite"/>
+                                                </circle>
+                                                <circle cx="485" cy="235" r="6" fill="#8B5CF6">
+                                                    <animate attributeName="r" values="6;8;6" dur="2.1s" repeatCount="indefinite"/>
+                                                </circle>
+
+                                                <!-- Community Spaces -->
+                                                <circle cx="380" cy="395" r="6" fill="#F59E0B">
+                                                    <animate attributeName="r" values="6;8;6" dur="1.9s" repeatCount="indefinite"/>
+                                                </circle>
+                                                <circle cx="410" cy="305" r="6" fill="#F59E0B">
+                                                    <animate attributeName="r" values="6;8;6" dur="2.3s" repeatCount="indefinite"/>
+                                                </circle>
+                                                <circle cx="530" cy="325" r="6" fill="#F59E0B">
+                                                    <animate attributeName="r" values="6;8;6" dur="2.0s" repeatCount="indefinite"/>
+                                                </circle>
+                                            </g>
+
+                                            <!-- Connection Lines (showing community links) -->
+                                            <line x1="400" y1="300" x2="520" y2="320" stroke="rgba(16, 185, 129, 0.3)" stroke-width="1.5" stroke-dasharray="5,5">
+                                                <animate attributeName="stroke-dashoffset" from="0" to="10" dur="1s" repeatCount="indefinite"/>
+                                            </line>
+                                            <line x1="400" y1="300" x2="340" y2="220" stroke="rgba(139, 92, 246, 0.3)" stroke-width="1.5" stroke-dasharray="5,5">
+                                                <animate attributeName="stroke-dashoffset" from="0" to="10" dur="1.2s" repeatCount="indefinite"/>
+                                            </line>
+                                            <line x1="400" y1="300" x2="380" y2="400" stroke="rgba(245, 158, 11, 0.3)" stroke-width="1.5" stroke-dasharray="5,5">
+                                                <animate attributeName="stroke-dashoffset" from="0" to="10" dur="1.1s" repeatCount="indefinite"/>
+                                            </line>
+                                        </svg>
+                                    </div>
+
+                                    <!-- Legend -->
+                                    <div style="display: flex; justify-content: center; gap: 3rem; margin-top: 2rem; flex-wrap: wrap;">
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <div style="width: 12px; height: 12px; border-radius: 50%; background: #10B981;"></div>
+                                            <span style="font-size: 0.9rem;">Yoga Studios</span>
                                         </div>
-                                        <div class="stat-box">
-                                            <div class="stat-number">$3,000</div>
-                                            <div class="stat-label">Annual wellness spend per person</div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <div style="width: 12px; height: 12px; border-radius: 50%; background: #8B5CF6;"></div>
+                                            <span style="font-size: 0.9rem;">Meditation Centers</span>
                                         </div>
-                                        <div class="stat-box">
-                                            <div class="stat-number">82%</div>
-                                            <div class="stat-label">Want local wellness options</div>
-                                        </div>
-                                        <div class="stat-box">
-                                            <div class="stat-number">91%</div>
-                                            <div class="stat-label">Say cost is the #1 barrier</div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <div style="width: 12px; height: 12px; border-radius: 50%; background: #F59E0B;"></div>
+                                            <span style="font-size: 0.9rem;">Community Spaces</span>
                                         </div>
                                     </div>
 
-                                    <p style="font-size: 1.2rem; line-height: 1.8; opacity: 0.9; margin-top: 2rem;">
-                                        Traditional wellness spaces are expensive, intimidating, and disconnected from local communities.
-                                        People crave authentic connections and affordable wellness options in their own neighborhoods.
-                                    </p>
+                                    <div class="stats-container" style="margin-top: 2rem;">
+                                        <div class="stat-box">
+                                            <div class="stat-number">109</div>
+                                            <div class="stat-label">Active Spaces</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">6</div>
+                                            <div class="stat-label">Neighborhoods</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">450+</div>
+                                            <div class="stat-label">Weekly Events</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         `

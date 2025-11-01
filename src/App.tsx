@@ -348,6 +348,14 @@ const router = createBrowserRouter([
         element: <Navigate to="/profile" replace />
       },
       {
+        path: 'decks',
+        loader: () => {
+          window.location.href = '/decks/index.html';
+          return null;
+        },
+        element: <div>Redirecting to deck...</div>
+      },
+      {
         path: '*',
         element: <Navigate to="/" replace />
       }
