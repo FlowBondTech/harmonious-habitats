@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { 
+import {
   ArrowLeft,
-  MapPin, 
+  MapPin,
   Calendar,
   Clock,
   Users,
@@ -26,12 +26,35 @@ import {
   Mail,
   Globe,
   Shield,
-  Home
+  Home,
+  HandHeart,
+  Plus,
+  Filter
 } from 'lucide-react';
-import { getSpaceById, getSpaceBySlug, Space, supabase, sendMessage } from '../lib/supabase';
+import {
+  getSpaceById,
+  getSpaceBySlug,
+  Space,
+  supabase,
+  sendMessage,
+  checkSpaceMembership,
+  applyForSpaceMembership,
+  getCommunityRequests,
+  createCommunityRequest,
+  respondToCommunityRequest,
+  upvoteCommunityRequest,
+  removeUpvoteCommunityRequest,
+  updateCommunityRequestStatus,
+  CommunityRequest,
+  CommunityRequestCategory,
+  CommunityRequestStatus
+} from '../lib/supabase';
 import { useAuthContext } from '../components/AuthProvider';
 import { LoadingSpinner } from '../components/LoadingStates';
 import Avatar from '../components/Avatar';
+import CommunityRequestCard from '../components/CommunityRequestCard';
+import CreateCommunityRequestModal from '../components/CreateCommunityRequestModal';
+import CommunityRequestDetailModal from '../components/CommunityRequestDetailModal';
 
 const SpaceDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -46,6 +69,19 @@ const SpaceDetail = () => {
   const [messageContent, setMessageContent] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [messageError, setMessageError] = useState('');
+
+  // Community tab state
+  const [activeTab, setActiveTab] = useState<'about' | 'events' | 'community'>('about');
+  const [membershipStatus, setMembershipStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
+  const [communityRequests, setCommunityRequests] = useState<CommunityRequest[]>([]);
+  const [showCreateRequestModal, setShowCreateRequestModal] = useState(false);
+  const [showRequestDetailModal, setShowRequestDetailModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<CommunityRequest | null>(null);
+  const [requestFilter, setRequestFilter] = useState<{
+    category?: CommunityRequestCategory;
+    status?: CommunityRequestStatus;
+  }>({});
+  const [loadingRequests, setLoadingRequests] = useState(false);
 
   // Amenity icons mapping
   const amenityIcons: { [key: string]: React.ComponentType<{ className?: string }> } = {
@@ -68,8 +104,16 @@ const SpaceDetail = () => {
   useEffect(() => {
     if (space) {
       checkFavorite();
+      checkMembership();
     }
   }, [space, user]);
+
+  // Load community requests when community tab is active
+  useEffect(() => {
+    if (activeTab === 'community' && space?.id && space.community_features_enabled) {
+      loadCommunityRequests();
+    }
+  }, [activeTab, space, requestFilter]);
 
   const loadSpace = async () => {
     try {
@@ -118,7 +162,7 @@ const SpaceDetail = () => {
 
   const checkFavorite = async () => {
     if (!user || !space?.id) return;
-    
+
     try {
       const { data } = await supabase
         .from('space_favorites')
@@ -126,11 +170,130 @@ const SpaceDetail = () => {
         .eq('user_id', user.id)
         .eq('space_id', space.id)
         .single();
-      
+
       setIsFavorite(!!data);
     } catch (error) {
       // Not favorited
       setIsFavorite(false);
+    }
+  };
+
+  const checkMembership = async () => {
+    if (!user || !space?.id || !space.community_features_enabled) {
+      setMembershipStatus('none');
+      return;
+    }
+
+    try {
+      const { data, error } = await checkSpaceMembership(space.id, user.id);
+      if (error) throw error;
+
+      if (!data) {
+        setMembershipStatus('none');
+      } else {
+        setMembershipStatus(data.status as any);
+      }
+    } catch (error) {
+      console.error('Error checking membership:', error);
+      setMembershipStatus('none');
+    }
+  };
+
+  const loadCommunityRequests = async () => {
+    if (!space?.id) return;
+
+    setLoadingRequests(true);
+    try {
+      const { data, error } = await getCommunityRequests(space.id, requestFilter);
+      if (error) throw error;
+      setCommunityRequests(data || []);
+    } catch (error) {
+      console.error('Error loading community requests:', error);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  const handleApplyForMembership = async () => {
+    if (!user || !space?.id) return;
+
+    try {
+      const { error } = await applyForSpaceMembership(space.id, user.id);
+      if (error) throw error;
+
+      setMembershipStatus('pending');
+      alert('Membership application submitted! The space owner will review your request.');
+    } catch (error) {
+      console.error('Error applying for membership:', error);
+      alert('Failed to apply for membership. Please try again.');
+    }
+  };
+
+  const handleCreateRequest = async (requestData: any) => {
+    if (!space?.id) return;
+
+    try {
+      const { error } = await createCommunityRequest(space.id, requestData);
+      if (error) throw error;
+
+      setShowCreateRequestModal(false);
+      loadCommunityRequests();
+    } catch (error) {
+      console.error('Error creating request:', error);
+      throw error;
+    }
+  };
+
+  const handleRespondToRequest = async (requestId: string, message: string, isOfferToHelp: boolean) => {
+    try {
+      const { error } = await respondToCommunityRequest(requestId, message, isOfferToHelp);
+      if (error) throw error;
+
+      // Reload requests to show updated response count
+      loadCommunityRequests();
+      // Reload selected request to show new response
+      if (selectedRequest?.id === requestId) {
+        const { data } = await getCommunityRequests(space!.id);
+        const updatedRequest = data?.find(r => r.id === requestId);
+        if (updatedRequest) {
+          setSelectedRequest(updatedRequest);
+        }
+      }
+    } catch (error) {
+      console.error('Error responding to request:', error);
+      throw error;
+    }
+  };
+
+  const handleUpvoteRequest = async (requestId: string) => {
+    try {
+      const request = communityRequests.find(r => r.id === requestId);
+      if (request?.has_upvoted) {
+        const { error } = await removeUpvoteCommunityRequest(requestId);
+        if (error) throw error;
+      } else {
+        const { error } = await upvoteCommunityRequest(requestId);
+        if (error) throw error;
+      }
+
+      // Reload requests to show updated counts
+      loadCommunityRequests();
+    } catch (error) {
+      console.error('Error upvoting request:', error);
+    }
+  };
+
+  const handleUpdateRequestStatus = async (requestId: string, status: string, notes?: string) => {
+    try {
+      const { error } = await updateCommunityRequestStatus(requestId, status, notes);
+      if (error) throw error;
+
+      // Reload requests to show updated status
+      loadCommunityRequests();
+      setShowRequestDetailModal(false);
+    } catch (error) {
+      console.error('Error updating request status:', error);
+      throw error;
     }
   };
 
@@ -214,11 +377,53 @@ const SpaceDetail = () => {
           <span>Back</span>
         </button>
 
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-xl shadow-sm mb-6 p-2">
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setActiveTab('about')}
+              className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
+                activeTab === 'about'
+                  ? 'bg-forest-600 text-white'
+                  : 'text-forest-700 hover:bg-forest-50'
+              }`}
+            >
+              About Space
+            </button>
+            <button
+              onClick={() => setActiveTab('events')}
+              className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
+                activeTab === 'events'
+                  ? 'bg-forest-600 text-white'
+                  : 'text-forest-700 hover:bg-forest-50'
+              }`}
+            >
+              Events
+            </button>
+            {space.community_features_enabled && (
+              <button
+                onClick={() => setActiveTab('community')}
+                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
+                  activeTab === 'community'
+                    ? 'bg-forest-600 text-white'
+                    : 'text-forest-700 hover:bg-forest-50'
+                }`}
+              >
+                <HandHeart className="h-4 w-4 inline mr-2" />
+                Community
+              </button>
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Image Gallery */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            {/* About Tab Content */}
+            {activeTab === 'about' && (
+              <>
+                {/* Image Gallery */}
+                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="relative h-96">
                 <img
                   src={images[selectedImage]}
@@ -367,6 +572,136 @@ const SpaceDetail = () => {
               </div>
               <p className="mt-4 text-gray-600">{space.address || space.location_name}</p>
             </div>
+              </>
+            )}
+
+            {/* Events Tab Content */}
+            {activeTab === 'events' && (
+              <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+                <Calendar className="h-16 w-16 text-forest-300 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-forest-800 mb-2">Events at {space.name}</h2>
+                <p className="text-gray-600 mb-6">
+                  Event listings for this space are coming soon!
+                </p>
+                <p className="text-sm text-gray-500">
+                  Space hosts will be able to showcase events happening at their venue.
+                </p>
+              </div>
+            )}
+
+            {/* Community Tab Content */}
+            {activeTab === 'community' && (
+              <>
+                {!user && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 text-center">
+                    <p className="text-blue-800 mb-4">
+                      Sign in to join the community and participate in requests
+                    </p>
+                    <button
+                      onClick={() => navigate('/login')}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                    >
+                      Sign In
+                    </button>
+                  </div>
+                )}
+
+                {user && membershipStatus === 'none' && (
+                  <div className="bg-forest-50 border border-forest-200 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-forest-800 mb-2">
+                      Join the {space.name} Community
+                    </h3>
+                    <p className="text-forest-700 mb-4">
+                      Apply for membership to participate in community requests, contribute ideas, and help others.
+                    </p>
+                    <button
+                      onClick={handleApplyForMembership}
+                      className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                    >
+                      Apply for Membership
+                    </button>
+                  </div>
+                )}
+
+                {user && membershipStatus === 'pending' && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-yellow-900 mb-2">
+                      Membership Application Pending
+                    </h3>
+                    <p className="text-yellow-800">
+                      Your membership application is being reviewed by the space owner. You'll be notified once it's approved.
+                    </p>
+                  </div>
+                )}
+
+                {user && membershipStatus === 'approved' && (
+                  <>
+                    {/* Community Request Actions */}
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-4">
+                        <button
+                          onClick={() => setShowCreateRequestModal(true)}
+                          className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                        >
+                          <Plus className="h-4 w-4" />
+                          <span>New Request</span>
+                        </button>
+
+                        {/* Filter Dropdown */}
+                        <div className="relative">
+                          <button className="flex items-center space-x-2 px-4 py-2 border border-forest-200 rounded-lg hover:bg-forest-50 transition-colors">
+                            <Filter className="h-4 w-4 text-forest-600" />
+                            <span className="text-forest-700">Filter</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <p className="text-sm text-gray-600">
+                        {communityRequests.length} {communityRequests.length === 1 ? 'request' : 'requests'}
+                      </p>
+                    </div>
+
+                    {/* Community Requests List */}
+                    {loadingRequests ? (
+                      <div className="flex justify-center py-12">
+                        <LoadingSpinner text="Loading community requests..." />
+                      </div>
+                    ) : communityRequests.length === 0 ? (
+                      <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+                        <HandHeart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                          No Community Requests Yet
+                        </h3>
+                        <p className="text-gray-600 mb-6">
+                          Be the first to create a community request!
+                        </p>
+                        <button
+                          onClick={() => setShowCreateRequestModal(true)}
+                          className="bg-forest-600 hover:bg-forest-700 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center space-x-2"
+                        >
+                          <Plus className="h-5 w-5" />
+                          <span>Create Request</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {communityRequests.map(request => (
+                          <CommunityRequestCard
+                            key={request.id}
+                            request={request}
+                            onClick={() => {
+                              setSelectedRequest(request);
+                              setShowRequestDetailModal(true);
+                            }}
+                            onUpvote={handleUpvoteRequest}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -545,6 +880,29 @@ const SpaceDetail = () => {
           </div>
         </div>
       )}
+
+      {/* Create Community Request Modal */}
+      <CreateCommunityRequestModal
+        isOpen={showCreateRequestModal}
+        onClose={() => setShowCreateRequestModal(false)}
+        spaceId={space.id}
+        spaceName={space.name}
+        onSubmit={handleCreateRequest}
+      />
+
+      {/* Community Request Detail Modal */}
+      <CommunityRequestDetailModal
+        isOpen={showRequestDetailModal}
+        onClose={() => {
+          setShowRequestDetailModal(false);
+          setSelectedRequest(null);
+        }}
+        request={selectedRequest}
+        onRespond={handleRespondToRequest}
+        onUpvote={handleUpvoteRequest}
+        onUpdateStatus={handleUpdateRequestStatus}
+        isOwnerOrModerator={user?.id === space.owner_id || user?.role === 'space_holder'}
+      />
     </div>
   );
 };
