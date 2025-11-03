@@ -461,6 +461,11 @@ export interface Event {
   recurrence_rule?: string
   recurring_event_id?: string
   
+  // Registry settings
+  venue_provides_equipment?: boolean
+  registry_visibility?: 'public' | 'organizer_only'
+  registry_enabled?: boolean
+
   // Metadata
   tags?: string[]
   holistic_categories?: string[]
@@ -470,7 +475,7 @@ export interface Event {
   completion_notes?: string
   admin_notes?: string
   distance_description?: string
-  
+
   // Relations
   organizer?: Profile
   space?: Space
@@ -641,6 +646,29 @@ export interface EventMaterial {
   is_required?: boolean
   provider?: 'participant' | 'organizer' | 'either'
   notes?: string
+
+  // Registry fields
+  registry_type?: 'required' | 'lending'
+  max_quantity?: number
+  current_claims?: number
+  visibility?: 'public' | 'organizer_only'
+  is_template_item?: boolean
+}
+
+export interface EventMaterialClaim {
+  id: string
+  material_id: string
+  user_id: string
+  claim_type: 'personal' | 'lending'
+  quantity: number
+  notes?: string
+  status: 'claimed' | 'cancelled'
+  created_at: string
+  updated_at: string
+
+  // Relations
+  material?: EventMaterial
+  user?: Profile
 }
 
 // Facilitator role types for events
