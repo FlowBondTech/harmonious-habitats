@@ -1928,6 +1928,195 @@ export const updateReportStatus = async (reportId: string, status: string, admin
   return { data, error }
 }
 
+// Event Registry functions
+export const getEventMaterials = async (eventId: string) => {
+  const { data, error } = await supabase
+    .from('event_materials')
+    .select(`
+      *,
+      claims:event_material_claims(
+        *,
+        user:profiles(id, full_name, avatar_url)
+      )
+    `)
+    .eq('event_id', eventId)
+    .order('registry_type', { ascending: true })
+    .order('is_required', { ascending: false })
+
+  return { data: data || [], error }
+}
+
+export const getUserEventClaims = async (eventId: string, userId: string) => {
+  const { data: materials } = await supabase
+    .from('event_materials')
+    .select('id')
+    .eq('event_id', eventId)
+
+  if (!materials || materials.length === 0) {
+    return { data: [], error: null }
+  }
+
+  const materialIds = materials.map(m => m.id)
+
+  const { data, error } = await supabase
+    .from('event_material_claims')
+    .select('*')
+    .in('material_id', materialIds)
+    .eq('user_id', userId)
+    .eq('status', 'claimed')
+
+  return { data: data || [], error }
+}
+
+export const claimEventMaterial = async (
+  materialId: string,
+  userId: string,
+  claimType: 'personal' | 'lending',
+  quantity: number,
+  notes?: string
+) => {
+  // Check if user already has a claim for this material
+  const { data: existing } = await supabase
+    .from('event_material_claims')
+    .select('*')
+    .eq('material_id', materialId)
+    .eq('user_id', userId)
+    .eq('claim_type', claimType)
+    .single()
+
+  if (existing) {
+    return { data: null, error: new Error('You already have a claim for this item') }
+  }
+
+  // Check available quantity
+  const { data: material } = await supabase
+    .from('event_materials')
+    .select('max_quantity, current_claims')
+    .eq('id', materialId)
+    .single()
+
+  if (material && material.max_quantity) {
+    const available = material.max_quantity - (material.current_claims || 0)
+    if (quantity > available) {
+      return { data: null, error: new Error(`Only ${available} available`) }
+    }
+  }
+
+  const { data, error } = await supabase
+    .from('event_material_claims')
+    .insert({
+      material_id: materialId,
+      user_id: userId,
+      claim_type: claimType,
+      quantity,
+      notes,
+      status: 'claimed'
+    })
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const updateEventMaterialClaim = async (
+  claimId: string,
+  quantity: number,
+  notes?: string
+) => {
+  const { data, error } = await supabase
+    .from('event_material_claims')
+    .update({
+      quantity,
+      notes,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', claimId)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const cancelEventMaterialClaim = async (claimId: string) => {
+  const { data, error } = await supabase
+    .from('event_material_claims')
+    .update({
+      status: 'cancelled',
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', claimId)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
+export const deleteEventMaterialClaim = async (claimId: string) => {
+  const { error } = await supabase
+    .from('event_material_claims')
+    .delete()
+    .eq('id', claimId)
+
+  return { error }
+}
+
+export const saveEventMaterials = async (
+  eventId: string,
+  materials: Partial<EventMaterial>[]
+) => {
+  // First, delete all existing materials for this event
+  await supabase
+    .from('event_materials')
+    .delete()
+    .eq('event_id', eventId)
+
+  // Then insert new materials
+  if (materials.length > 0) {
+    const materialsToInsert = materials.map(m => ({
+      event_id: eventId,
+      item: m.item,
+      quantity: m.quantity,
+      max_quantity: m.max_quantity,
+      is_required: m.is_required,
+      provider: m.provider,
+      notes: m.notes,
+      registry_type: m.registry_type,
+      visibility: m.visibility,
+      is_template_item: m.is_template_item
+    }))
+
+    const { data, error } = await supabase
+      .from('event_materials')
+      .insert(materialsToInsert)
+      .select()
+
+    return { data, error }
+  }
+
+  return { data: [], error: null }
+}
+
+export const updateEventRegistrySettings = async (
+  eventId: string,
+  settings: {
+    venue_provides_equipment?: boolean
+    registry_visibility?: 'public' | 'organizer_only'
+    registry_enabled?: boolean
+  }
+) => {
+  const { data, error } = await supabase
+    .from('events')
+    .update({
+      ...settings,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', eventId)
+    .select()
+    .single()
+
+  return { data, error }
+}
+
 // Analytics functions
 export const getDashboardAnalytics = async () => {
   try {
