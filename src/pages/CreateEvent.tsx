@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Calendar, MapPin, Users, DollarSign, Plus, X, Star, Globe, Video, Clock, Book, AlertCircle, Save, FileText, Heart, CheckCircle } from 'lucide-react';
 import { useAuthContext } from '../components/AuthProvider';
-import { supabase } from '../lib/supabase';
+import { supabase, saveEventMaterials } from '../lib/supabase';
 import HolisticCategorySelector from '../components/HolisticCategorySelector';
 import { DatePicker, TimePicker } from '../components/DateTimePicker';
 import { SlidingFormWizard, WizardStep } from '../components/SlidingFormWizard';
+import EventRegistrySetup from '../components/EventRegistrySetup';
 
 const CreateEvent = () => {
   const { user } = useAuthContext();
@@ -52,7 +53,12 @@ const CreateEvent = () => {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     space_id: '',
     time_offering_id: '',
-    durationMinutes: 60
+    durationMinutes: 60,
+    // Registry fields
+    registryEnabled: false,
+    venueType: 'home' as 'home' | 'studio',
+    registryVisibility: 'public' as 'public' | 'organizer_only',
+    registryMaterials: [] as any[]
   });
 
   const [newMaterial, setNewMaterial] = useState('');
@@ -445,6 +451,11 @@ const CreateEvent = () => {
         eventData.time_offering_id = formData.time_offering_id;
       }
 
+      // Add registry settings
+      eventData.venue_provides_equipment = formData.venueType === 'studio';
+      eventData.registry_visibility = formData.registryVisibility;
+      eventData.registry_enabled = formData.registryEnabled;
+
       const { data, error: insertError } = await supabase
         .from('events')
         .insert([eventData])
@@ -454,6 +465,19 @@ const CreateEvent = () => {
       if (insertError) {
         console.error('Supabase insert error:', insertError);
         throw insertError;
+      }
+
+      // Save registry materials if registry is enabled
+      if (formData.registryEnabled && formData.registryMaterials.length > 0) {
+        const { error: materialsError } = await saveEventMaterials(
+          data.id,
+          formData.registryMaterials
+        );
+
+        if (materialsError) {
+          console.error('Error saving registry materials:', materialsError);
+          // Don't throw - event was created successfully, materials are optional
+        }
       }
 
       setSuccess('Event created successfully!');
@@ -1167,99 +1191,21 @@ const CreateEvent = () => {
     },
     {
       id: 'materials',
-      title: 'Materials',
+      title: 'Registry',
       description: 'What to bring',
       icon: Book,
       component: (
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-forest-700 mb-2">What to Bring</label>
-            <textarea
-              rows={2}
-              value={formData.whatToBring}
-              onChange={(e) => handleInputChange('whatToBring', e.target.value)}
-              placeholder="General instructions about what participants should bring..."
-              className="w-full px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent mb-4"
-            />
-
-            <label className="block text-sm font-medium text-forest-700 mb-2">Specific Materials</label>
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={newMaterial}
-                onChange={(e) => setNewMaterial(e.target.value)}
-                placeholder="e.g., Yoga mat, Water bottle, Notebook"
-                className="flex-1 px-4 py-3 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addMaterial())}
-              />
-              <button
-                type="button"
-                onClick={addMaterial}
-                className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-3 rounded-lg transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
-
-            {formData.materials.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {formData.materials.map((material, index) => (
-                  <span
-                    key={index}
-                    className="bg-forest-100 text-forest-700 px-3 py-1 rounded-full text-sm flex items-center space-x-2"
-                  >
-                    <span>{material}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeMaterial(index)}
-                      className="text-forest-500 hover:text-forest-700"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {(userSpaces.length > 0 || userTimeOfferings.length > 0) && (
-            <div className="bg-forest-50 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-forest-700 mb-3">Connect to Your Offerings</h3>
-
-              {userSpaces.length > 0 && (
-                <div className="mb-3">
-                  <label className="block text-xs font-medium text-forest-600 mb-1">Host at Your Space</label>
-                  <select
-                    onChange={(e) => handleInputChange('space_id', e.target.value)}
-                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 text-sm"
-                  >
-                    <option value="">Not using my space</option>
-                    {userSpaces.map(space => (
-                      <option key={space.id} value={space.id}>{space.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {userTimeOfferings.length > 0 && (
-                <div>
-                  <label className="block text-xs font-medium text-forest-600 mb-1">Part of Time Offering</label>
-                  <select
-                    onChange={(e) => handleInputChange('time_offering_id', e.target.value)}
-                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 text-sm"
-                  >
-                    <option value="">Not part of time offering</option>
-                    {userTimeOfferings.map(offering => (
-                      <option key={offering.id} value={offering.id}>
-                        {offering.title} ({offering.category})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        <EventRegistrySetup
+          category={formData.category}
+          venueType={formData.venueType}
+          onVenueTypeChange={(venueType) => handleInputChange('venueType', venueType)}
+          registryEnabled={formData.registryEnabled}
+          onRegistryEnabledChange={(enabled) => handleInputChange('registryEnabled', enabled)}
+          registryVisibility={formData.registryVisibility}
+          onRegistryVisibilityChange={(visibility) => handleInputChange('registryVisibility', visibility)}
+          materials={formData.registryMaterials}
+          onMaterialsChange={(materials) => handleInputChange('registryMaterials', materials)}
+        />
       )
     },
     {
