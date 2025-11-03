@@ -43,6 +43,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { DateTimePicker } from '../components/ui/date-time-picker';
 import { format } from 'date-fns';
 import { cn } from '../lib/utils';
+import SpaceMemberManagement from '../components/SpaceMemberManagement';
 
 const SpaceHolderDashboard = () => {
   const navigate = useNavigate();
@@ -307,7 +308,7 @@ const SpaceHolderDashboard = () => {
 
         {/* Applications Tabs */}
         <Tabs defaultValue="pending" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="pending">
               Pending ({pendingApplications.length})
             </TabsTrigger>
@@ -319,6 +320,9 @@ const SpaceHolderDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="bookings">
               Bookings ({bookingRequests.length})
+            </TabsTrigger>
+            <TabsTrigger value="members">
+              Members
             </TabsTrigger>
             <TabsTrigger value="find-facilitators">
               Find Facilitators
@@ -418,7 +422,15 @@ const SpaceHolderDashboard = () => {
               ))
             )}
           </TabsContent>
-          
+
+          {/* Members Tab */}
+          <TabsContent value="members" className="space-y-4">
+            <SpaceMemberManagement
+              spaces={spaces}
+              onMemberUpdate={loadData}
+            />
+          </TabsContent>
+
           <TabsContent value="find-facilitators" className="space-y-4">
             <Card>
               <CardHeader>
