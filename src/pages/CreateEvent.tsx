@@ -15,6 +15,9 @@ const CreateEvent = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [currentStepId, setCurrentStepId] = useState<string>('');
+  const [categoryJustSelected, setCategoryJustSelected] = useState(false);
+  const wizardNextButtonRef = useRef<HTMLButtonElement | null>(null);
 
   // Refs for required fields
   const categoryRef = useRef<HTMLDivElement>(null);
@@ -198,7 +201,34 @@ const CreateEvent = () => {
         waitlistEnabled: false
       }));
     }
+
+    // Trigger auto-advance when category is selected
+    if (field === 'category' && value && currentStepId === 'category') {
+      setCategoryJustSelected(true);
+    }
   };
+
+  // Handle step changes
+  const handleStepChange = (stepIndex: number, stepId: string) => {
+    setCurrentStepId(stepId);
+    setCategoryJustSelected(false); // Reset flag when changing steps
+  };
+
+  // Auto-advance after category selection with brief confirmation
+  useEffect(() => {
+    if (categoryJustSelected && formData.category && currentStepId === 'category') {
+      const timer = setTimeout(() => {
+        // Find and click the Next button
+        const nextButton = document.querySelector('[data-wizard-next]') as HTMLButtonElement;
+        if (nextButton && !nextButton.disabled) {
+          nextButton.click();
+        }
+        setCategoryJustSelected(false);
+      }, 800); // 800ms delay for visual confirmation
+
+      return () => clearTimeout(timer);
+    }
+  }, [categoryJustSelected, formData.category, currentStepId]);
 
   const addMaterial = () => {
     if (newMaterial.trim()) {
@@ -1324,6 +1354,7 @@ const CreateEvent = () => {
         steps={wizardSteps}
         onComplete={handleComplete}
         onCancel={() => navigate('/activities')}
+        onStepChange={handleStepChange}
         showStepIndicator={true}
         showProgressBar={true}
         allowSkip={false}

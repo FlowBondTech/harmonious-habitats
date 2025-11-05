@@ -25,7 +25,7 @@ const EventSearchAndDiscovery: React.FC = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [popularTags, setPopularTags] = useState<string[]>([]);
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   
   const [filters, setFilters] = useState<EventSearchFilters>({
@@ -540,8 +540,14 @@ const EventSearchAndDiscovery: React.FC = () => {
               <EventCardV2
                 key={event.id}
                 event={event}
-                onViewDetails={(id) => setSelectedEventId(id)}
-                onRegister={(id) => setSelectedEventId(id)}
+                onViewDetails={(id) => {
+                  const selectedEvent = events.find(e => e.id === id);
+                  if (selectedEvent) setSelectedEvent(selectedEvent);
+                }}
+                onRegister={(id) => {
+                  const selectedEvent = events.find(e => e.id === id);
+                  if (selectedEvent) setSelectedEvent(selectedEvent);
+                }}
               />
             ))}
           </div>
@@ -556,11 +562,14 @@ const EventSearchAndDiscovery: React.FC = () => {
       </div>
 
       {/* Event Details Modal */}
-      {selectedEventId && (
+      {selectedEvent && (
         <EventDetailsModal
-          eventId={selectedEventId}
-          isOpen={!!selectedEventId}
-          onClose={() => setSelectedEventId(null)}
+          event={selectedEvent}
+          isOpen={!!selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+          onJoin={() => searchEvents()}
+          onLeave={() => searchEvents()}
+          onUpdate={() => searchEvents()}
         />
       )}
     </div>

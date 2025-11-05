@@ -21,6 +21,7 @@ export interface SlidingFormWizardProps {
   allowSkip?: boolean;
   saveProgress?: boolean;
   className?: string;
+  onStepChange?: (stepIndex: number, stepId: string) => void;
 }
 
 export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
@@ -31,7 +32,8 @@ export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
   showProgressBar = true,
   allowSkip = false,
   saveProgress = false,
-  className = ''
+  className = '',
+  onStepChange
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -94,6 +96,11 @@ export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
       if (steps[nextIndex].onEnter) {
         steps[nextIndex].onEnter();
       }
+
+      // Notify parent of step change
+      if (onStepChange) {
+        onStepChange(nextIndex, steps[nextIndex].id);
+      }
     }
   };
 
@@ -115,6 +122,11 @@ export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
       // Call onEnter for previous step
       if (steps[prevIndex].onEnter) {
         steps[prevIndex].onEnter();
+      }
+
+      // Notify parent of step change
+      if (onStepChange) {
+        onStepChange(prevIndex, steps[prevIndex].id);
       }
     }
   };
@@ -140,11 +152,16 @@ export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
     if (steps[index].onEnter) {
       steps[index].onEnter();
     }
+
+    // Notify parent of step change
+    if (onStepChange) {
+      onStepChange(index, steps[index].id);
+    }
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-forest-50 to-earth-50 py-4 sm:py-12 px-2 sm:px-4 pb-24 sm:pb-12 ${className}`}>
-      <div className="max-w-4xl mx-auto">
+    <div className={`min-h-screen bg-gradient-to-br from-forest-50 to-earth-50 py-4 sm:py-12 px-2 sm:px-4 ${className}`}>
+      <div className="max-w-4xl mx-auto pb-32 sm:pb-24">
         {/* Progress Indicator */}
         {showStepIndicator && (
           <div className="mb-4 sm:mb-8">
@@ -212,7 +229,7 @@ export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
         )}
 
         {/* Content Card */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[calc(100vh-12rem)] sm:max-h-[80vh]">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col">
           {/* Step Header */}
           <div className="bg-gradient-to-r from-forest-50 to-earth-50 px-4 sm:px-8 py-4 sm:py-6 border-b border-gray-200 flex-shrink-0">
             <h2 className="text-xl sm:text-2xl font-bold text-forest-800 mb-1 sm:mb-2">{currentStep.title}</h2>
@@ -222,7 +239,7 @@ export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
           </div>
 
           {/* Step Content with Sliding Animation - Scrollable */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-8 min-h-0">
+          <div className="p-4 sm:p-8 pb-24 sm:pb-28">
             <div className="overflow-x-hidden">
               <div
                 className="transition-transform duration-300 ease-in-out"
@@ -244,9 +261,12 @@ export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Navigation Buttons - Fixed/Sticky */}
-          <div className="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-6 border-t border-gray-200 bg-gray-50 flex-shrink-0 sticky bottom-0 z-10">
+        {/* Navigation Buttons - Fixed at bottom */}
+        <div className="fixed bottom-0 left-0 right-0 z-20">
+          <div className="max-w-4xl mx-auto px-2 sm:px-4">
+            <div className="bg-white rounded-t-2xl shadow-2xl border-t border-gray-200 flex items-center justify-between px-4 sm:px-8 py-4 sm:py-6">
             <button
               onClick={handleBack}
               disabled={isValidating || isCompleting}
@@ -281,12 +301,13 @@ export const SlidingFormWizard: React.FC<SlidingFormWizardProps> = ({
                 </>
               )}
             </button>
+            </div>
           </div>
         </div>
 
         {/* Optional: Save & Exit */}
         {saveProgress && !isLastStep && (
-          <div className="text-center mt-4">
+          <div className="text-center mt-4 mb-24">
             <button
               onClick={onCancel}
               className="text-sm text-gray-600 hover:text-gray-800 underline"

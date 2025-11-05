@@ -31,7 +31,39 @@ try {
 // Log configuration (remove after debugging)
 console.log('Supabase configured with URL:', supabaseUrl.replace(/https:\/\/([^.]+).*/, 'https://$1.supabase.co'));
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Create a storage adapter that gracefully handles localStorage being blocked
+const createStorageAdapter = () => {
+  // Test if localStorage is available
+  try {
+    const testKey = '__localStorage_test__'
+    window.localStorage.setItem(testKey, 'test')
+    window.localStorage.removeItem(testKey)
+    return window.localStorage
+  } catch (e) {
+    // localStorage is blocked, use in-memory storage as fallback
+    console.warn('localStorage is blocked, using in-memory session storage. Sessions will not persist across page reloads.')
+    const memoryStorage: Record<string, string> = {}
+    return {
+      getItem: (key: string) => memoryStorage[key] || null,
+      setItem: (key: string, value: string) => { memoryStorage[key] = value },
+      removeItem: (key: string) => { delete memoryStorage[key] },
+      clear: () => { Object.keys(memoryStorage).forEach(key => delete memoryStorage[key]) },
+      key: (index: number) => Object.keys(memoryStorage)[index] || null,
+      get length() { return Object.keys(memoryStorage).length }
+    }
+  }
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: createStorageAdapter(),
+    storageKey: 'harmonik-auth',
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce' // Use PKCE flow for better security
+  }
+})
 
 // Database types
 export interface Activity {
