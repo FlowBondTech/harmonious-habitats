@@ -65,6 +65,27 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
+// Global error handler for JWT/auth errors
+supabase.auth.onAuthStateChange((event, session) => {
+  // Log auth state changes for debugging
+  console.log('🔐 Auth state change:', event, session ? 'Session exists' : 'No session')
+
+  // Clear everything on sign out or if no session after token refresh
+  if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
+    console.log('🧹 Clearing stale auth data')
+    try {
+      localStorage.removeItem('harmonik-auth')
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') || key.includes('supabase')) {
+          localStorage.removeItem(key)
+        }
+      })
+    } catch (e) {
+      // localStorage might be blocked
+    }
+  }
+})
+
 // Database types
 export interface Activity {
   type: 'event_attended' | 'space_shared' | 'message_sent' | 'profile_updated' | 'review_given'

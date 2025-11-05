@@ -2,6 +2,7 @@ import React, { createContext, useContext } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { User } from '@supabase/supabase-js'
 import { Profile } from '../lib/supabase'
+import ReauthBanner from './ReauthBanner'
 
 interface AuthContextType {
   user: User | null
@@ -15,6 +16,7 @@ interface AuthContextType {
   showOnboarding: boolean
   showShareOptions: boolean
   needsOnboarding: boolean
+  needsReauth: boolean
   signUp: (email: string, password: string, userData: Record<string, unknown>) => Promise<{ user: User | null; error: Error | null }>
   signIn: (email: string, password: string) => Promise<{ user: User | null; error: Error | null }>
   signInWithOTP: (email: string) => Promise<{ data?: any; error: Error | null }>
@@ -24,6 +26,7 @@ interface AuthContextType {
   updateProfile: (profileData: Partial<Profile>) => Promise<{ data?: Profile; error: Error | null }>
   openAuthModalGlobal: (mode: 'signin' | 'signup') => void
   closeAuthModalGlobal: () => void
+  handleReauth: () => void
   startOnboarding: () => void
   closeOnboarding: () => void
   completeOnboarding: () => void
@@ -37,6 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={auth}>
+      {auth.needsReauth && <ReauthBanner onReauth={auth.handleReauth} />}
       {children}
     </AuthContext.Provider>
   )

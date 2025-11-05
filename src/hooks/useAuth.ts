@@ -12,12 +12,77 @@ export const useAuth = () => {
   const [globalAuthMode, setGlobalAuthMode] = useState<'signin' | 'signup'>('signin')
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [showShareOptions, setShowShareOptions] = useState(false)
+  const [needsReauth, setNeedsReauth] = useState(false)
+
+  // Helper to check if error is auth-related
+  const isAuthError = (error: any): boolean => {
+    if (!error) return false
+    const errorMessage = String(error.message || error).toLowerCase()
+    return (
+      errorMessage.includes('jwt') ||
+      errorMessage.includes('token') ||
+      errorMessage.includes('expired') ||
+      errorMessage.includes('invalid signature') ||
+      errorMessage.includes('refresh token not found') ||
+      errorMessage.includes('unable to parse or verify')
+    )
+  }
+
+  // Force clear all auth state
+  const clearAuthState = async (showReauthPrompt = false) => {
+    logger.log('Clearing authentication state...')
+    setUser(null)
+    setProfile(null)
+    setUserRole(null)
+
+    // Show re-auth prompt if this was due to token expiration
+    if (showReauthPrompt) {
+      setNeedsReauth(true)
+    }
+
+    // Sign out to clear Supabase session
+    try {
+      await supabase.auth.signOut()
+    } catch (e) {
+      // Ignore signout errors
+    }
+
+    // Clear storage manually as fallback
+    try {
+      localStorage.removeItem('harmonik-auth')
+      // Clear any Supabase auth keys
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') || key.includes('supabase')) {
+          localStorage.removeItem(key)
+        }
+      })
+    } catch (e) {
+      // localStorage might be blocked
+    }
+  }
+
+  // Handle re-authentication
+  const handleReauth = () => {
+    setNeedsReauth(false)
+    openAuthModalGlobal('signin')
+  }
 
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        const { data: { session }, error } = await supabase.auth.getSession()
+
+        // Handle session fetch errors
+        if (error) {
+          if (isAuthError(error)) {
+            logger.log('Session fetch error detected, clearing auth state:', error.message)
+            await clearAuthState(true) // Show re-auth prompt
+            setLoading(false)
+            return
+          }
+        }
+
         setUser(session?.user ?? null)
 
         if (session?.user) {
@@ -28,15 +93,10 @@ export const useAuth = () => {
       } catch (error) {
         logError(error as Error, 'loadInitialSession')
 
-        // Check if the error is related to invalid refresh token
-        if (error && typeof error === 'object' && 'message' in error) {
-          const errorMessage = String(error.message).toLowerCase()
-          if (errorMessage.includes('refresh token not found') ||
-              errorMessage.includes('invalid refresh token')) {
-            logger.log('Invalid refresh token detected, clearing session...')
-            // Clear the invalid session data
-            await supabase.auth.signOut()
-          }
+        // Check if the error is auth-related
+        if (isAuthError(error)) {
+          logger.log('Authentication error detected, clearing session...')
+          await clearAuthState(true) // Show re-auth prompt
         }
       } finally {
         setLoading(false)
@@ -48,12 +108,36 @@ export const useAuth = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        logger.log('Auth state change event:', event)
+
+        // Handle token refresh errors
+        if (event === 'TOKEN_REFRESHED' && !session) {
+          logger.log('Token refresh failed, clearing auth state')
+          await clearAuthState(true) // Show re-auth prompt
+          setLoading(false)
+          return
+        }
+
+        // Handle sign out (don't show re-auth for manual sign out)
+        if (event === 'SIGNED_OUT') {
+          await clearAuthState(false)
+          setLoading(false)
+          return
+        }
+
         setUser(session?.user ?? null)
 
         if (session?.user) {
-          await loadUserProfile(session.user.id)
-          const role = await getUserRole(session.user.id)
-          setUserRole(role)
+          try {
+            await loadUserProfile(session.user.id)
+            const role = await getUserRole(session.user.id)
+            setUserRole(role)
+          } catch (error) {
+            if (isAuthError(error)) {
+              logger.log('Profile load error, clearing auth state')
+              await clearAuthState(true) // Show re-auth prompt
+            }
+          }
         } else {
           setProfile(null)
           setUserRole(null)
@@ -332,6 +416,7 @@ export const useAuth = () => {
     showOnboarding,
     showShareOptions,
     needsOnboarding,
+    needsReauth,
     signUp,
     signIn,
     signInWithOTP,
@@ -341,6 +426,7 @@ export const useAuth = () => {
     updateProfile,
     openAuthModalGlobal,
     closeAuthModalGlobal,
+    handleReauth,
     startOnboarding,
     closeOnboarding,
     completeOnboarding,
