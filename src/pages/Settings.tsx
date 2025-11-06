@@ -115,7 +115,14 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    full_name: string;
+    username: string;
+    bio: string;
+    neighborhood: string;
+    discovery_radius: number | 'custom';
+    holistic_interests: string[];
+  }>({
     full_name: profile?.full_name || '',
     username: profile?.username || '',
     bio: profile?.bio || '',
@@ -123,18 +130,32 @@ const Settings = () => {
     discovery_radius: profile?.discovery_radius || 1,
     holistic_interests: profile?.holistic_interests || []
   });
+  const [customRadius, setCustomRadius] = useState<number | null>(null);
+  const [isCustomRadius, setIsCustomRadius] = useState(false);
   
   // Update form data when profile changes
   useEffect(() => {
     if (profile) {
+      const radius = profile.discovery_radius || 1;
+      const predefinedRadii = [0.5, 1, 2, 5, 10];
+      const isCustom = !predefinedRadii.includes(radius);
+
       setFormData({
         full_name: profile.full_name || '',
         username: profile.username || '',
         bio: profile.bio || '',
         neighborhood: profile.neighborhood || '',
-        discovery_radius: profile.discovery_radius || 1,
+        discovery_radius: isCustom ? 'custom' : radius,
         holistic_interests: profile.holistic_interests || []
       });
+
+      if (isCustom) {
+        setIsCustomRadius(true);
+        setCustomRadius(radius);
+      } else {
+        setIsCustomRadius(false);
+        setCustomRadius(null);
+      }
     }
   }, [profile]);
 
@@ -334,12 +355,22 @@ const Settings = () => {
         return;
       }
 
+      // Calculate the actual radius value to save
+      let radiusValue: number;
+      if (isCustomRadius && customRadius) {
+        radiusValue = customRadius;
+      } else if (formData.discovery_radius === 'custom') {
+        radiusValue = customRadius || 1;
+      } else {
+        radiusValue = formData.discovery_radius as number;
+      }
+
       const updates = {
         full_name: formData.full_name.trim(),
         username: formData.username?.trim() || null,
         bio: formData.bio?.trim() || null,
         neighborhood: formData.neighborhood?.trim() || null,
-        discovery_radius: formData.discovery_radius,
+        discovery_radius: radiusValue,
         holistic_interests: formData.holistic_interests
       };
 
@@ -579,21 +610,57 @@ const Settings = () => {
                   Discovery Radius
                 </label>
                 {isEditing ? (
-                  <select
-                    value={formData.discovery_radius}
-                    onChange={(e) => handleInputChange('discovery_radius', Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
-                  >
-                    <option value={0.5}>0.5 miles (walking distance)</option>
-                    <option value={1}>1 mile</option>
-                    <option value={2}>2 miles</option>
-                    <option value={5}>5 miles</option>
-                    <option value={10}>10 miles</option>
-                  </select>
+                  <div className="space-y-3">
+                    <select
+                      value={isCustomRadius ? 'custom' : formData.discovery_radius}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === 'custom') {
+                          setIsCustomRadius(true);
+                          setCustomRadius(formData.discovery_radius as number || 1);
+                        } else {
+                          setIsCustomRadius(false);
+                          setCustomRadius(null);
+                          handleInputChange('discovery_radius', Number(value));
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                    >
+                      <option value={0.5}>0.5 miles (walking distance)</option>
+                      <option value={1}>1 mile</option>
+                      <option value={2}>2 miles</option>
+                      <option value={5}>5 miles</option>
+                      <option value={10}>10 miles</option>
+                      <option value="custom">Custom distance...</option>
+                    </select>
+
+                    {isCustomRadius && (
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="number"
+                          min="0.1"
+                          max="100"
+                          step="0.1"
+                          value={customRadius || 1}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value);
+                            if (!isNaN(value) && value > 0) {
+                              setCustomRadius(value);
+                            }
+                          }}
+                          className="flex-1 px-3 py-2 border border-forest-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent"
+                          placeholder="Enter distance"
+                        />
+                        <span className="text-sm text-forest-700 font-medium">miles</span>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <div className="w-full px-3 py-2 bg-gray-50 text-gray-800 rounded-lg">
-                    {formData.discovery_radius} mile{formData.discovery_radius !== 1 ? 's' : ''}
-                    {formData.discovery_radius === 0.5 && ' (walking distance)'}
+                    {isCustomRadius && customRadius
+                      ? `${customRadius} mile${customRadius !== 1 ? 's' : ''} (custom)`
+                      : `${formData.discovery_radius} mile${formData.discovery_radius !== 1 ? 's' : ''}`}
+                    {!isCustomRadius && formData.discovery_radius === 0.5 && ' (walking distance)'}
                   </div>
                 )}
                 <p className="mt-2 text-sm text-forest-600">
