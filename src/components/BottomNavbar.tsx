@@ -130,7 +130,7 @@ const BottomNavbar: React.FC = () => {
       {user && (
         <Link
           to="/create-event"
-          className="fixed bottom-20 right-4 w-14 h-14 bg-forest-600 rounded-full shadow-lg flex items-center justify-center z-50 md:hidden group active:scale-95 transition-transform"
+          className="fixed bottom-24 right-4 w-14 h-14 bg-forest-600 rounded-full shadow-lg flex items-center justify-center z-50 md:hidden group active:scale-95 transition-transform"
           aria-label="Create new event"
         >
           <Plus className="h-6 w-6 text-white" />

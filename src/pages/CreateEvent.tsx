@@ -75,7 +75,6 @@ const CreateEvent = () => {
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
-  const [hasSelectedStart, setHasSelectedStart] = useState(false);
 
   // Check authentication and load user's spaces and time offerings
   useEffect(() => {
@@ -143,21 +142,6 @@ const CreateEvent = () => {
     }
   }, [location.state, templates]);
 
-  // Auto-advance when user makes a selection on Start step
-  useEffect(() => {
-    if (hasSelectedStart) {
-      // Small delay to ensure state updates, then click Next button
-      const timer = setTimeout(() => {
-        const nextButton = document.querySelector('[data-wizard-next]') as HTMLButtonElement;
-        if (nextButton) {
-          nextButton.click();
-          setHasSelectedStart(false);
-        }
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [hasSelectedStart]);
-
   const handleInputChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
@@ -214,7 +198,7 @@ const CreateEvent = () => {
     setCategoryJustSelected(false); // Reset flag when changing steps
   };
 
-  // Auto-advance after category selection with brief confirmation
+  // Auto-advance after category selection with confirmation time
   useEffect(() => {
     if (categoryJustSelected && formData.category && currentStepId === 'category') {
       const timer = setTimeout(() => {
@@ -224,7 +208,7 @@ const CreateEvent = () => {
           nextButton.click();
         }
         setCategoryJustSelected(false);
-      }, 800); // 800ms delay for visual confirmation
+      }, 1200); // 1200ms delay to give users time to review their selection
 
       return () => clearTimeout(timer);
     }
@@ -549,111 +533,6 @@ const CreateEvent = () => {
 
   // Wizard steps
   const wizardSteps: WizardStep[] = [
-    {
-      id: 'start',
-      title: 'Start',
-      description: 'Begin from scratch or use a template',
-      icon: FileText,
-      component: (
-        <div className="space-y-6">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-forest-800 mb-2">Create Your Event</h2>
-            <p className="text-forest-600">Start from scratch or use a saved template</p>
-          </div>
-
-          {/* Start from Scratch Option */}
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedTemplate('');
-              setError(null);
-              setHasSelectedStart(true);
-            }}
-            className="w-full p-6 rounded-xl border-2 border-forest-200 hover:border-forest-400 hover:bg-forest-50 transition-all group"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="bg-forest-100 p-4 rounded-xl group-hover:bg-forest-200 transition-colors">
-                <Plus className="h-8 w-8 text-forest-600" />
-              </div>
-              <div className="text-left">
-                <h3 className="text-lg font-semibold text-forest-800 mb-1">Start from Scratch</h3>
-                <p className="text-sm text-forest-600">Create a new event with a blank canvas</p>
-              </div>
-            </div>
-          </button>
-
-          {/* Templates Section */}
-          {templates.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold text-forest-700 mb-3 flex items-center">
-                <FileText className="h-4 w-4 mr-2" />
-                Your Templates
-              </h3>
-              <div className="space-y-3">
-                {templates.slice(0, 5).map(template => (
-                  <button
-                    key={template.id}
-                    type="button"
-                    onClick={() => {
-                      loadTemplate(template.id);
-                      setSelectedTemplate(template.id);
-                      setHasSelectedStart(true);
-                    }}
-                    className={`w-full p-4 rounded-xl border-2 transition-all text-left group ${
-                      selectedTemplate === template.id
-                        ? 'border-forest-500 bg-forest-50'
-                        : 'border-forest-100 hover:border-forest-300 hover:bg-forest-50'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          {template.is_favorite && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
-                          <h4 className="font-semibold text-forest-800">{template.name}</h4>
-                        </div>
-                        {template.description && (
-                          <p className="text-sm text-forest-600 mb-2">{template.description}</p>
-                        )}
-                        <div className="flex items-center space-x-3 text-xs text-forest-500">
-                          <span className="capitalize">{template.category}</span>
-                          {template.use_count > 0 && (
-                            <>
-                              <span>•</span>
-                              <span>Used {template.use_count}x</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <CheckCircle className={`h-5 w-5 ${
-                        selectedTemplate === template.id ? 'text-forest-600' : 'text-gray-300'
-                      }`} />
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              {templates.length > 5 && (
-                <button
-                  type="button"
-                  onClick={() => navigate('/event-templates')}
-                  className="w-full mt-3 p-3 text-sm text-forest-600 hover:text-forest-700 hover:bg-forest-50 rounded-lg transition-colors"
-                >
-                  View all {templates.length} templates →
-                </button>
-              )}
-            </div>
-          )}
-
-          {templates.length === 0 && (
-            <div className="text-center py-8 bg-forest-50 rounded-xl border-2 border-dashed border-forest-200">
-              <FileText className="h-12 w-12 text-forest-300 mx-auto mb-3" />
-              <p className="text-sm text-forest-600 mb-2">No templates yet</p>
-              <p className="text-xs text-forest-500">Save your first event as a template to reuse it later</p>
-            </div>
-          )}
-        </div>
-      )
-    },
     {
       id: 'category',
       title: 'Category',

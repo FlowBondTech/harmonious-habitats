@@ -93,7 +93,7 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
             {user && (
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-3 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation min-h-[48px] min-w-[48px] flex items-center justify-center"
                 aria-label="Toggle menu"
               >
                 <Menu className="h-6 w-6 text-gray-700" />
@@ -107,10 +107,10 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
 
           {/* Right Section - Search, Notifications & Profile */}
           <div className="flex items-center space-x-2 relative">
-          {/* Search Toggle */}
+          {/* Search Toggle - Increased touch target to 48px */}
           <button
             onClick={() => setShowSearch(!showSearch)}
-            className={`p-2 hover:bg-gray-100 rounded-lg transition-all duration-300 ${
+            className={`p-3 hover:bg-gray-100 rounded-lg transition-all duration-300 touch-manipulation min-h-[48px] min-w-[48px] flex items-center justify-center ${
               showSearch ? 'bg-gray-100 scale-110' : ''
             }`}
             aria-label="Search"
@@ -132,7 +132,7 @@ const Navbar: React.FC<NavbarProps> = ({ isMenuOpen, setIsMenuOpen }) => {
                   e.stopPropagation();
                   setShowProfileDropdown(!showProfileDropdown);
                 }}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors touch-manipulation"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors touch-manipulation min-h-[48px] min-w-[48px] flex items-center justify-center"
               >
                 <Avatar
                   name={profile?.full_name || user.email?.split('@')[0]}

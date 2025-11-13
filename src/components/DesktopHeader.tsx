@@ -113,7 +113,7 @@ const DesktopHeader: React.FC<DesktopHeaderProps> = ({ onMenuClick, isSidebarOpe
           {!shouldHideMenuButton && (
             <button
               onClick={onMenuClick}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              className="p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
               aria-label="Toggle menu"
             >
               <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
