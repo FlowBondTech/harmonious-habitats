@@ -119,7 +119,7 @@ CREATE POLICY "Space creators can create agreements for their spaces"
     EXISTS (
       SELECT 1 FROM spaces
       WHERE spaces.id = space_liability_agreements.space_id
-      AND spaces.space_holder_id = auth.uid()
+      AND spaces.owner_id = auth.uid()
     )
   );
 
