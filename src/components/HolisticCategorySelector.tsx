@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sprout, Flower2, ChefHat, Palette, Stethoscope, Music } from 'lucide-react';
+import { Sprout, Flower2, ChefHat, Palette, Stethoscope, Music, Sunrise } from 'lucide-react';
 
 interface HolisticCategory {
   id: string;
@@ -90,6 +90,17 @@ const HolisticCategorySelector: React.FC<HolisticCategorySelectorProps> = ({
       description: 'Express through rhythm and sound',
       element: 'Air',
       chakra: 'Third Eye'
+    },
+    {
+      id: 'retreat',
+      name: 'Retreat & Transformation',
+      icon: Sunrise,
+      color: 'text-amber-600',
+      gradient: 'from-amber-400 to-yellow-500',
+      mantra: 'I embrace deep renewal and transformation',
+      description: 'Immerse in sacred space and time',
+      element: 'All Elements',
+      chakra: 'All Chakras'
     }
   ];
 

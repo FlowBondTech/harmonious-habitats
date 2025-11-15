@@ -442,21 +442,89 @@ export interface ProfilePortfolioItem {
   skills_demonstrated: string[]
 }
 
+// Liability Agreement Types
+export type AgreementType = 'day' | 'overnight'
+
+export interface AgreementTemplate {
+  id: string
+  created_at: string
+  updated_at: string
+  name: string
+  type: AgreementType
+  description?: string
+  content: string
+  is_default: boolean
+  is_active: boolean
+}
+
+export interface SpaceLiabilityAgreement {
+  id: string
+  created_at: string
+  updated_at: string
+  space_id: string
+  creator_id: string
+  agreement_type: AgreementType
+  template_id?: string
+  title: string
+  content: string
+  requires_signature: boolean
+  is_active: boolean
+  // Relations
+  space?: Space
+  creator?: Profile
+  template?: AgreementTemplate
+}
+
+export interface EventLiabilityAgreement {
+  id: string
+  created_at: string
+  event_id: string
+  agreement_id: string
+  is_required: boolean
+  // Relations
+  event?: Event
+  agreement?: SpaceLiabilityAgreement
+}
+
+export interface ParticipantAgreementSignature {
+  id: string
+  created_at: string
+  event_id: string
+  agreement_id: string
+  participant_id: string
+  signed_at: string
+  signature_data?: Record<string, unknown>
+  agreed_to_terms: boolean
+  // Relations
+  event?: Event
+  agreement?: SpaceLiabilityAgreement
+  participant?: Profile
+}
+
 export interface Event {
   id: string
   created_at: string
   updated_at: string
-  
+
   // Ownership
   organizer_id: string
   space_id?: string
   time_offering_id?: string
-  
+
   // Basic info
   title: string
   description?: string
   category: string
   event_type: 'local' | 'virtual' | 'global_physical'
+
+  // Retreat-specific fields
+  is_retreat?: boolean
+  retreat_type?: 'day' | 'overnight' | 'multi-day'
+  retreat_start_date?: string
+  retreat_end_date?: string
+  accommodation_provided?: boolean
+  meals_included?: string[] // ['breakfast', 'lunch', 'dinner']
+  retreat_itinerary?: Record<string, unknown>
   
   // Timing
   date: string
