@@ -61,7 +61,15 @@ const CreateEvent = () => {
     registryEnabled: false,
     venueType: 'home' as 'home' | 'studio',
     registryVisibility: 'public' as 'public' | 'organizer_only',
-    registryMaterials: [] as any[]
+    registryMaterials: [] as any[],
+    // Retreat fields
+    isRetreat: false,
+    retreatType: 'day' as 'day' | 'overnight' | 'multi-day',
+    retreatStartDate: '',
+    retreatEndDate: '',
+    accommodationProvided: false,
+    mealsIncluded: [] as string[],
+    retreatItinerary: ''
   });
 
   const [newMaterial, setNewMaterial] = useState('');
@@ -176,6 +184,14 @@ const CreateEvent = () => {
         ...prev,
         isFree: value === 'free',
         donationAmount: value === 'free' ? '' : prev.donationAmount
+      }));
+    }
+
+    // Auto-detect retreat category
+    if (field === 'category') {
+      setFormData(prev => ({
+        ...prev,
+        isRetreat: value === 'retreat'
       }));
     }
 
@@ -469,6 +485,19 @@ const CreateEvent = () => {
       eventData.venue_provides_equipment = formData.venueType === 'studio';
       eventData.registry_visibility = formData.registryVisibility;
       eventData.registry_enabled = formData.registryEnabled;
+
+      // Add retreat fields if it's a retreat event
+      if (formData.isRetreat) {
+        eventData.is_retreat = true;
+        eventData.retreat_type = formData.retreatType;
+        eventData.retreat_start_date = formData.retreatStartDate || formData.date;
+        eventData.retreat_end_date = formData.retreatEndDate || formData.date;
+        eventData.accommodation_provided = formData.accommodationProvided;
+        eventData.meals_included = formData.mealsIncluded;
+        if (formData.retreatItinerary) {
+          eventData.retreat_itinerary = { description: formData.retreatItinerary };
+        }
+      }
 
       const { data, error: insertError } = await supabase
         .from('events')

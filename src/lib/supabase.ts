@@ -4532,3 +4532,259 @@ export const updateCommunityRequestStatus = async (
     return { data: null, error }
   }
 }
+
+// ============================================
+// Liability Agreement Helper Functions
+// ============================================
+
+/**
+ * Get all active agreement templates
+ * @param type Optional filter by agreement type (day/overnight)
+ */
+export const getAgreementTemplates = async (type?: AgreementType) => {
+  try {
+    let query = supabase
+      .from('agreement_templates')
+      .select('*')
+      .eq('is_active', true)
+      .order('type', { ascending: true });
+
+    if (type) {
+      query = query.eq('type', type);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'getAgreementTemplates');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Get space liability agreements for a specific space
+ * @param spaceId The space ID
+ */
+export const getSpaceAgreements = async (spaceId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('space_liability_agreements')
+      .select(`
+        *,
+        template:agreement_templates(*),
+        space:spaces(id, name, address)
+      `)
+      .eq('space_id', spaceId)
+      .eq('is_active', true);
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'getSpaceAgreements');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Create a space agreement from a template
+ * @param spaceId The space ID
+ * @param templateId The template ID
+ * @param customizations Optional customizations to the agreement
+ */
+export const createSpaceAgreement = async (
+  spaceId: string,
+  templateId: string,
+  customizations?: {
+    title?: string;
+    content?: string;
+    requires_signature?: boolean;
+  }
+) => {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      throw new Error('Not authenticated');
+    }
+
+    // Get template
+    const { data: template, error: templateError } = await supabase
+      .from('agreement_templates')
+      .select('*')
+      .eq('id', templateId)
+      .single();
+
+    if (templateError || !template) {
+      throw new Error('Template not found');
+    }
+
+    // Create agreement
+    const { data, error } = await supabase
+      .from('space_liability_agreements')
+      .insert({
+        space_id: spaceId,
+        creator_id: userData.user.id,
+        agreement_type: template.type,
+        template_id: templateId,
+        title: customizations?.title || template.name,
+        content: customizations?.content || template.content,
+        requires_signature: customizations?.requires_signature ?? true,
+        is_active: true
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'createSpaceAgreement');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Link an agreement to an event
+ * @param eventId The event ID
+ * @param agreementId The agreement ID
+ */
+export const linkAgreementToEvent = async (eventId: string, agreementId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('event_liability_agreements')
+      .insert({
+        event_id: eventId,
+        agreement_id: agreementId,
+        is_required: true
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'linkAgreementToEvent');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Get agreements required for an event
+ * @param eventId The event ID
+ */
+export const getEventAgreements = async (eventId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('event_liability_agreements')
+      .select(`
+        *,
+        agreement:space_liability_agreements(
+          *,
+          space:spaces(id, name)
+        )
+      `)
+      .eq('event_id', eventId);
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'getEventAgreements');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Sign an agreement for an event
+ * @param eventId The event ID
+ * @param agreementId The agreement ID
+ * @param signatureData Optional metadata about the signature
+ */
+export const signAgreement = async (
+  eventId: string,
+  agreementId: string,
+  signatureData?: Record<string, unknown>
+) => {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      throw new Error('Not authenticated');
+    }
+
+    const { data, error } = await supabase
+      .from('participant_agreement_signatures')
+      .insert({
+        event_id: eventId,
+        agreement_id: agreementId,
+        participant_id: userData.user.id,
+        signature_data: signatureData,
+        agreed_to_terms: true
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'signAgreement');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Check if a user has signed an agreement for an event
+ * @param eventId The event ID
+ * @param agreementId The agreement ID
+ * @param userId Optional user ID (defaults to current user)
+ */
+export const hasUserSignedAgreement = async (
+  eventId: string,
+  agreementId: string,
+  userId?: string
+) => {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    const checkUserId = userId || userData.user?.id;
+
+    if (!checkUserId) {
+      throw new Error('User ID not provided and not authenticated');
+    }
+
+    const { data, error } = await supabase
+      .from('participant_agreement_signatures')
+      .select('id, signed_at')
+      .eq('event_id', eventId)
+      .eq('agreement_id', agreementId)
+      .eq('participant_id', checkUserId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return { hasSigned: !!data, signature: data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'hasUserSignedAgreement');
+    return { hasSigned: false, signature: null, error };
+  }
+};
+
+/**
+ * Get all signatures for an event (organizers only)
+ * @param eventId The event ID
+ */
+export const getEventSignatures = async (eventId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('participant_agreement_signatures')
+      .select(`
+        *,
+        participant:profiles(id, full_name, username, avatar_url),
+        agreement:space_liability_agreements(id, title, agreement_type)
+      `)
+      .eq('event_id', eventId)
+      .order('signed_at', { ascending: false });
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'getEventSignatures');
+    return { data: null, error };
+  }
+};
