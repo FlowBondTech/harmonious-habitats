@@ -68,27 +68,36 @@ export const useAuth = () => {
   }
 
   useEffect(() => {
-    // Get initial session
+    // Get initial session with server validation
     const getInitialSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession()
+        // First, get the stored session
+        const { data: { session: storedSession } } = await supabase.auth.getSession()
 
-        // Handle session fetch errors
-        if (error) {
-          if (isAuthError(error)) {
-            logger.log('Session fetch error detected, clearing auth state:', error.message)
+        // If we have a stored session, validate it with the server by refreshing
+        if (storedSession) {
+          logger.log('Found stored session, validating with server...')
+          const { data: { session }, error } = await supabase.auth.refreshSession()
+
+          // If refresh fails, the session is invalid
+          if (error || !session) {
+            logger.log('Session validation failed, clearing auth state:', error?.message)
             await clearAuthState(true) // Show re-auth prompt
             setLoading(false)
             return
           }
-        }
 
-        setUser(session?.user ?? null)
-
-        if (session?.user) {
+          // Validated session is good
+          setUser(session.user)
           await loadUserProfile(session.user.id)
           const role = await getUserRole(session.user.id)
           setUserRole(role)
+        } else {
+          // No stored session, user is not logged in
+          logger.log('No stored session found')
+          setUser(null)
+          setProfile(null)
+          setUserRole(null)
         }
       } catch (error) {
         logError(error as Error, 'loadInitialSession')
