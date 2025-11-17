@@ -501,6 +501,154 @@ export interface ParticipantAgreementSignature {
   participant?: Profile
 }
 
+// ============================================
+// FACILITATOR & EVENT LEADER TYPES
+// ============================================
+
+export type AvailabilityType = 'recurring' | 'one_time' | 'blocked'
+export type WhitelistType = 'preferred' | 'exclusive' | 'blocked'
+export type FacilitatorStatus = 'invited' | 'confirmed' | 'declined' | 'removed'
+export type CompensationType = 'paid' | 'volunteer' | 'donation' | 'exchange'
+
+export interface FacilitatorAvailability {
+  id: string
+  created_at: string
+  updated_at: string
+  facilitator_id: string
+
+  // Recurring availability (weekly schedule)
+  day_of_week?: number // 0=Sunday, 6=Saturday
+  start_time?: string
+  end_time?: string
+
+  // One-time availability (specific dates)
+  specific_date?: string
+
+  // Type of availability
+  availability_type: AvailabilityType
+  is_available: boolean
+
+  // Additional metadata
+  notes?: string
+
+  // Relationships
+  facilitator?: Profile
+}
+
+export interface FacilitatorServiceArea {
+  id: string
+  created_at: string
+  facilitator_id: string
+  neighborhood_id?: string
+
+  // Distance willing to travel from this area (in miles)
+  max_distance_miles: number
+
+  // Priority level (1-5, higher = more preferred)
+  priority: number
+
+  // Relationships
+  facilitator?: Profile
+  neighborhood?: Neighborhood
+}
+
+export interface FacilitatorWhitelist {
+  id: string
+  created_at: string
+  facilitator_id: string
+
+  // Whitelist target (either user or space)
+  whitelisted_user_id?: string
+  whitelisted_space_id?: string
+
+  // Whitelist type
+  whitelist_type: WhitelistType
+
+  // Notes about why this entry exists
+  notes?: string
+
+  // Relationships
+  facilitator?: Profile
+  whitelisted_user?: Profile
+  whitelisted_space?: Space
+}
+
+export interface EventLeader {
+  id: string
+  created_at: string
+  updated_at: string
+  event_id: string
+  leader_id: string
+
+  // Permissions granted to this leader
+  can_edit_event: boolean
+  can_manage_facilitators: boolean
+  can_send_invites: boolean
+  can_manage_volunteers: boolean
+  can_view_participants: boolean
+
+  // Leader role
+  role: string // e.g., 'co-organizer', 'facilitator lead', 'volunteer coordinator'
+
+  // Who added this leader
+  added_by?: string
+
+  // Relationships
+  event?: Event
+  leader?: Profile
+  added_by_profile?: Profile
+}
+
+export interface EventFacilitator {
+  id: string
+  created_at: string
+  updated_at: string
+  event_id: string
+  facilitator_id: string
+
+  // Assignment status
+  status: FacilitatorStatus
+
+  // Role for this event
+  role?: string // e.g., 'lead facilitator', 'assistant', 'volunteer'
+
+  // Compensation
+  compensation_type?: CompensationType
+  compensation_amount?: number
+  compensation_notes?: string
+
+  // Invitation details
+  invited_by?: string
+  invited_at?: string
+  responded_at?: string
+  response_notes?: string
+
+  // Relationships
+  event?: Event
+  facilitator?: Profile
+  invited_by_profile?: Profile
+}
+
+export interface FacilitatorRating {
+  facilitator_id: string
+  total_reviews: number
+  average_rating: number
+  positive_reviews: number
+  negative_reviews: number
+  last_review_date: string
+  facilitator?: Profile
+}
+
+export interface AvailableFacilitator {
+  facilitator_id: string
+  full_name: string
+  avatar_url?: string
+  average_rating: number
+  total_reviews: number
+  distance_miles: number
+  is_available: boolean
+}
+
 export interface Event {
   id: string
   created_at: string
@@ -4785,6 +4933,566 @@ export const getEventSignatures = async (eventId: string) => {
     return { data, error: null };
   } catch (error: any) {
     logError(error as Error, 'getEventSignatures');
+    return { data: null, error };
+  }
+};
+
+// ============================================
+// FACILITATOR AVAILABILITY FUNCTIONS
+// ============================================
+
+/**
+ * Get facilitator's availability schedule
+ * @param facilitatorId The facilitator's user ID
+ * @param type Optional filter by availability type
+ */
+export const getFacilitatorAvailability = async (
+  facilitatorId: string,
+  type?: AvailabilityType
+) => {
+  try {
+    let query = supabase
+      .from('facilitator_availability')
+      .select('*')
+      .eq('facilitator_id', facilitatorId)
+      .order('day_of_week', { ascending: true });
+
+    if (type) {
+      query = query.eq('availability_type', type);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'getFacilitatorAvailability');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Save facilitator availability slot
+ */
+export const saveFacilitatorAvailability = async (
+  availability: Omit<FacilitatorAvailability, 'id' | 'created_at' | 'updated_at'>
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('facilitator_availability')
+      .insert(availability)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'saveFacilitatorAvailability');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Update facilitator availability slot
+ */
+export const updateFacilitatorAvailability = async (
+  id: string,
+  updates: Partial<FacilitatorAvailability>
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('facilitator_availability')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'updateFacilitatorAvailability');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Delete facilitator availability slot
+ */
+export const deleteFacilitatorAvailability = async (id: string) => {
+  try {
+    const { error } = await supabase
+      .from('facilitator_availability')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return { error: null };
+  } catch (error: any) {
+    logError(error as Error, 'deleteFacilitatorAvailability');
+    return { error };
+  }
+};
+
+// ============================================
+// FACILITATOR SERVICE AREA FUNCTIONS
+// ============================================
+
+/**
+ * Get facilitator's service areas
+ */
+export const getFacilitatorServiceAreas = async (facilitatorId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('facilitator_service_areas')
+      .select(`
+        *,
+        neighborhood:neighborhoods(id, name, city, state)
+      `)
+      .eq('facilitator_id', facilitatorId)
+      .order('priority', { ascending: false });
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'getFacilitatorServiceAreas');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Add service area for facilitator
+ */
+export const addFacilitatorServiceArea = async (
+  serviceArea: Omit<FacilitatorServiceArea, 'id' | 'created_at'>
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('facilitator_service_areas')
+      .insert(serviceArea)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'addFacilitatorServiceArea');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Remove service area for facilitator
+ */
+export const removeFacilitatorServiceArea = async (id: string) => {
+  try {
+    const { error } = await supabase
+      .from('facilitator_service_areas')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return { error: null };
+  } catch (error: any) {
+    logError(error as Error, 'removeFacilitatorServiceArea');
+    return { error };
+  }
+};
+
+// ============================================
+// FACILITATOR WHITELIST FUNCTIONS
+// ============================================
+
+/**
+ * Get facilitator's whitelists
+ */
+export const getFacilitatorWhitelists = async (
+  facilitatorId: string,
+  type?: WhitelistType
+) => {
+  try {
+    let query = supabase
+      .from('facilitator_whitelists')
+      .select(`
+        *,
+        whitelisted_user:profiles!whitelisted_user_id(id, full_name, username, avatar_url),
+        whitelisted_space:spaces!whitelisted_space_id(id, name, address)
+      `)
+      .eq('facilitator_id', facilitatorId);
+
+    if (type) {
+      query = query.eq('whitelist_type', type);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'getFacilitatorWhitelists');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Add whitelist entry for facilitator
+ */
+export const addFacilitatorWhitelist = async (
+  whitelist: Omit<FacilitatorWhitelist, 'id' | 'created_at'>
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('facilitator_whitelists')
+      .insert(whitelist)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'addFacilitatorWhitelist');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Remove whitelist entry
+ */
+export const removeFacilitatorWhitelist = async (id: string) => {
+  try {
+    const { error } = await supabase
+      .from('facilitator_whitelists')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return { error: null };
+  } catch (error: any) {
+    logError(error as Error, 'removeFacilitatorWhitelist');
+    return { error };
+  }
+};
+
+// ============================================
+// EVENT LEADER FUNCTIONS
+// ============================================
+
+/**
+ * Get event leaders (co-organizers)
+ */
+export const getEventLeaders = async (eventId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('event_leaders')
+      .select(`
+        *,
+        leader:profiles!leader_id(id, full_name, username, avatar_url),
+        added_by_profile:profiles!added_by(id, full_name, username)
+      `)
+      .eq('event_id', eventId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'getEventLeaders');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Add event leader (co-organizer)
+ */
+export const addEventLeader = async (
+  eventId: string,
+  leaderId: string,
+  permissions: Partial<EventLeader> = {}
+) => {
+  try {
+    const currentUser = (await supabase.auth.getUser()).data.user;
+    if (!currentUser) {
+      throw new Error('Must be authenticated to add event leaders');
+    }
+
+    const { data, error } = await supabase
+      .from('event_leaders')
+      .insert({
+        event_id: eventId,
+        leader_id: leaderId,
+        added_by: currentUser.id,
+        can_edit_event: permissions.can_edit_event ?? true,
+        can_manage_facilitators: permissions.can_manage_facilitators ?? true,
+        can_send_invites: permissions.can_send_invites ?? true,
+        can_manage_volunteers: permissions.can_manage_volunteers ?? true,
+        can_view_participants: permissions.can_view_participants ?? true,
+        role: permissions.role ?? 'co-organizer'
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'addEventLeader');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Update event leader permissions
+ */
+export const updateEventLeaderPermissions = async (
+  leaderId: string,
+  permissions: Partial<EventLeader>
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('event_leaders')
+      .update({
+        ...permissions,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', leaderId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'updateEventLeaderPermissions');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Remove event leader
+ */
+export const removeEventLeader = async (leaderId: string) => {
+  try {
+    const { error } = await supabase
+      .from('event_leaders')
+      .delete()
+      .eq('id', leaderId);
+
+    if (error) throw error;
+    return { error: null };
+  } catch (error: any) {
+    logError(error as Error, 'removeEventLeader');
+    return { error };
+  }
+};
+
+/**
+ * Check if user is event leader with specific permission
+ */
+export const isEventLeader = async (
+  eventId: string,
+  userId: string,
+  permission?: keyof Pick<EventLeader, 'can_edit_event' | 'can_manage_facilitators' | 'can_send_invites' | 'can_manage_volunteers' | 'can_view_participants'>
+) => {
+  try {
+    let query = supabase
+      .from('event_leaders')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('leader_id', userId);
+
+    if (permission) {
+      query = query.eq(permission, true);
+    }
+
+    const { data, error } = await query.maybeSingle();
+
+    if (error) throw error;
+    return { isLeader: !!data, data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'isEventLeader');
+    return { isLeader: false, data: null, error };
+  }
+};
+
+// ============================================
+// EVENT FACILITATOR FUNCTIONS
+// ============================================
+
+/**
+ * Get facilitators assigned to event
+ */
+export const getEventFacilitators = async (
+  eventId: string,
+  status?: FacilitatorStatus
+) => {
+  try {
+    let query = supabase
+      .from('event_facilitators')
+      .select(`
+        *,
+        facilitator:profiles!facilitator_id(id, full_name, username, avatar_url, is_facilitator, facilitator_data),
+        invited_by_profile:profiles!invited_by(id, full_name, username)
+      `)
+      .eq('event_id', eventId);
+
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'getEventFacilitators');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Invite facilitator to event
+ */
+export const inviteFacilitatorToEvent = async (
+  eventId: string,
+  facilitatorId: string,
+  options: {
+    role?: string
+    compensation_type?: CompensationType
+    compensation_amount?: number
+    compensation_notes?: string
+  } = {}
+) => {
+  try {
+    const currentUser = (await supabase.auth.getUser()).data.user;
+    if (!currentUser) {
+      throw new Error('Must be authenticated to invite facilitators');
+    }
+
+    const { data, error } = await supabase
+      .from('event_facilitators')
+      .insert({
+        event_id: eventId,
+        facilitator_id: facilitatorId,
+        status: 'invited',
+        role: options.role,
+        compensation_type: options.compensation_type,
+        compensation_amount: options.compensation_amount,
+        compensation_notes: options.compensation_notes,
+        invited_by: currentUser.id,
+        invited_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'inviteFacilitatorToEvent');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Update facilitator assignment status
+ */
+export const updateFacilitatorStatus = async (
+  assignmentId: string,
+  status: FacilitatorStatus,
+  responseNotes?: string
+) => {
+  try {
+    const { data, error } = await supabase
+      .from('event_facilitators')
+      .update({
+        status,
+        response_notes: responseNotes,
+        responded_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', assignmentId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'updateFacilitatorStatus');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Remove facilitator from event
+ */
+export const removeFacilitatorFromEvent = async (assignmentId: string) => {
+  try {
+    const { error } = await supabase
+      .from('event_facilitators')
+      .delete()
+      .eq('id', assignmentId);
+
+    if (error) throw error;
+    return { error: null };
+  } catch (error: any) {
+    logError(error as Error, 'removeFacilitatorFromEvent');
+    return { error };
+  }
+};
+
+/**
+ * Get available facilitators sorted by distance and reviews
+ * Uses the database function for complex sorting logic
+ */
+export const getAvailableFacilitators = async (
+  eventDate: string,
+  startTime: string,
+  endTime: string,
+  latitude: number,
+  longitude: number,
+  limit: number = 20
+) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_available_facilitators', {
+        p_event_date: eventDate,
+        p_start_time: startTime,
+        p_end_time: endTime,
+        p_latitude: latitude,
+        p_longitude: longitude,
+        p_limit: limit
+      });
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'getAvailableFacilitators');
+    return { data: null, error };
+  }
+};
+
+/**
+ * Get facilitator's upcoming events
+ */
+export const getFacilitatorEvents = async (
+  facilitatorId: string,
+  status?: FacilitatorStatus
+) => {
+  try {
+    let query = supabase
+      .from('event_facilitators')
+      .select(`
+        *,
+        event:events(*)
+      `)
+      .eq('facilitator_id', facilitatorId);
+
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error: any) {
+    logError(error as Error, 'getFacilitatorEvents');
     return { data: null, error };
   }
 };
