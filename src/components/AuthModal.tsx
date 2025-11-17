@@ -247,21 +247,30 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
     setLoading(true);
     setError(null);
 
+    console.log('🔵 Starting Google OAuth flow...');
+    console.log('Redirect URL:', `${window.location.origin}/activities`);
+
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/activities`
         }
       });
 
+      console.log('🔵 OAuth response:', { data, error });
+
       if (error) {
+        console.error('🔴 OAuth error:', error);
         setError(error.message);
         setLoading(false);
+        return;
       }
+
       // If no error, user will be redirected to Google for authentication
+      console.log('🔵 Redirecting to Google...');
     } catch (error) {
-      console.error('Google sign-in error:', error);
+      console.error('🔴 Google sign-in exception:', error);
       setError('Failed to sign in with Google. Please try again.');
       setLoading(false);
     }
